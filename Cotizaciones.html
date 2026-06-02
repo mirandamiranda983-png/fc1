@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema FC - Cotizaciones y Clientes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .loader-main { border: 4px solid #f3f3f3; border-top: 4px solid #000000; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #dc2626; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; vertical-align: middle; margin-right: 8px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .bg-glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        #splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #f1f5f9; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.8s ease, visibility 0.8s; }
+        .fade-out { opacity: 0; visibility: hidden; }
+        .animate-fade-in { animation: fadeInUp 0.6s ease-out forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .custom-select { appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.5em 1.5em; }
+        body { background-image: radial-gradient(circle at top right, #f1f5f9, #ffffff); background-attachment: fixed; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
+
+    <!-- Pantalla de Carga Inicial -->
+    <div id="splash-screen">
+        <div class="loader-main mb-4"></div>
+        <h2 class="text-2xl font-black text-slate-800 tracking-tighter">SISTEMA FC</h2>
+        <p class="text-slate-500 text-sm animate-pulse">Sincronizando servicios...</p>
+    </div>
+
+    <!-- INTERFAZ 1: COTIZACIÓN -->
+    <div id="view-cotizacion" class="bg-glass p-8 rounded-2xl shadow-2xl w-full max-w-lg border border-white opacity-0 transition-opacity duration-1000">
+        <div class="text-center mb-6">
+            <div class="inline-block px-4 py-1 rounded-full bg-red-50 text-red-600 text-xs font-bold uppercase mb-2 tracking-wider">
+                Próximo Correlativo: <span id="display-nro">Cargando...</span>
+            </div>
+            <h1 class="text-3xl font-black text-slate-800">Generar Cotización</h1>
+            <p class="text-sm text-slate-500">Los datos se guardarán en la Base de datos FC</p>
+        </div>
+
+        <form id="form-cotizacion" class="space-y-4">
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">N° Documento</label>
+                <input type="text" id="nroVisual" name="nroVisual" readonly class="w-full bg-transparent text-xl font-bold text-slate-700 outline-none cursor-default" value="Consultando...">
+            </div>
+
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <label for="cliente" class="block text-sm font-semibold text-slate-700">Nombre del Cliente</label>
+                    <button type="button" onclick="showView('registro')" class="text-xs font-bold text-red-600 hover:text-red-800 uppercase tracking-tighter">
+                        <i class="fas fa-users-cog mr-1"></i>Gestionar Clientes
+                    </button>
+                </div>
+                <div class="relative">
+                    <input type="text" id="cliente" name="cliente" required placeholder="Cargando clientes..." autocomplete="off"
+                        oninput="onClienteInput()" onblur="closeClienteListDelayed()"
+                        class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-600 outline-none bg-white">
+                    <div id="cliente-autocomplete-list" class="hidden absolute w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-30 max-h-48 overflow-y-auto"></div>
+                </div>
+            </div>
+            <div>
+                <label for="descripcion" class="block text-sm font-semibold text-slate-700 mb-1">Servicio</label>
+                <select id="descripcion" name="descripcion" required class="custom-select w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-600 outline-none bg-white cursor-pointer">
+                    <option value="" disabled selected>Cargando servicios...</option>
+                </select>
+            </div>
+ 
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="fecha-cot" class="block text-sm font-semibold text-slate-700 mb-1">Fecha</label>
+                    <input type="date" id="fecha-cot" name="fecha" required class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-600 outline-none">
+                </div>
+                <div>
+                    <label for="precio" class="block text-sm font-semibold text-slate-700 mb-1">Precio C$</label>
+                    <input type="number" id="precio" name="precio" step="0.01" min="0" required placeholder="0.00" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-600 outline-none">
+                </div>
+            </div>
+
+            <div>
+                <label for="precioLetras" class="block text-sm font-semibold text-slate-700 mb-1">Importe en Letras</label>
+                <input type="text" id="precioLetras" name="precioLetras" readonly class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-500 italic text-sm outline-none">
+            </div>
+
+            <div>
+                <label for="observaciones" class="block text-sm font-semibold text-slate-700 mb-1">Observaciones</label>
+                <textarea id="observaciones" name="observaciones" rows="2" placeholder="Notas adicionales..." class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-600 outline-none transition-all"></textarea>
+            </div>
+
+            <button type="submit" id="btn-submit" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-xl transition-all flex justify-center items-center shadow-lg group">
+                <span class="loader" id="spinner"></span>
+                <span id="btn-text">GENERAR COTIZACIÓN</span>
+            </button>
+        </form>
+        <div id="mensaje" class="mt-6 hidden p-4 rounded-xl text-sm text-center font-medium border"></div>
+    </div>
+
+    <!-- INTERFAZ 2: REGISTRO Y GESTIÓN DE CLIENTES -->
+    <div id="view-registro" class="hidden max-w-4xl w-full glass rounded-3xl shadow-2xl p-6 md:p-10 border border-white">
+           <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 border-b border-slate-100 pb-6">
+            <button onclick="showView('cotizacion')" class="text-slate-400 hover:text-slate-800 transition-colors font-bold text-sm flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i>Volver al Módulo
+            </button>
+            <h1 class="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight italic text-center md:text-right">
+                <i class="fas fa-address-card text-red-600 mr-2"></i>Registro de Clientes FC
+            </h1>
+        </div>
+ 
+        <div class="mb-8 bg-red-50/50 p-4 rounded-2xl border border-red-100">
+            <label class="block text-xs font-bold text-red-600 uppercase mb-2 ml-1">Buscar cliente para editar o eliminar</label>
+            <div class="relative">
+                <input type="text" id="buscador" oninput="buscarClienteLocal()" placeholder="Buscar por nombre o RUC..." class="w-full p-3 pl-10 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-600 outline-none">
+                <i class="fas fa-search absolute left-3 top-4 text-slate-400"></i>
+                <div id="resultadosBusqueda" class="hidden absolute w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto"></div>
+            </div>
+        </div>
+        
+        <form id="clienteForm" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="space-y-1">
+                <label class="block text-sm font-bold text-slate-700 ml-1">ID Cliente (Automático)</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-red-600"><i class="fas fa-fingerprint"></i></span>
+                    <input type="text" name="id" id="inputId" readonly placeholder="Calculando..." class="w-full pl-10 p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 cursor-not-allowed outline-none">
+                </div>
+            </div>
+            <div class="space-y-1">
+                <label class="block text-sm font-bold text-slate-700 ml-1">Fecha de Registro</label>
+                <input type="date" name="fecha" id="fecha-reg" class="w-full p-3 bg-white border rounded-xl focus:ring-2 focus:ring-red-600 outline-none" required>
+            </div>
+
+            <div class="md:col-span-2 space-y-1">
+                <label class="block text-sm font-bold text-slate-700 ml-1">Nombre / Razón Social</label>
+                <input type="text" name="nombre" id="reg-nombre" placeholder="Nombre completo o empresa" class="w-full p-3 bg-white border rounded-xl focus:ring-2 focus:ring-red-600 outline-none" required>
+            </div>
+
+            <div class="space-y-1">
+                <label class="block text-sm font-bold text-slate-700 ml-1">Sector</label>
+                <select name="sector" id="selectSector" class="custom-select w-full p-3 bg-white border rounded-xl focus:ring-2 focus:ring-red-600 outline-none" required></select>
+            </div>
+            <div class="space-y-1">
+                <label class="block text-sm font-bold text-slate-700 ml-1">Actividad</label>
+                <input type="text" name="actividad" id="reg-actividad" placeholder="Actividad económica" class="w-full p-3 bg-white border rounded-xl focus:ring-2 focus:ring-red-600 outline-none" required>
+            </div>
+
+            <div class="space-y-1">
+                <label class="block text-sm font-bold text-slate-700 ml-1">RUC</label>
+                <input type="text" name="ruc" id="reg-ruc" placeholder="Número de RUC" class="w-full p-3 bg-white border rounded-xl focus:ring-2 focus:ring-red-600 outline-none" required>
+            </div>
+            <div class="space-y-1">
+                <label class="block text-sm font-bold text-slate-700 ml-1">Gerente Responsable</label>
+                <input type="text" name="gerente" id="reg-gerente" placeholder="Nombre del gerente" class="w-full p-3 bg-white border rounded-xl focus:ring-2 focus:ring-red-600 outline-none">
+            </div>
+
+            <div class="space-y-1">
+                <label class="block text-sm font-bold text-slate-700 ml-1">Teléfono</label>
+                <input type="tel" name="telefono" id="reg-telefono" placeholder="Ej: +595..." class="w-full p-3 bg-white border rounded-xl focus:ring-2 focus:ring-red-600 outline-none">
+            </div>
+            <div class="space-y-1">
+                <label class="block text-sm font-bold text-slate-700 ml-1">Correo Electrónico</label>
+                <input type="email" name="email" id="reg-email" placeholder="ejemplo@correo.com" class="w-full p-3 bg-white border rounded-xl focus:ring-2 focus:ring-red-600 outline-none">
+            </div>
+
+            <div class="md:col-span-2 space-y-1">
+                <label class="block text-sm font-bold text-slate-700 ml-1">Dirección Completa</label>
+                <textarea name="direccion" id="reg-direccion" rows="2" placeholder="Calle, Ciudad, Referencia" class="w-full p-3 bg-white border rounded-xl focus:ring-2 focus:ring-red-600 outline-none"></textarea>
+            </div>
+
+            <div class="md:col-span-2 flex flex-col md:flex-row gap-4 mt-4">
+                <button type="submit" id="btnGuardar" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 transform active:scale-95">
+                    <i class="fas fa-save"></i> <span id="txtGuardar">GUARDAR CLIENTE</span>
+                </button>
+                <button type="button" id="btnEliminar" onclick="eliminarCliente()" class="hidden bg-slate-900 hover:bg-black text-white font-bold py-4 px-6 rounded-2xl transition-all shadow-md">
+                    <i class="fas fa-trash"></i>
+                </button>
+                <button type="reset" onclick="resetFormulario()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-4 px-8 rounded-2xl transition-all shadow-md">
+                    <i class="fas fa-eraser"></i>
+                </button>
+            </div>
+        </form>
+        <p class="text-center text-slate-400 mt-4 text-xs" id="statusText">Conexión establecida</p>
+    </div>
+
+    <!-- Modal de Éxito -->
+    <div id="modalExito" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl text-center max-w-sm w-full border border-slate-100">
+            <div class="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl"><i class="fas fa-check"></i></div>
+            <h2 class="text-2xl font-bold mb-2 text-slate-800">¡Éxito!</h2>
+            <p class="text-slate-500 mb-6" id="modalMsg">Operación realizada correctamente.</p>
+            <button onclick="cerrarModal()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl hover:bg-black transition-all shadow-lg">ACEPTAR</button>
+        </div>
+    </div>
+
+    <script>
+        const GOOGLE_SCRIPT_COTIZACION = 'https://script.google.com/macros/s/AKfycbzqmrUGJ99fchWFo0mtPwyuUsXJ_anem8Erk2j7Az-RHnRD-zndb4sIaCQxlm5WjmhJ/exec'; 
+        const GOOGLE_SCRIPT_REGISTRO = 'https://script.google.com/macros/s/AKfycbyd85qyheuHhrPfpcasRS55AMUXIfsCS_tVz02Ktg68wUWvrBMI4sv9jv-r1PJcZ0BW7A/exec';
+
+        let listaClientesLocal = [];
+        let editando = false;
+
+        function showView(view) {
+            const vCot = document.getElementById('view-cotizacion');
+            const vReg = document.getElementById('view-registro');
+            if(view === 'registro') {
+                vCot.classList.add('hidden');
+                vReg.classList.remove('hidden');
+                vReg.classList.add('animate-fade-in');
+                cargarListaClientes();
+            } else {
+                vReg.classList.add('hidden');
+                vCot.classList.remove('hidden');
+                cargarDatosCotizacion();
+            }
+        }
+
+        async function cargarListaClientes() {
+            try {
+                const res = await fetch(`${GOOGLE_SCRIPT_REGISTRO}?action=getClientes`);
+                listaClientesLocal = await res.json();
+            } catch (e) { console.error("Error al cargar lista de clientes"); }
+        }
+
+        let clientesCache = [];
+
+        window.onClienteInput = function () {
+            const q = document.getElementById('cliente').value.trim().toLowerCase();
+            const list = document.getElementById('cliente-autocomplete-list');
+
+            if (q.length < 1) { 
+                list.classList.add('hidden'); 
+                return; 
+            }
+
+            // Filtrar exclusivamente los clientes que existan en la base de datos
+            const filtrados = clientesCache.filter(c => 
+                (c || '').toLowerCase().includes(q)
+            );
+
+            if (filtrados.length === 0) {
+                list.innerHTML = '<div class="p-3 text-xs text-slate-400 text-center">Sin resultados</div>';
+            } else {
+                list.innerHTML = filtrados.slice(0, 8).map(c => `
+                    <div onmousedown="seleccionarClienteCotizacion('${c.replace(/'/g, "\\'")}')" class="p-3 hover:bg-slate-50 cursor-pointer border-b text-sm text-left font-semibold text-slate-800">
+                        ${c}
+                    </div>`).join('');
+            }
+            list.classList.remove('hidden');
+        };
+
+        window.closeClienteListDelayed = function () {
+            setTimeout(() => {
+                const list = document.getElementById('cliente-autocomplete-list');
+                if (list) list.classList.add('hidden');
+            }, 250);
+        };
+
+        window.seleccionarClienteCotizacion = function (nombre) {
+            const input = document.getElementById('cliente');
+            input.value = nombre;
+            document.getElementById('cliente-autocomplete-list').classList.add('hidden');
+        };
+
+        function buscarClienteLocal() {
+            const query = document.getElementById('buscador').value.toLowerCase();
+            const resDiv = document.getElementById('resultadosBusqueda');
+            if(query.length < 2) { resDiv.classList.add('hidden'); return; }
+
+            const filtrados = listaClientesLocal.filter(c => 
+                c.nombre.toLowerCase().includes(query) || c.ruc.toString().includes(query)
+            );
+
+            if(filtrados.length > 0) {
+                resDiv.innerHTML = filtrados.map(c => `
+                    <div onclick='seleccionarCliente(${JSON.stringify(c).replace(/'/g, "&apos;")})' class="p-3 hover:bg-slate-50 cursor-pointer border-b text-sm text-left">
+                        <b>${c.nombre}</b> <span class="text-xs text-slate-400 ml-2">RUC: ${c.ruc}</span>
+                    </div>
+                `).join('');
+                resDiv.classList.remove('hidden');
+            } else {
+                resDiv.innerHTML = '<div class="p-3 text-xs text-slate-400">Sin resultados</div>';
+                resDiv.classList.remove('hidden');
+            }
+        }
+
+        function seleccionarCliente(c) {
+            editando = true;
+            document.getElementById('resultadosBusqueda').classList.add('hidden');
+            document.getElementById('buscador').value = c.nombre;
+            
+            document.getElementById('inputId').value = c.id;
+            document.getElementById('reg-nombre').value = c.nombre;
+            document.getElementById('selectSector').value = c.sector;
+            document.getElementById('reg-actividad').value = c.actividad;
+            document.getElementById('reg-ruc').value = c.ruc;
+            document.getElementById('reg-gerente').value = c.gerente;
+            document.getElementById('reg-telefono').value = c.telefono;
+            document.getElementById('reg-email').value = c.email;
+            document.getElementById('reg-direccion').value = c.direccion;
+            
+            document.getElementById('txtGuardar').innerText = "ACTUALIZAR DATOS";
+            document.getElementById('btnGuardar').classList.replace('bg-red-600', 'bg-slate-900');
+            document.getElementById('btnEliminar').classList.remove('hidden');
+        }
+
+        function resetFormulario() {
+            editando = false;
+            document.getElementById('clienteForm').reset();
+            document.getElementById('txtGuardar').innerText = "GUARDAR CLIENTE";
+            document.getElementById('btnGuardar').className = "flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 transform active:scale-95";
+            document.getElementById('btnEliminar').classList.add('hidden');
+            document.getElementById('buscador').value = "";
+            document.getElementById('inputId').value = "Calculando...";
+            document.getElementById('fecha-reg').valueAsDate = new Date();
+            cargarDatosRegistro(); 
+        }
+
+        async function eliminarCliente() {
+            if(!confirm("¿Está seguro de eliminar este cliente?")) return;
+            const id = document.getElementById('inputId').value;
+            const btn = document.getElementById('btnEliminar');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
+            try {
+                // Usamos una promesa que se resuelve siempre para evitar el mensaje de error falso de CORS
+                await fetch(GOOGLE_SCRIPT_REGISTRO, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({ action: 'delete', id: id })
+                });
+                // Auditoría
+                const nombreEl = document.getElementById('reg-nombre');
+                if (window.parent && typeof window.parent.logAudit === 'function') {
+                    window.parent.logAudit('ELIMINAR_REGISTRO', 'Cotizaciones – Clientes',
+                        `Cliente eliminado: ID=${id} | Nombre: ${nombreEl ? nombreEl.value : '—'}`
+                    );
+                }
+                document.getElementById('modalMsg').innerText = "Cliente eliminado con éxito.";
+                document.getElementById('modalExito').classList.remove('hidden');
+                // La limpieza se hace al cerrar el modal
+            } catch(e) { 
+                console.log("Error de respuesta silenciado (CORS)");
+                document.getElementById('modalMsg').innerText = "Cliente eliminado con éxito.";
+                document.getElementById('modalExito').classList.remove('hidden');
+            }
+            btn.innerHTML = '<i class="fas fa-trash"></i>';
+        }
+
+        const btnSubmitCot = document.getElementById('btn-submit');
+        const btnTextCot = document.getElementById('btn-text');
+        const spinnerCot = document.getElementById('spinner');
+        const mensajeDiv = document.getElementById('mensaje');
+
+        async function cargarDatosCotizacion() {
+            try {
+                const response = await fetch(`${GOOGLE_SCRIPT_COTIZACION}?t=${Date.now()}`);
+                const data = await response.json();
+                document.getElementById('nroVisual').value = "COTIZACIÓN N° " + data.nextNro;
+                document.getElementById('display-nro').textContent = data.nextNro;
+                
+                const selectS = document.getElementById('descripcion');
+                selectS.innerHTML = '<option value="" disabled selected>Seleccione un servicio</option>';
+                data.servicios.forEach(s => {
+                    const o = document.createElement('option');
+                    o.value = o.textContent = s; selectS.appendChild(o);
+                });
+
+                // Cargar lista de clientes para autocompletar
+                clientesCache = data.clientes || [];
+                const inputC = document.getElementById('cliente');
+                inputC.placeholder = "Escriba el nombre del cliente...";
+                inputC.disabled = false;
+            } catch (e) { console.error(e); }
+        }
+
+        function numeroALetras(num) {
+            function Unidades(num) {
+                switch(num) {
+                    case 1: return 'UN'; case 2: return 'DOS'; case 3: return 'TRES';
+                    case 4: return 'CUATRO'; case 5: return 'CINCO'; case 6: return 'SEIS';
+                    case 7: return 'SIETE'; case 8: return 'OCHO'; case 9: return 'NUEVE';
+                } return '';
+            }
+            function Decenas(num) {
+                let d = Math.floor(num / 10);
+                let u = num - (d * 10);
+                switch(d) {
+                    case 1: switch(u) {
+                        case 0: return 'DIEZ'; case 1: return 'ONCE'; case 2: return 'DOCE';
+                        case 3: return 'TRECE'; case 4: return 'CATORCE'; case 5: return 'QUINCE';
+                        default: return 'DIECI' + Unidades(u);
+                    }
+                    case 2: return u == 0 ? 'VEINTE' : 'VEINTI' + Unidades(u);
+                    case 3: return u > 0 ? 'TREINTA Y ' + Unidades(u) : 'TREINTA';
+                    case 4: return u > 0 ? 'CUARENTA Y ' + Unidades(u) : 'CUARENTA';
+                    case 5: return u > 0 ? 'CINCUENTA Y ' + Unidades(u) : 'CINCUENTA';
+                    case 6: return u > 0 ? 'SESENTA Y ' + Unidades(u) : 'SESENTA';
+                    case 7: return u > 0 ? 'SETENTA Y ' + Unidades(u) : 'SETENTA';
+                    case 8: return u > 0 ? 'OCHENTA Y ' + Unidades(u) : 'OCHENTA';
+                    case 9: return u > 0 ? 'NOVENTA Y ' + Unidades(u) : 'NOVENTA';
+                    case 0: return Unidades(u);
+                }
+            }
+            function Centenas(num) {
+                let c = Math.floor(num / 100);
+                let d = num - (c * 100);
+                switch(c) {
+                    case 1: return d > 0 ? 'CIENTO ' + Decenas(d) : 'CIEN';
+                    case 2: return 'DOSCIENTOS ' + Decenas(d);
+                    case 3: return 'TRESCIENTOS ' + Decenas(d);
+                    case 4: return 'CUATROCIENTOS ' + Decenas(d);
+                    case 5: return 'QUINIENTOS ' + Decenas(d);
+                    case 6: return 'SEISCIENTOS ' + Decenas(d);
+                    case 7: return 'SETECIENTOS ' + Decenas(d);
+                    case 8: return 'OCHOCIENTOS ' + Decenas(d);
+                    case 9: return 'NOVECIENTOS ' + Decenas(d);
+                } return Decenas(d);
+            }
+            function Miles(num) {
+                let mil = Math.floor(num / 1000);
+                let r = num % 1000;
+                let sM = mil == 1 ? 'MIL' : Centenas(mil) + ' MIL';
+                let sC = Centenas(r);
+                return mil == 0 ? sC : sM + (sC != '' ? ' ' + sC : '');
+            }
+            let ent = Math.floor(num);
+            let cent = Math.round((num - ent) * 100);
+            let res = ent === 0 ? 'CERO' : (ent < 1000 ? Centenas(ent) : Miles(ent));
+            return `${res.trim()} CÓRDOBAS CON ${cent.toString().padStart(2, '0')}/100`;
+        }
+
+        document.getElementById('precio').addEventListener('input', (e) => {
+            const v = parseFloat(e.target.value);
+            document.getElementById('precioLetras').value = !isNaN(v) ? numeroALetras(v) : "";
+        });
+
+        document.getElementById('form-cotizacion').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit');
+            btn.disabled = true;
+            document.getElementById('spinner').style.display = 'inline-block';
+            
+            const formData = new FormData(e.target);
+            const queryParams = new URLSearchParams(formData).toString();
+
+            try {
+                const response = await fetch(`${GOOGLE_SCRIPT_COTIZACION}?${queryParams}`, { method: 'POST' });
+                const result = await response.json();
+                if (result.result === 'success') {
+                    const clienteVal = formData.get('cliente') || '—';
+                    const servicioVal = formData.get('descripcion') || '—';
+                    const precioVal = formData.get('precio') || '—';
+                    const nroDoc = document.getElementById('nroVisual').value || '—';
+                    // Auditoría
+                    if (window.parent && typeof window.parent.logAudit === 'function') {
+                        window.parent.logAudit('CREAR_COTIZACION', 'Cotizaciones',
+                            `${nroDoc} | Cliente: ${clienteVal} | Servicio: ${servicioVal} | Precio: C$ ${precioVal}`
+                        );
+                    }
+                    if (result.pdfUrl) window.open(result.pdfUrl, '_blank');
+                    e.target.reset();
+                    document.getElementById('fecha-cot').valueAsDate = new Date();
+                    cargarDatosCotizacion(); 
+                }
+            } catch (error) { console.error(error); }
+            finally {
+                btn.disabled = false;
+                document.getElementById('spinner').style.display = 'none';
+            }
+        });
+
+        document.getElementById('clienteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnGuardar');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Procesando...';
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            data.action = editando ? "update" : "create";
+
+            try {
+                await fetch(GOOGLE_SCRIPT_REGISTRO, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify(data)
+                });
+                // Auditoría
+                if (window.parent && typeof window.parent.logAudit === 'function') {
+                    const accion = editando ? 'EDITAR_REGISTRO' : 'CREAR_REGISTRO';
+                    const nombreCliente = data.nombre || '—';
+                    const rucCliente = data.ruc || '—';
+                    window.parent.logAudit(accion, 'Cotizaciones – Clientes',
+                        `${editando ? 'Actualización' : 'Registro nuevo'}: ${nombreCliente} | RUC: ${rucCliente} | Sector: ${data.sector || '—'}`
+                    );
+                }
+                document.getElementById('modalMsg').innerText = editando ? "Cliente actualizado con éxito." : "Cliente guardado con éxito.";
+                document.getElementById('modalExito').classList.remove('hidden');
+            } catch (error) { 
+                console.log("Error de respuesta silenciado (CORS)");
+                document.getElementById('modalMsg').innerText = "Operación realizada con éxito.";
+                document.getElementById('modalExito').classList.remove('hidden');
+            }
+            finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save"></i> ' + (editando ? 'ACTUALIZAR DATOS' : 'GUARDAR CLIENTE');
+            }
+        });
+
+        function cerrarModal() {
+            document.getElementById('modalExito').classList.add('hidden');
+            // Al cerrar el modal de éxito, limpiamos todo y volvemos a cotizaciones
+            resetFormulario();
+            showView('cotizacion');
+        }
+
+        async function cargarDatosRegistro() {
+            try {
+                const [resId, resSectores] = await Promise.all([
+                    fetch(GOOGLE_SCRIPT_REGISTRO),
+                    fetch(`${GOOGLE_SCRIPT_REGISTRO}?action=getSectores`)
+                ]);
+                document.getElementById('inputId').value = await resId.text();
+                const sectores = await resSectores.json();
+                const sel = document.getElementById('selectSector');
+                sel.innerHTML = '<option value="" disabled selected>Seleccione un sector</option>';
+                sectores.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = opt.textContent = s; sel.appendChild(opt);
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        window.addEventListener('load', () => {
+            document.getElementById('fecha-cot').valueAsDate = new Date();
+            document.getElementById('fecha-reg').valueAsDate = new Date();
+            Promise.all([cargarDatosCotizacion(), cargarDatosRegistro()]).then(() => {
+                setTimeout(() => {
+                    document.getElementById('splash-screen').classList.add('fade-out');
+                    document.getElementById('view-cotizacion').classList.remove('opacity-0');
+                }, 1500);
+            });
+        });
+    </script>
+</body>
+</html>

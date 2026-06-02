@@ -1,0 +1,1866 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Requisas de Salida - FC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    :root {
+      --bg-body: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-input: #f1f5f9;
+      --border-color: rgba(15, 23, 42, 0.08);
+      --text-primary: #0f172a;
+      --text-secondary: #64748b;
+      --bg-header: rgba(255, 255, 255, 0.85);
+      --bg-nav-tabs: rgba(241, 245, 249, 0.8);
+      --bg-pill: rgba(241, 245, 249, 0.8);
+      --bg-drawer: rgba(255, 255, 255, 0.98);
+      --bg-btn-secondary: rgba(15, 23, 42, 0.05);
+      --bg-btn-secondary-hover: rgba(15, 23, 42, 0.08);
+      --bg-th: rgba(15, 23, 42, 0.02);
+      --bg-tr-hover: rgba(15, 23, 42, 0.01);
+      --bg-toast: rgba(255, 255, 255, 0.98);
+      --color-primary: #dc2626;
+      --color-primary-hover: #b91c1c;
+      --color-success: #10b981;
+      --color-danger: #ef4444;
+      --color-warning: #f59e0b;
+      --color-accent: #4b5563;
+      --shadow-premium: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
+      --font-title: 'Plus Jakarta Sans', sans-serif;
+      --font-body: 'Outfit', sans-serif;
+      --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body.dark-theme {
+      --bg-body: #0b0f19;
+      --bg-card: #151d30;
+      --bg-input: #1e293b;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --bg-header: rgba(21, 29, 48, 0.85);
+      --bg-nav-tabs: rgba(30, 41, 59, 0.6);
+      --bg-pill: rgba(30, 41, 59, 0.6);
+      --bg-drawer: rgba(15, 23, 42, 0.98);
+      --bg-btn-secondary: rgba(255, 255, 255, 0.05);
+      --bg-btn-secondary-hover: rgba(255, 255, 255, 0.1);
+      --bg-th: rgba(255, 255, 255, 0.02);
+      --bg-tr-hover: rgba(255, 255, 255, 0.01);
+      --bg-toast: rgba(21, 29, 48, 0.95);
+      --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      overflow-x: hidden;
+      width: 100%;
+    }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    header {
+      background: var(--bg-header);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 16px 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      transition: var(--transition-smooth);
+    }
+
+    body.dark-theme header {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .nav-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: nowrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: white;
+      box-shadow: 0 0 15px rgba(220, 38, 38, 0.4);
+    }
+
+    .brand-text h1 {
+      font-family: var(--font-title);
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+
+    .brand-text span {
+      font-size: 0.75rem;
+      color: var(--color-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      display: block;
+    }
+
+    .nav-tabs {
+      display: flex;
+      background: var(--bg-nav-tabs);
+      padding: 6px;
+      border-radius: 30px;
+      border: 1px solid var(--border-color);
+      gap: 4px;
+      transition: var(--transition-smooth);
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-family: var(--font-title);
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 8px 18px;
+      border-radius: 25px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition-smooth);
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+      background: var(--bg-btn-secondary);
+    }
+
+    .tab-btn.active {
+      color: white;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+      box-shadow: 0 4px 10px rgba(220, 38, 38, 0.25);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--color-warning);
+      display: inline-block;
+      box-shadow: 0 0 8px var(--color-warning);
+      transition: var(--transition-smooth);
+    }
+
+    .status-dot.success {
+      background-color: var(--color-success);
+      box-shadow: 0 0 8px var(--color-success);
+    }
+
+    .status-dot.danger {
+      background-color: var(--color-danger);
+      box-shadow: 0 0 8px var(--color-danger);
+    }
+
+    .status-pill {
+      background: var(--bg-pill);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition-smooth);
+    }
+
+    .status-pill:hover {
+      border-color: rgba(220, 38, 38, 0.25);
+      color: var(--text-primary);
+    }
+
+    .theme-toggle {
+      background: var(--bg-btn-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      width: 38px;
+      height: 38px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      transition: var(--transition-smooth);
+    }
+
+    .theme-toggle:hover {
+      background: var(--bg-btn-secondary-hover);
+      color: var(--text-primary);
+    }
+
+    main {
+      flex: 1;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .page-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    @media(min-width:1100px) {
+      .page-grid {
+        grid-template-columns: 440px 1fr;
+      }
+    }
+
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: var(--shadow-premium);
+      backdrop-filter: blur(10px);
+      transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(220, 38, 38, 0.2);
+    }
+
+    .card-title {
+      font-family: var(--font-title);
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+    }
+
+    .card-title svg {
+      color: var(--color-primary);
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+
+    .form-control {
+      width: 100%;
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      padding: 9px 13px;
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      transition: var(--transition-smooth);
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+      background-color: var(--bg-card);
+    }
+
+    .form-control:disabled,
+    .form-control[readonly] {
+      background-color: var(--bg-btn-secondary);
+      color: var(--text-secondary);
+      cursor: not-allowed;
+      border-style: dashed;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+
+    .badge-primary {
+      background: rgba(220, 38, 38, 0.1);
+      color: var(--color-primary);
+    }
+
+    .badge-success {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--color-success);
+    }
+
+    .badge-warning {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--color-warning);
+    }
+
+    .badge-danger {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--color-danger);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 20px;
+      border-radius: 8px;
+      font-family: var(--font-title);
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      border: none;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+      color: white;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(220, 38, 38, 0.35);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background: var(--bg-btn-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-btn-secondary-hover);
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    /* Autocomplete */
+    .ac-wrap {
+      position: relative;
+    }
+
+    .ac-list {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+      z-index: 300;
+      max-height: 200px;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .ac-list.open {
+      display: block;
+    }
+
+    .ac-item {
+      padding: 9px 13px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      border-bottom: 1px solid var(--border-color);
+      transition: background 0.15s;
+    }
+
+    .ac-item:last-child {
+      border-bottom: none;
+    }
+
+    .ac-item:hover {
+      background: rgba(220, 38, 38, 0.06);
+    }
+
+    .ac-item .ac-sub {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      font-family: monospace;
+      margin-top: 2px;
+    }
+
+    .ac-empty {
+      padding: 12px;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+
+    /* Tabla de químicos */
+    .quimicos-table-wrap {
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .quimicos-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .quimicos-table th {
+      background: var(--bg-th);
+      color: var(--text-secondary);
+      font-family: var(--font-title);
+      font-weight: 600;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--border-color);
+      text-align: left;
+    }
+
+    .quimicos-table td {
+      padding: 8px 6px;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+    }
+
+    .quimicos-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .quimicos-table .form-control {
+      padding: 7px 9px;
+      font-size: 0.82rem;
+    }
+
+    .quimicos-table input[type=number] {
+      width: 80px;
+    }
+
+    .row-num {
+      font-family: var(--font-title);
+      font-weight: 700;
+      color: var(--color-primary);
+      font-size: 0.85rem;
+      width: 28px;
+      text-align: center;
+    }
+
+    /* Historial */
+    .table-responsive {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-premium);
+      background: var(--bg-card);
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background: var(--bg-th);
+      color: var(--text-secondary);
+      font-family: var(--font-title);
+      font-weight: 600;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+      padding: 12px 14px;
+      font-size: 0.88rem;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-primary);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: var(--bg-tr-hover);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-secondary);
+    }
+
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    /* Info card del cliente */
+    .info-block {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-top: 4px;
+    }
+
+    .info-row {
+      display: flex;
+      gap: 6px;
+      font-size: 0.82rem;
+      margin-bottom: 4px;
+    }
+
+    .info-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .info-label {
+      color: var(--text-secondary);
+      font-weight: 500;
+      min-width: 80px;
+    }
+
+    .info-value {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* Toast */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1010;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 380px;
+      width: calc(100% - 48px);
+    }
+
+    .toast {
+      background: var(--bg-toast);
+      border-left: 4px solid var(--color-primary);
+      border-top: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 14px 16px;
+      border-radius: 8px;
+      box-shadow: var(--shadow-premium);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transform: translateX(120%);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      backdrop-filter: blur(10px);
+    }
+
+    .toast.show {
+      transform: translateX(0);
+    }
+
+    .toast.success {
+      border-left-color: var(--color-success);
+    }
+
+    .toast.warning {
+      border-left-color: var(--color-warning);
+    }
+
+    .toast.error {
+      border-left-color: var(--color-danger);
+    }
+
+    .toast-title {
+      font-family: var(--font-title);
+      font-weight: 700;
+      font-size: 0.88rem;
+      margin-bottom: 2px;
+    }
+
+    .toast-message {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    .spinner {
+      animation: rotate 1.2s linear infinite;
+      width: 18px;
+      height: 18px;
+      display: inline-block;
+    }
+
+    .spinner .path {
+      stroke: currentColor;
+      stroke-linecap: round;
+      animation: dash 1.5s ease-in-out infinite;
+    }
+
+    @keyframes rotate {
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes dash {
+      0% {
+        stroke-dasharray: 1, 150;
+        stroke-dashoffset: 0;
+      }
+
+      50% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -35;
+      }
+
+      100% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -124;
+      }
+    }
+
+    /* Splash */
+    #splash-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 99999;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+      opacity: 1;
+      visibility: visible;
+    }
+
+    #splash-screen.fade-out {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .splash-content {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .splash-title {
+      font-family: var(--font-title);
+      font-size: 2rem;
+      font-weight: 800;
+      color: #dc2626;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .splash-loader {
+      width: 220px;
+      height: 5px;
+      background: #e2e8f0;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .splash-progress {
+      width: 0;
+      height: 100%;
+      background: #dc2626;
+      border-radius: 10px;
+      animation: loadProgress 1.6s cubic-bezier(0.1, 0.8, 0.1, 1) forwards;
+    }
+
+    .splash-text {
+      font-family: var(--font-title);
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #1e293b;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      animation: pulseText 1.5s infinite ease-in-out;
+    }
+
+    @keyframes loadProgress {
+      0% {
+        width: 0%;
+      }
+
+      100% {
+        width: 100%;
+      }
+    }
+
+    @keyframes pulseText {
+
+      0%,
+      100% {
+        opacity: 0.6;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+
+    footer {
+      border-top: 1px solid var(--border-color);
+      background: var(--bg-card);
+      padding: 16px 24px;
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      transition: var(--transition-smooth);
+    }
+
+    /* Estilos para el botón de menú tipo hamburguesa */
+    .menu-toggle {
+      display: none;
+      background: var(--bg-btn-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      width: 38px;
+      height: 38px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      transition: var(--transition-smooth);
+    }
+
+    .menu-toggle:hover {
+      background: var(--bg-btn-secondary-hover);
+      color: var(--text-primary);
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media(max-width:768px) {
+      .menu-toggle {
+        display: flex;
+      }
+
+      .status-pill span:not(.status-dot) {
+        display: none;
+      }
+
+      .status-pill {
+        padding: 6px;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        justify-content: center;
+      }
+
+      .nav-tabs {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 20px;
+        right: 20px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        z-index: 999;
+        gap: 6px;
+      }
+
+      .nav-tabs.open {
+        display: flex !important;
+        animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      }
+
+      .tab-btn {
+        width: 100%;
+        justify-content: flex-start;
+        border-radius: 8px;
+        padding: 10px 16px;
+      }
+
+      .form-grid-2,
+      .form-grid-3 {
+        grid-template-columns: 1fr;
+      }
+
+      .btn-group {
+        grid-template-columns: 1fr;
+      }
+
+      .quimicos-table td,
+      .quimicos-table th {
+        font-size: 0.72rem;
+        padding: 6px 4px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <script>(function () { const t = localStorage.getItem("theme") || "light"; if (t === "dark") document.body.classList.add("dark-theme"); })();</script>
+
+  <div id="splash-screen">
+    <div class="splash-content">
+      <h1 class="splash-title">FAST CONTROL</h1>
+      <div class="splash-loader">
+        <div class="splash-progress"></div>
+      </div>
+      <div class="splash-text">Cargando Módulo de Requisas</div>
+    </div>
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      setTimeout(() => {
+        const s = document.getElementById("splash-screen");
+        if (s) { s.classList.add("fade-out"); setTimeout(() => s.remove(), 600); }
+      }, 1200);
+    });
+  </script>
+
+  <header>
+    <div class="nav-container">
+      <a href="#" class="brand">
+        <div class="brand-logo">FC</div>
+        <div class="brand-text">
+          <h1>Fast Control</h1><span>Requisas de Salida</span>
+        </div>
+      </a>
+      <nav class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('nueva-requisa',this)">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          Nueva Requisa
+        </button>
+        <button class="tab-btn" onclick="switchTab('historial',this)">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          Historial
+        </button>
+      </nav>
+      <div class="header-actions">
+        <div class="status-pill"><span class="status-dot" id="status-dot"></span><span
+            id="status-text">Conectando...</span></div>
+        <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">
+          <svg id="theme-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+          </svg>
+        </button>
+        <button class="menu-toggle" onclick="toggleMenu()" title="Menú">
+          <svg id="menu-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div id="toast-container"></div>
+
+  <main>
+
+    <!-- ══ TAB: NUEVA REQUISA ══ -->
+    <section id="tab-nueva-requisa" class="tab-content active">
+      <div class="page-grid">
+
+        <!-- FORMULARIO -->
+        <div class="card">
+          <h2 class="card-title">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Datos de la Requisa
+          </h2>
+
+          <!-- Número y Fecha -->
+          <div class="form-grid-2">
+            <div class="form-group" style="margin-bottom:0;">
+              <label>N° Requisa</label>
+              <input type="text" id="numero_requisa" class="form-control" readonly placeholder="REC-001">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Fecha de Emisión</label>
+              <input type="text" id="fecha_emision" class="form-control" readonly>
+            </div>
+          </div>
+
+          <!-- Orden de Trabajo -->
+          <div class="form-group" style="margin-top:14px;">
+            <label>Orden de Trabajo <span style="color:var(--color-danger);">*</span></label>
+            <div class="ac-wrap">
+              <input type="text" id="ot-search" class="form-control" placeholder="Buscar por número o cliente..."
+                autocomplete="off" oninput="onOTSearch()" onblur="closeOTListDelayed()">
+              <div class="ac-list" id="ot-list"></div>
+            </div>
+          </div>
+
+          <!-- Info del cliente (readonly) -->
+          <div class="info-block" id="cliente-info-block" style="display:none;">
+            <div class="info-row"><span class="info-label">Cliente:</span><span class="info-value"
+                id="inf-cliente">—</span></div>
+            <div class="info-row"><span class="info-label">Dirección:</span><span class="info-value"
+                id="inf-direccion">—</span></div>
+            <div class="info-row"><span class="info-label">Atención:</span><span class="info-value"
+                id="inf-atencion">—</span></div>
+            <div class="info-row"><span class="info-label">Sector:</span><span class="info-value"
+                id="inf-sector">—</span></div>
+            <div class="info-row"><span class="info-label">Servicio:</span><span class="info-value"
+                id="inf-servicio">—</span></div>
+          </div>
+
+          <!-- Factura -->
+          <div class="form-group" style="margin-top:14px;">
+            <label>Factura</label>
+            <input type="text" id="factura" class="form-control" placeholder="N° de factura" readonly>
+          </div>
+
+          <!-- Observaciones -->
+          <div class="form-group">
+            <label>Observaciones</label>
+            <textarea id="observaciones" rows="2" class="form-control" style="resize:none;"
+              placeholder="Notas adicionales..."></textarea>
+          </div>
+
+          <div class="btn-group">
+            <button class="btn btn-primary" id="btn-guardar" onclick="guardarRequisa()">
+              <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+              </svg>
+              Guardar y Generar PDF
+            </button>
+            <button class="btn btn-secondary" onclick="limpiarFormulario()">Limpiar</button>
+          </div>
+        </div>
+
+        <!-- QUÍMICOS: BUSCADOR + CARDS -->
+        <div class="card">
+          <h2 class="card-title">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg>
+            Detalle de Químicos <span class="badge badge-primary" style="margin-left:8px;" id="q-count-badge">0 /
+              7</span>
+          </h2>
+
+          <!-- Buscador de químico -->
+          <div class="form-group">
+            <label>Buscar Químico <span style="color:var(--color-danger);">*</span></label>
+            <div class="ac-wrap">
+              <input type="text" id="q-search" class="form-control" placeholder="Buscar por nombre o código..."
+                autocomplete="off" oninput="onQSearch()" onblur="closeQListDelayed()">
+              <div class="ac-list" id="q-list"></div>
+            </div>
+            <p style="font-size:0.72rem;color:var(--text-secondary);margin-top:4px;">Solo productos del catálogo
+              existente.</p>
+          </div>
+
+          <!-- Meta del químico seleccionado -->
+          <div id="q-meta-block" style="display:none;margin-bottom:14px;">
+            <div
+              style="background:var(--bg-input);border:1px solid var(--border-color);border-radius:10px;padding:12px 14px;">
+              <p style="font-family:var(--font-title);font-weight:700;font-size:0.95rem;color:var(--text-primary);"
+                id="qm-nombre">—</p>
+              <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:6px;">
+                <p style="font-size:0.78rem;color:var(--text-secondary);">Código: <span id="qm-codigo"
+                    style="color:var(--text-primary);font-weight:600;">—</span></p>
+                <p style="font-size:0.78rem;color:var(--text-secondary);">Unidad: <span id="qm-unidad"
+                    style="color:var(--text-primary);font-weight:600;">—</span></p>
+                <p style="font-size:0.78rem;color:var(--text-secondary);">Categoría: <span id="qm-categoria"
+                    style="color:var(--text-primary);font-weight:600;">—</span></p>
+                <p style="font-size:0.78rem;color:var(--text-secondary);">Stock disponible: <span id="qm-stock"
+                    style="font-weight:700;">—</span></p>
+              </div>
+            </div>
+
+            <!-- Cantidad + botón agregar -->
+            <div style="display:flex;gap:10px;margin-top:10px;align-items:flex-end;">
+              <div style="flex:1;">
+                <label>Cantidad a Entregar</label>
+                <input type="number" id="q-cantidad" class="form-control" placeholder="0" min="0.01" step="0.01"
+                  oninput="onCantidadInput()">
+              </div>
+              <button class="btn btn-primary" style="width:auto;padding:10px 18px;flex-shrink:0;"
+                onclick="agregarQuimico()">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+                Agregar
+              </button>
+            </div>
+          </div>
+
+          <!-- Lista de químicos agregados -->
+          <div id="q-lista" style="display:flex;flex-direction:column;gap:8px;"></div>
+          <div id="q-empty"
+            style="text-align:center;padding:24px;color:var(--text-secondary);font-size:0.85rem;border:1px dashed var(--border-color);border-radius:10px;">
+            Ningún químico agregado aún
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ══ TAB: HISTORIAL ══ -->
+    <section id="tab-historial" class="tab-content">
+      <div class="card">
+        <div class="table-header">
+          <h2 class="card-title" style="border:none;margin:0;padding:0;">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Historial de Requisas
+          </h2>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <span class="badge badge-primary" id="hist-count">0 registros</span>
+            <button class="btn btn-secondary" style="width:auto;padding:7px 14px;font-size:0.82rem;"
+              onclick="cargarHistorial()">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Actualizar
+            </button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>N° Requisa</th>
+                <th>Fecha</th>
+                <th>OT</th>
+                <th>Cliente</th>
+                <th>Servicio</th>
+                <th>Químicos</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="hist-tbody">
+              <tr>
+                <td colspan="7" class="empty-state">Cargando...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>&copy; FAST CONTROL 2026 - Módulo de Requisas Salidas
+    </p>
+  </footer>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore, collection, doc, getDoc, getDocs,
+      addDoc, updateDoc, increment, serverTimestamp,
+      query, orderBy, limit, runTransaction
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBWu-ewWbQb9z3f2gS9zQFrArZr-KUb-ok",
+      authDomain: "pos-vbd.firebaseapp.com", projectId: "pos-vbd",
+      storageBucket: "pos-vbd.firebasestorage.app",
+      messagingSenderId: "491489024859",
+      appId: "1:491489024859:web:4c2448b8882c0099b6587e",
+      measurementId: "G-0NB1C3TJT7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ── Estado ──
+    let cacheOT = [];
+    let cacheQuimicos = [];
+    let otSeleccionada = null;
+    let filaCount = 0;
+
+    // ── Init ──
+    async function init() {
+      setFecha();
+      try {
+        await Promise.all([cargarOTs(), cargarQuimicos(), generarNumeroRequisa()]);
+        setStatus('success', 'Firebase OK');
+      } catch (e) {
+        setStatus('danger', 'Sin conexión');
+        console.error(e);
+      }
+    }
+
+    function setStatus(t, txt) {
+      document.getElementById('status-dot').className = `status-dot ${t}`;
+      document.getElementById('status-text').textContent = txt;
+    }
+
+    function setFecha() {
+      const hoy = new Date();
+      document.getElementById('fecha_emision').value =
+        `${hoy.getDate().toString().padStart(2, '0')}/${(hoy.getMonth() + 1).toString().padStart(2, '0')}/${hoy.getFullYear()}`;
+    }
+
+    // ── Consecutivo REC-XXX ──
+    async function generarNumeroRequisa() {
+      const snap = await getDocs(query(collection(db, 'requisas'), orderBy('fecha', 'desc'), limit(1)));
+      let siguiente = 1;
+      if (!snap.empty) {
+        const ultimo = snap.docs[0].data().numero_requisa || '';
+        const match = ultimo.match(/(\d+)$/);
+        if (match) siguiente = parseInt(match[1]) + 1;
+      }
+      document.getElementById('numero_requisa').value = `REC-${String(siguiente).padStart(3, '0')}`;
+    }
+
+    // ── Cargar colecciones ──
+    async function cargarOTs() {
+      const snap = await getDocs(collection(db, 'ordenes'));
+      cacheOT = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    }
+
+    async function cargarQuimicos() {
+      const snap = await getDocs(collection(db, 'quimicos'));
+      cacheQuimicos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    }
+
+    // ── Autocomplete OT ──
+    window.onOTSearch = function () {
+      const q = document.getElementById('ot-search').value.trim().toLowerCase();
+      const lst = document.getElementById('ot-list');
+      otSeleccionada = null;
+      document.getElementById('cliente-info-block').style.display = 'none';
+      if (q.length < 1) { lst.classList.remove('open'); return; }
+
+      const fil = cacheOT.filter(o =>
+        (o.numero_ot || '').toLowerCase().includes(q) ||
+        (o.cliente_nombre || '').toLowerCase().includes(q)
+      );
+
+      lst.innerHTML = fil.length === 0
+        ? `<div class="ac-empty">Sin resultados</div>`
+        : fil.slice(0, 8).map(o => `
+        <div class="ac-item" onmousedown="seleccionarOT('${o.id}')">
+          <div style="font-weight:600;">${o.numero_ot || o.id}</div>
+          <div class="ac-sub">${o.cliente_nombre || '—'} · ${o.servicio_nombre || '—'}</div>
+        </div>`).join('');
+      lst.classList.add('open');
+    };
+
+    window.closeOTListDelayed = function () {
+      setTimeout(() => document.getElementById('ot-list').classList.remove('open'), 200);
+    };
+
+    window.seleccionarOT = function (id) {
+      otSeleccionada = cacheOT.find(o => o.id === id) || null;
+      if (!otSeleccionada) return;
+      document.getElementById('ot-search').value = otSeleccionada.numero_ot || id;
+      document.getElementById('factura').value = otSeleccionada.numero_factura || '';
+      document.getElementById('ot-list').classList.remove('open');
+      document.getElementById('inf-cliente').textContent = otSeleccionada.cliente_nombre || '—';
+      document.getElementById('inf-direccion').textContent = otSeleccionada.direccion || '—';
+      document.getElementById('inf-atencion').textContent = otSeleccionada.atencion_de || otSeleccionada.contacto || '—';
+      document.getElementById('inf-sector').textContent = otSeleccionada.sector || '—';
+      document.getElementById('inf-servicio').textContent = otSeleccionada.servicio_nombre || '—';
+      document.getElementById('cliente-info-block').style.display = 'block';
+    };
+
+    // ── Autocomplete Químico ──
+    let qSeleccionado = null;  // químico en el buscador actualmente
+    let listaQuimicos = [];    // químicos ya agregados
+
+    window.onQSearch = function () {
+      const q = document.getElementById('q-search').value.trim().toLowerCase();
+      const lst = document.getElementById('q-list');
+      qSeleccionado = null;
+      document.getElementById('q-meta-block').style.display = 'none';
+      if (q.length < 1) { lst.classList.remove('open'); return; }
+
+      const fil = cacheQuimicos.filter(x =>
+        (x.quimico || '').toLowerCase().includes(q) ||
+        (x.codigo || '').toLowerCase().includes(q)
+      );
+
+      lst.innerHTML = fil.length === 0
+        ? `<div class="ac-empty">Sin resultados en catálogo</div>`
+        : fil.slice(0, 8).map(x => `
+        <div class="ac-item" onmousedown="seleccionarQuimico('${x.id}')">
+          <div style="font-weight:600;">${x.quimico || x.id}</div>
+          <div class="ac-sub">${x.codigo || '—'} · ${x.unidad_medida || '—'} · ${x.categoria || '—'}</div>
+        </div>`).join('');
+      lst.classList.add('open');
+    };
+
+    window.closeQListDelayed = function () {
+      setTimeout(() => document.getElementById('q-list').classList.remove('open'), 200);
+    };
+
+    window.seleccionarQuimico = async function (id) {
+      qSeleccionado = cacheQuimicos.find(x => x.id === id) || null;
+      if (!qSeleccionado) return;
+
+      document.getElementById('q-search').value = qSeleccionado.quimico || id;
+      document.getElementById('q-list').classList.remove('open');
+      document.getElementById('qm-nombre').textContent = qSeleccionado.quimico || id;
+      document.getElementById('qm-codigo').textContent = qSeleccionado.codigo || '—';
+      document.getElementById('qm-unidad').textContent = qSeleccionado.unidad_medida || '—';
+      document.getElementById('qm-categoria').textContent = qSeleccionado.categoria || '—';
+
+      // Consultar stock
+      try {
+        const invSnap = await getDoc(doc(db, 'inventario', id));
+        const stock = invSnap.exists() ? (invSnap.data().stock_actual ?? 0) : 0;
+        qSeleccionado._stock = stock;
+        const stockEl = document.getElementById('qm-stock');
+        stockEl.textContent = `${stock} ${qSeleccionado.unidad_medida || ''}`;
+        stockEl.style.color = stock > 0 ? 'var(--color-success)' : 'var(--color-danger)';
+      } catch (e) {
+        qSeleccionado._stock = 0;
+        document.getElementById('qm-stock').textContent = '—';
+      }
+
+      document.getElementById('q-cantidad').value = '';
+      document.getElementById('q-meta-block').style.display = 'block';
+      document.getElementById('q-cantidad').focus();
+    };
+
+    window.onCantidadInput = function () {
+      if (!qSeleccionado) return;
+      const cant = parseFloat(document.getElementById('q-cantidad').value) || 0;
+      const stock = qSeleccionado._stock || 0;
+      const el = document.getElementById('q-cantidad');
+      if (cant > stock) {
+        el.style.borderColor = 'var(--color-danger)';
+        el.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.15)';
+      } else if (cant > 0) {
+        el.style.borderColor = 'var(--color-success)';
+        el.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.15)';
+      } else {
+        el.style.borderColor = '';
+        el.style.boxShadow = '';
+      }
+    };
+
+    window.agregarQuimico = function () {
+      if (!qSeleccionado) { showToast('Selecciona un químico primero.', 'warning'); return; }
+      if (listaQuimicos.length >= 7) { showToast('Máximo 7 químicos por requisa.', 'warning'); return; }
+
+      const cant = parseFloat(document.getElementById('q-cantidad').value) || 0;
+      if (cant <= 0) { showToast('La cantidad debe ser mayor a 0.', 'warning'); return; }
+      if (cant > (qSeleccionado._stock || 0)) { showToast(`Stock insuficiente. Disponible: ${qSeleccionado._stock} ${qSeleccionado.unidad_medida || ''}`, 'error'); return; }
+
+      // Verificar duplicado
+      if (listaQuimicos.some(x => x.id === qSeleccionado.id)) {
+        showToast('Este químico ya fue agregado.', 'warning'); return;
+      }
+
+      listaQuimicos.push({
+        id: qSeleccionado.id,
+        quimico: qSeleccionado.quimico || qSeleccionado.id,
+        codigo: qSeleccionado.codigo || '—',
+        unidad_medida: qSeleccionado.unidad_medida || '—',
+        categoria: qSeleccionado.categoria || '—',
+        cantidad_entregada: cant
+      });
+
+      renderListaQuimicos();
+
+      // Limpiar buscador
+      qSeleccionado = null;
+      document.getElementById('q-search').value = '';
+      document.getElementById('q-meta-block').style.display = 'none';
+      document.getElementById('q-cantidad').value = '';
+    };
+
+    function renderListaQuimicos() {
+      const lista = document.getElementById('q-lista');
+      const empty = document.getElementById('q-empty');
+      const badge = document.getElementById('q-count-badge');
+      badge.textContent = `${listaQuimicos.length} / 7`;
+
+      if (listaQuimicos.length === 0) {
+        lista.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+
+      lista.innerHTML = listaQuimicos.map((q, i) => `
+    <div style="display:flex;align-items:center;gap:12px;background:var(--bg-input);border:1px solid var(--border-color);border-radius:10px;padding:12px 14px;transition:var(--transition-smooth);">
+      <div style="background:var(--color-primary);color:white;font-family:var(--font-title);font-weight:700;font-size:0.8rem;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i + 1}</div>
+      <div style="flex:1;min-width:0;">
+        <p style="font-family:var(--font-title);font-weight:700;font-size:0.9rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${q.quimico}</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:3px;">
+          <span style="font-size:0.72rem;color:var(--text-secondary);">Cód: <strong style="color:var(--text-primary);">${q.codigo}</strong></span>
+          <span style="font-size:0.72rem;color:var(--text-secondary);">Unidad: <strong style="color:var(--text-primary);">${q.unidad_medida}</strong></span>
+          <span style="font-size:0.72rem;color:var(--text-secondary);">Cat: <strong style="color:var(--text-primary);">${q.categoria}</strong></span>
+        </div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <p style="font-family:var(--font-title);font-weight:700;font-size:1.1rem;color:var(--color-primary);">${q.cantidad_entregada}</p>
+        <p style="font-size:0.68rem;color:var(--text-secondary);">${q.unidad_medida}</p>
+      </div>
+      <button onclick="quitarQuimico(${i})" style="background:none;border:none;cursor:pointer;color:var(--color-danger);padding:4px;flex-shrink:0;" title="Quitar">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>`).join('');
+    }
+
+    window.quitarQuimico = function (i) {
+      listaQuimicos.splice(i, 1);
+      renderListaQuimicos();
+    };
+
+    // ── GUARDAR REQUISA ──
+    window.guardarRequisa = async function () {
+      if (!otSeleccionada) { showToast('Selecciona una Orden de Trabajo.', 'warning'); return; }
+
+      const filas = listaQuimicos;
+      if (filas.length === 0) { showToast('Agrega al menos un químico.', 'warning'); return; }
+
+      const btn = document.getElementById('btn-guardar');
+      btn.disabled = true;
+      btn.innerHTML = `<svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle></svg> Procesando...`;
+
+      try {
+        // 1. Validar stock de todos antes de escribir
+        for (const q of listaQuimicos) {
+          const invSnap = await getDoc(doc(db, 'inventario', q.id));
+          const stock = invSnap.exists() ? (invSnap.data().stock_actual ?? 0) : 0;
+          if (q.cantidad_entregada > stock) {
+            throw new Error(`Stock insuficiente para "${q.quimico}". Disponible: ${stock} ${q.unidad_medida}`);
+          }
+        }
+
+        // 2. Guardar requisa
+        const numeroRequisa = document.getElementById('numero_requisa').value;
+        const fechaHoy = new Date();
+        const requisaData = {
+          numero_requisa: numeroRequisa,
+          fecha: serverTimestamp(),
+          orden_trabajo: otSeleccionada.numero_ot || otSeleccionada.id,
+          factura: document.getElementById('factura').value.trim(),
+          cliente: otSeleccionada.cliente_nombre || '',
+          direccion: otSeleccionada.direccion || '',
+          atencion: otSeleccionada.atencion_de || otSeleccionada.contacto || '',
+          sector: otSeleccionada.sector || '',
+          servicio_nombre: otSeleccionada.servicio_nombre || '',
+          observaciones: document.getElementById('observaciones').value.trim(),
+          lista_quimicos: listaQuimicos.map(({ id, ...rest }) => rest)
+        };
+        await addDoc(collection(db, 'requisas'), requisaData);
+
+        // Auditor\u00eda
+        if (window.parent && typeof window.parent.logAudit === 'function') {
+          const quimicosList = listaQuimicos.map(q => `${q.quimico} (${q.cantidad_entregada} ${q.unidad_medida})`).join(', ');
+          window.parent.logAudit('CREAR_REQUISA', 'Requisas',
+            `Requisa ${numeroRequisa} | OT: ${otSeleccionada.numero_ot || '—'} | Cliente: ${otSeleccionada.cliente_nombre || '—'} | Qu\u00edmicos: ${quimicosList}`
+          );
+        }
+
+        // 3. Descontar inventario y registrar movimientos
+        for (const q of listaQuimicos) {
+          const invRef = doc(db, 'inventario', q.id);
+          await updateDoc(invRef, { stock_actual: increment(-q.cantidad_entregada), fecha_actualizacion: serverTimestamp() });
+          await addDoc(collection(db, 'movimientos_inventario'), {
+            producto_id: q.id,
+            tipo_movimiento: 'salida',
+            cantidad: q.cantidad_entregada,
+            modulo: 'requisa',
+            referencia: numeroRequisa,
+            orden_trabajo: otSeleccionada.numero_ot || otSeleccionada.id,
+            codigo: q.codigo,
+            quimico: q.quimico,
+            unidad_medida: q.unidad_medida,
+            categoria: q.categoria,
+            fecha: serverTimestamp()
+          });
+        }
+
+        showToast(`Requisa ${numeroRequisa} guardada con éxito.`, 'success');
+        generarPDF(requisaData, listaQuimicos);
+        limpiarFormulario();
+        await generarNumeroRequisa();
+
+      } catch (e) {
+        console.error(e);
+        showToast('Error: ' + e.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg> Guardar y Generar PDF`;
+      }
+    };
+
+    window.limpiarFormulario = function () {
+      otSeleccionada = null;
+      listaQuimicos = [];
+      qSeleccionado = null;
+      document.getElementById('ot-search').value = '';
+      document.getElementById('factura').value = '';
+      document.getElementById('observaciones').value = '';
+      document.getElementById('q-search').value = '';
+      document.getElementById('cliente-info-block').style.display = 'none';
+      document.getElementById('q-meta-block').style.display = 'none';
+      renderListaQuimicos();
+      setFecha();
+    };
+
+    // ══════════════════════════════════════════
+    //  PDF — MEDIA CARTA x2 (2 COPIAS EN 1 HOJA)
+    // ══════════════════════════════════════════
+    function generarPDF(data, quimicos) {
+      if (!window.jspdf?.jsPDF) { showToast('Librería PDF no disponible.', 'error'); return; }
+      const { jsPDF } = window.jspdf;
+
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
+
+      const R = [220, 38, 38];
+      const DK = [55, 65, 81];
+      const MD = [107, 114, 128];
+      const LT = [243, 244, 246];
+      const WH = [255, 255, 255];
+
+      const fechaStr = data.fecha
+        ? (data.fecha.toDate ? data.fecha.toDate().toLocaleDateString('es-NI') : new Date().toLocaleDateString('es-NI'))
+        : new Date().toLocaleDateString('es-NI');
+
+      // Dibuja una copia. offsetY: 0 = copia superior, 139.7 = copia inferior (media carta)
+      function dibujarCopia(offsetY) {
+        const H = 130; // altura total de cada copia en mm
+
+        // Borde de la copia
+        //doc.setDrawColor(220, 38, 38);
+        //doc.setLineWidth(0.4);
+        //doc.rect(8, offsetY + 4, 195.5, H, 'S');
+
+        // Franja roja izquierda
+        //doc.setFillColor(R[0],R[1],R[2]);
+        //doc.rect(8, offsetY + 4, 3, H, 'F');
+
+        // ── ENCABEZADO ──
+        doc.setFillColor(LT[0], LT[1], LT[2]);
+        doc.rect(11, offsetY + 4, 192.5, 22, 'F');
+
+        doc.setTextColor(R[0], R[1], R[2]);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(13);
+        doc.text('FAST CONTROL', 16, offsetY + 13);
+
+        doc.setTextColor(DK[0], DK[1], DK[2]);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.text('REQUISA DE SALIDA', 16, offsetY + 19);
+
+        doc.setTextColor(MD[0], MD[1], MD[2]);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.text('Manejo Integrado de Plagas', 16, offsetY + 24);
+
+        // Badge N° Requisa
+        doc.setFillColor(WH[0], WH[1], WH[2]);
+        doc.setDrawColor(R[0], R[1], R[2]);
+        doc.setLineWidth(0.3);
+        doc.roundedRect(130, offsetY + 6, 70, 18, 2, 2, 'FD');
+        doc.setTextColor(R[0], R[1], R[2]);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.text('REQUISA N°', 165, offsetY + 11, { align: 'center' });
+        doc.setFont('courier', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(DK[0], DK[1], DK[2]);
+        doc.text(data.numero_requisa, 165, offsetY + 18, { align: 'center' });
+
+        // Fecha, OT, Factura, Servicio — fila de metadatos
+        let my = offsetY + 29;
+        doc.setFillColor(249, 250, 251);
+        doc.setDrawColor(226, 232, 240);
+        doc.setLineWidth(0.2);
+        doc.rect(11, my, 192.5, 11, 'FD');
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(MD[0], MD[1], MD[2]);
+        doc.text('Fecha:', 14, my + 4.5);
+        doc.text('OT:', 60, my + 4.5);
+        doc.text('Factura:', 110, my + 4.5);
+        doc.text('Servicio:', 14, my + 9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(DK[0], DK[1], DK[2]);
+        doc.setFontSize(7.5);
+        doc.text(fechaStr, 26, my + 4.5);
+        doc.text(data.orden_trabajo || '—', 68, my + 4.5);
+        doc.text(data.factura || '—', 124, my + 4.5);
+        doc.text(doc.splitTextToSize(data.servicio_nombre || '—', 130)[0], 30, my + 9);
+
+        // ── DATOS DEL CLIENTE ──
+        my += 14;
+        doc.setFillColor(WH[0], WH[1], WH[2]);
+        doc.setDrawColor(226, 232, 240);
+        doc.setLineWidth(0.2);
+        doc.rect(11, my, 192.5, 16, 'FD');
+
+        doc.setTextColor(R[0], R[1], R[2]);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7);
+        doc.text('DATOS DEL CLIENTE', 14, my + 4.5);
+        doc.setDrawColor(R[0], R[1], R[2]);
+        doc.setLineWidth(0.2);
+        doc.line(14, my + 5.5, 90, my + 5.5);
+
+        const col1x = 14, col2x = 100;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(MD[0], MD[1], MD[2]);
+        doc.text('Cliente:', col1x, my + 9.5);
+        doc.text('Dirección:', col1x, my + 13.5);
+        doc.text('Atención:', col2x, my + 9.5);
+        doc.text('Sector:', col2x, my + 13.5);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(DK[0], DK[1], DK[2]);
+        doc.setFontSize(7.5);
+        doc.text(doc.splitTextToSize(data.cliente || '—', 60)[0], col1x + 16, my + 9.5);
+        doc.text(doc.splitTextToSize(data.direccion || '—', 60)[0], col1x + 20, my + 13.5);
+        doc.text(doc.splitTextToSize(data.atencion || '—', 60)[0], col2x + 16, my + 9.5);
+        doc.text(data.sector || '—', col2x + 14, my + 13.5);
+
+        // ── TABLA DE QUÍMICOS ──
+        my += 19;
+        doc.autoTable({
+          startY: my,
+          margin: { left: 11, right: 11 },
+          head: [['Código', 'Descripción (Químico)', 'Unidad', 'Cant. Entregada', 'Cant. Utilizada', 'Cant. Regresada']],
+          body: quimicos.map(q => [
+            q.codigo || '—',
+            q.quimico || '—',
+            q.unidad_medida || '—',
+            q.cantidad_entregada,
+            '',
+            ''
+          ]),
+          theme: 'grid',
+          styles: { font: 'helvetica', fontSize: 7, cellPadding: 2.5, lineColor: [226, 232, 240], lineWidth: 0.2, valign: 'middle' },
+          headStyles: { fillColor: DK, textColor: WH, fontStyle: 'bold', fontSize: 6.5, halign: 'left' },
+          columnStyles: {
+            0: { cellWidth: 22 },
+            1: { cellWidth: 60 },
+            2: { cellWidth: 18 },
+            3: { cellWidth: 25, halign: 'center' },
+            4: { cellWidth: 25, halign: 'center' },
+            5: { cellWidth: 25, halign: 'center' }
+          },
+          didParseCell: (data) => {
+            if (data.section === 'body' && (data.column.index === 4 || data.column.index === 5)) {
+              data.cell.styles.fillColor = [252, 252, 252];
+            }
+          }
+        });
+
+        my = doc.lastAutoTable.finalY + 4;
+
+        // ── OBSERVACIONES ──
+        doc.setFillColor(249, 250, 251);
+        doc.setDrawColor(226, 232, 240);
+        doc.setLineWidth(0.2);
+        doc.rect(11, my, 192.5, 12, 'FD');
+        doc.setFillColor(R[0], R[1], R[2]);
+        doc.rect(11, my, 2, 12, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(6.5);
+        doc.setTextColor(R[0], R[1], R[2]);
+        doc.text('OBSERVACIONES:', 15, my + 4);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(DK[0], DK[1], DK[2]);
+        doc.setFontSize(7);
+        if (data.observaciones) {
+          doc.text(doc.splitTextToSize(data.observaciones, 175), 15, my + 8.5);
+        }
+
+        my += 15;
+
+        // ── FIRMAS ──
+        const firmas = ['Gte. Técnico', 'Resp. Bodega Insumos', 'Técnico'];
+        const fw = 192.5 / 3;
+        firmas.forEach((f, i) => {
+          const fx = 11 + i * fw;
+          doc.setDrawColor(MD[0], MD[1], MD[2]);
+          doc.setLineWidth(0.4);
+          doc.line(fx + 6, my + 14, fx + fw - 6, my + 14);
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(6.5);
+          doc.setTextColor(DK[0], DK[1], DK[2]);
+          doc.text(f, fx + fw / 2, my + 18, { align: 'center' });
+        });
+
+        // Línea divisoria entre copias
+        if (offsetY === 0) {
+          doc.setDrawColor(180, 180, 180);
+          doc.setLineWidth(0.3);
+          doc.setLineDashPattern([2, 2], 0);
+          doc.line(8, 138, 203, 138);
+          doc.setLineDashPattern([], 0);
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(6);
+          doc.setTextColor(MD[0], MD[1], MD[2]);
+          doc.text('', 107.5, 137, { align: 'center' });
+        }
+      }
+
+      dibujarCopia(0);
+      dibujarCopia(139.7);
+
+      doc.save(`Requisa_${data.numero_requisa}.pdf`);
+      showToast('PDF generado con 2 copias.', 'success');
+    }
+
+    // ── HISTORIAL ──
+    window.cargarHistorial = async function () {
+      const tbody = document.getElementById('hist-tbody');
+      tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Cargando...</td></tr>`;
+      try {
+        const snap = await getDocs(query(collection(db, 'requisas'), orderBy('fecha', 'desc'), limit(50)));
+        const reqs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        document.getElementById('hist-count').textContent = `${reqs.length} registros`;
+        if (!reqs.length) { tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Sin requisas registradas.</td></tr>`; return; }
+        tbody.innerHTML = reqs.map(r => {
+          const fecha = r.fecha?.toDate ? r.fecha.toDate().toLocaleDateString('es-NI') : '—';
+          const nq = (r.lista_quimicos || []).length;
+
+          // Resolver número de orden de trabajo si contiene número de factura en el historial
+          let otDisplay = r.orden_trabajo || '—';
+          if (otDisplay !== '—') {
+            const otObj = cacheOT.find(o => o.numero_ot === otDisplay || o.numero_factura === otDisplay || o.id === otDisplay);
+            if (otObj && otObj.numero_ot) {
+              otDisplay = otObj.numero_ot;
+            }
+          }
+
+          return `<tr>
+        <td style="font-weight:700;color:var(--color-primary);">${r.numero_requisa || '—'}</td>
+        <td style="font-size:0.82rem;">${fecha}</td>
+        <td style="font-family:monospace;font-size:0.82rem;">${otDisplay}</td>
+        <td style="font-weight:500;">${r.cliente || '—'}</td>
+        <td style="color:var(--text-secondary);font-size:0.82rem;">${r.servicio_nombre || '—'}</td>
+        <td><span class="badge badge-primary">${nq} químico${nq !== 1 ? 's' : ''}</span></td>
+        <td><button onclick='reimprimirRequisa(${JSON.stringify({ ...r, orden_trabajo: otDisplay }).replace(/'/g, "&#39;")})' style="background:var(--bg-btn-secondary);border:1px solid var(--border-color);border-radius:6px;padding:4px 10px;font-size:0.75rem;cursor:pointer;color:var(--text-primary);transition:var(--transition-smooth);">PDF</button></td>
+      </tr>`;
+        }).join('');
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-state" style="color:var(--color-danger);">Error: ${e.message}</td></tr>`;
+      }
+    };
+
+    window.reimprimirRequisa = function (r) {
+      generarPDF(r, r.lista_quimicos || []);
+    };
+
+    // ── UI helpers ──
+    window.switchTab = function (id, btn) {
+      document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(`tab-${id}`).classList.add('active');
+      btn.classList.add('active');
+      if (id === 'historial') cargarHistorial();
+
+      const navTabs = document.querySelector('.nav-tabs');
+      if (navTabs && navTabs.classList.contains('open')) {
+        window.toggleMenu();
+      }
+    };
+
+    window.toggleMenu = function () {
+      const navTabs = document.querySelector('.nav-tabs');
+      const menuIcon = document.getElementById('menu-icon');
+      if (!navTabs) return;
+
+      navTabs.classList.toggle('open');
+      const isOpen = navTabs.classList.contains('open');
+
+      if (isOpen) {
+        menuIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />`;
+      } else {
+        menuIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />`;
+      }
+    };
+
+    window.toggleTheme = function () {
+      const dark = document.body.classList.toggle('dark-theme');
+      localStorage.setItem('theme', dark ? 'dark' : 'light');
+      const icon = document.getElementById('theme-icon');
+      icon.innerHTML = dark
+        ? `<circle cx="12" cy="12" r="5"/><path stroke-linecap="round" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>`
+        : `<path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>`;
+    };
+
+    window.showToast = function (msg, type = 'info') {
+      const icons = {
+        success: `<svg width="20" height="20" fill="none" stroke="var(--color-success)" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+        warning: `<svg width="20" height="20" fill="none" stroke="var(--color-warning)" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>`,
+        error: `<svg width="20" height="20" fill="none" stroke="var(--color-danger)"  stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+        info: `<svg width="20" height="20" fill="none" stroke="var(--color-primary)" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`
+      };
+      const titles = { success: 'Éxito', warning: 'Advertencia', error: 'Error', info: 'Info' };
+      const cont = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = `toast ${type}`;
+      t.innerHTML = `<div>${icons[type] || icons.info}</div>
+    <div><div class="toast-title">${titles[type] || 'Aviso'}</div><div class="toast-message">${msg}</div></div>`;
+      cont.appendChild(t);
+      requestAnimationFrame(() => t.classList.add('show'));
+      setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 450); }, 4500);
+    };
+
+    // ── Arrancar ──
+    init();
+  </script>
+</body>
+
+</html>

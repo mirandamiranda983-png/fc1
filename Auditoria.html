@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditoría del Sistema – FastControl</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- jsPDF + AutoTable para exportar PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- SheetJS para exportar Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { red: '#c62828', black: '#000000', dark: '#1a1a1a', border: '#333333' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* Scrollbar personalizado */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #c62828; }
+
+        /* Badge de acción */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .badge-login      { background: #052e16; color: #4ade80; border: 1px solid #16a34a44; }
+        .badge-logout     { background: #1c1917; color: #a8a29e; border: 1px solid #44403c44; }
+        .badge-nav        { background: #0c1a2e; color: #60a5fa; border: 1px solid #3b82f644; }
+        .badge-create     { background: #0f172a; color: #818cf8; border: 1px solid #6366f144; }
+        .badge-edit       { background: #172554; color: #93c5fd; border: 1px solid #3b82f644; }
+        .badge-delete     { background: #2d0a0a; color: #f87171; border: 1px solid #ef444444; }
+        .badge-role       { background: #1c0f35; color: #c084fc; border: 1px solid #a855f744; }
+        .badge-failed     { background: #450a0a; color: #fca5a5; border: 1px solid #dc262644; }
+        .badge-inventory  { background: #052e16; color: #6ee7b7; border: 1px solid #10b98144; }
+        .badge-cert       { background: #1e1b4b; color: #a5b4fc; border: 1px solid #6366f144; }
+        .badge-quote      { background: #27272a; color: #facc15; border: 1px solid #ca8a0444; }
+        .badge-requisa    { background: #292524; color: #fb923c; border: 1px solid #f9731644; }
+        .badge-report     { background: #0f2a1e; color: #34d399; border: 1px solid #059e6844; }
+        .badge-import     { background: #1e2a1e; color: #86efac; border: 1px solid #22c55e44; }
+        .badge-default    { background: #1a1a1a; color: #9ca3af; border: 1px solid #33333344; }
+
+        /* Tabla */
+        .audit-table tr:hover td { background: rgba(255,255,255,0.03); }
+        .audit-table td, .audit-table th { padding: 12px 16px; }
+        .audit-table th {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #6b7280;
+            background: #000;
+            border-bottom: 1px solid #333;
+        }
+        .audit-table td { border-bottom: 1px solid #1f1f1f; font-size: 13px; }
+
+        /* Loading shimmer */
+        @keyframes shimmer { 0%{background-position:-400px 0} 100%{background-position:400px 0} }
+        .shimmer {
+            background: linear-gradient(90deg, #1a1a1a 25%, #252525 50%, #1a1a1a 75%);
+            background-size: 800px 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 6px;
+            height: 16px;
+        }
+
+        /* Stat card glow */
+        .stat-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(198,40,40,0.15); }
+
+        /* Input / select style */
+        .filter-input {
+            background: #111;
+            border: 1px solid #333;
+            color: #e5e7eb;
+            border-radius: 10px;
+            padding: 8px 14px;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .filter-input:focus { border-color: #c62828; }
+
+        /* Scroll table container */
+        .table-container { overflow-x: auto; }
+
+        /* Animate rows in */
+        @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        .row-animate { animation: fadeUp 0.3s ease forwards; }
+    </style>
+</head>
+
+<body class="dark bg-brand-black text-gray-100 min-h-screen p-0">
+
+    <!-- HEADER -->
+    <div class="sticky top-0 z-30 bg-brand-dark border-b border-brand-border px-8 py-5 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="bg-brand-red/10 border border-brand-red/20 p-2.5 rounded-xl">
+                <i data-lucide="shield-alert" class="w-6 h-6 text-brand-red"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-white leading-none">Auditoría del Sistema</h1>
+                <p class="text-xs text-gray-500 mt-0.5">Registro completo de actividad – FastControl</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <button id="btn-refresh" onclick="loadAuditLogs()"
+                class="flex items-center gap-2 px-4 py-2 rounded-xl border border-brand-border text-gray-400 hover:text-white hover:border-brand-red transition-all text-sm font-semibold">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar
+            </button>
+            <button onclick="exportExcel()"
+                class="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-sm font-bold transition-all shadow-lg shadow-emerald-900/30">
+                <i data-lucide="table-2" class="w-4 h-4"></i> Excel
+            </button>
+            <button onclick="exportPDF()"
+                class="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-red hover:bg-red-700 text-white text-sm font-bold transition-all shadow-lg shadow-brand-red/20">
+                <i data-lucide="file-down" class="w-4 h-4"></i> PDF
+            </button>
+        </div>
+    </div>
+
+    <div class="p-8 space-y-7 max-w-[1600px] mx-auto">
+
+        <!-- TARJETAS DE ESTADÍSTICAS -->
+        <div id="stats-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <!-- Se llenan dinámicamente -->
+            <div class="shimmer col-span-2 md:col-span-3 lg:col-span-6 h-24 rounded-2xl"></div>
+        </div>
+
+        <!-- FILTROS -->
+        <div class="bg-brand-dark border border-brand-border rounded-2xl p-5">
+            <div class="flex flex-wrap items-center gap-4">
+                <div class="flex items-center gap-2 text-gray-400">
+                    <i data-lucide="filter" class="w-4 h-4"></i>
+                    <span class="text-xs font-bold uppercase tracking-widest">Filtros</span>
+                </div>
+
+                <input type="date" id="filter-date-from" class="filter-input"
+                    title="Desde">
+
+                <input type="date" id="filter-date-to" class="filter-input"
+                    title="Hasta">
+
+                <input type="text" id="filter-email" class="filter-input w-48"
+                    placeholder="Buscar por usuario...">
+
+                <select id="filter-action" class="filter-input">
+                    <option value="">Todas las acciones</option>
+                    <optgroup label="— Sesión">
+                        <option value="INICIO_SESION">Inicio de sesión</option>
+                        <option value="INICIO_SESION_FALLIDO">Inicio fallido</option>
+                        <option value="CIERRE_SESION">Cierre de sesión</option>
+                        <option value="NAVEGACION">Navegación</option>
+                    </optgroup>
+                    <optgroup label="— Usuarios">
+                        <option value="CREAR_USUARIO">Crear usuario</option>
+                        <option value="ELIMINAR_USUARIO">Eliminar usuario</option>
+                        <option value="CAMBIAR_ROL">Cambio de rol</option>
+                    </optgroup>
+                    <optgroup label="— Base de Datos">
+                        <option value="CREAR_REGISTRO">Crear registro</option>
+                        <option value="EDITAR_REGISTRO">Editar registro</option>
+                        <option value="ELIMINAR_REGISTRO">Eliminar registro</option>
+                        <option value="IMPORTAR_REGISTROS">Importar registros</option>
+                    </optgroup>
+                    <optgroup label="— Módulos">
+                        <option value="CREAR_REGISTRO">OT – Nueva orden</option>
+                        <option value="ENTRADA_INVENTARIO">Inventario – Entrada</option>
+                        <option value="CREAR_REQUISA">Requisas – Nueva requisa</option>
+                        <option value="GENERAR_CERTIFICADO">Certificados – Generar</option>
+                        <option value="CREAR_COTIZACION">Cotizaciones – Nueva</option>
+                        <option value="CREAR_REPORTE_SERVICIO">Reporte de Servicios</option>
+                    </optgroup>
+                </select>
+
+                <select id="filter-module" class="filter-input">
+                    <option value="">Todos los módulos</option>
+                    <option value="Autenticación">Autenticación</option>
+                    <option value="Gestión de Usuarios">Gestión de Usuarios</option>
+                    <option value="Base de Datos – Clientes">Base de Datos – Clientes</option>
+                    <option value="Base de Datos – Servicios">Base de Datos – Servicios</option>
+                    <option value="Base de Datos – Químicos">Base de Datos – Químicos</option>
+                    <option value="Certificados">Certificados</option>
+                    <option value="Cotizaciones">Cotizaciones</option>
+                    <option value="Cotizaciones – Clientes">Cotizaciones – Clientes</option>
+                    <option value="Inventario">Inventario</option>
+                    <option value="Orden de Trabajo">Orden de Trabajo</option>
+                    <option value="Requisas">Requisas</option>
+                    <option value="Reporte de Servicios">Reporte de Servicios</option>
+                </select>
+
+                <select id="filter-rol" class="filter-input">
+                    <option value="">Todos los roles</option>
+                    <option value="admin">Administrador</option>
+                    <option value="tecnico">Técnico</option>
+                </select>
+
+                <button onclick="applyFilters()"
+                    class="px-5 py-2 bg-brand-red hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-all">
+                    Aplicar
+                </button>
+                <button onclick="clearFilters()"
+                    class="px-5 py-2 bg-white/5 hover:bg-white/10 text-gray-400 text-sm font-semibold rounded-xl transition-all border border-brand-border">
+                    Limpiar
+                </button>
+
+                <span id="results-count" class="ml-auto text-xs text-gray-500 font-semibold"></span>
+            </div>
+        </div>
+
+        <!-- TABLA DE AUDITORÍA -->
+        <div class="bg-brand-dark border border-brand-border rounded-2xl overflow-hidden shadow-2xl">
+            <div class="table-container">
+                <table class="audit-table w-full text-left border-collapse">
+                    <thead>
+                        <tr>
+                            <th class="w-48">Fecha y Hora</th>
+                            <th>Usuario</th>
+                            <th class="w-20">Rol</th>
+                            <th class="w-44">Acción</th>
+                            <th class="w-36">Módulo</th>
+                            <th>Detalle</th>
+                        </tr>
+                    </thead>
+                    <tbody id="audit-tbody">
+                        <!-- Skeleton loader -->
+                        <tr>
+                            <td colspan="6" class="p-8">
+                                <div class="space-y-3">
+                                    <div class="shimmer w-full h-5"></div>
+                                    <div class="shimmer w-5/6 h-5"></div>
+                                    <div class="shimmer w-4/6 h-5"></div>
+                                    <div class="shimmer w-5/6 h-5"></div>
+                                    <div class="shimmer w-3/6 h-5"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Footer con paginación -->
+            <div id="table-footer"
+                class="flex items-center justify-between px-5 py-4 border-t border-brand-border text-xs text-gray-500">
+                <span id="pagination-info"></span>
+                <div class="flex items-center gap-2">
+                    <button id="btn-prev" onclick="prevPage()"
+                        class="px-3 py-1.5 rounded-lg border border-brand-border hover:border-brand-red hover:text-brand-red transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+                        ← Anterior
+                    </button>
+                    <span id="page-indicator" class="px-3 font-semibold text-white"></span>
+                    <button id="btn-next" onclick="nextPage()"
+                        class="px-3 py-1.5 rounded-lg border border-brand-border hover:border-brand-red hover:text-brand-red transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+                        Siguiente →
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /main content -->
+
+    <!-- SCRIPTS FIREBASE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWu-ewWbQb9z3f2gS9zQFrArZr-KUb-ok",
+            authDomain: "pos-vbd.firebaseapp.com",
+            projectId: "pos-vbd",
+            storageBucket: "pos-vbd.firebasestorage.app",
+            messagingSenderId: "491489024859",
+            appId: "1:491489024859:web:4c2448b8882c0099b6587e"
+        };
+
+        const app  = initializeApp(firebaseConfig, 'auditoria-app');
+        const db   = getFirestore(app);
+
+        // ──────────────────────────────────────────────
+        // Estado global de la vista
+        // ──────────────────────────────────────────────
+        let allLogs      = [];   // todos los registros de Firestore
+        let filteredLogs = [];   // registros tras aplicar filtros
+        let currentPage  = 1;
+        const PAGE_SIZE  = 30;
+
+        // ──────────────────────────────────────────────
+        // Cargar registros desde Firestore
+        // ──────────────────────────────────────────────
+        window.loadAuditLogs = async () => {
+            const tbody = document.getElementById('audit-tbody');
+            tbody.innerHTML = `<tr><td colspan="6" class="p-8"><div class="space-y-3">
+                <div class="shimmer w-full h-5"></div><div class="shimmer w-5/6 h-5"></div>
+                <div class="shimmer w-4/6 h-5"></div><div class="shimmer w-5/6 h-5"></div>
+                <div class="shimmer w-3/6 h-5"></div></div></td></tr>`;
+
+            const statsGrid = document.getElementById('stats-grid');
+            statsGrid.innerHTML = `<div class="shimmer col-span-2 md:col-span-3 lg:col-span-6 h-24 rounded-2xl"></div>`;
+
+            try {
+                const q   = query(collection(db, 'auditoria'), orderBy('timestamp', 'desc'), limit(2000));
+                const snap = await getDocs(q);
+                allLogs = [];
+
+                snap.forEach(d => {
+                    const data = d.data();
+                    allLogs.push({
+                        id:         d.id,
+                        timestamp:  data.timestamp?.toDate ? data.timestamp.toDate() : null,
+                        fechaLocal: data.fechaLocal || '—',
+                        email:      data.email      || '—',
+                        uid:        data.uid        || '—',
+                        rol:        data.rol        || '—',
+                        accion:     data.accion     || '—',
+                        modulo:     data.modulo     || '—',
+                        detalles:   data.detalles   || '',
+                        userAgent:  data.userAgent  || ''
+                    });
+                });
+
+                filteredLogs = [...allLogs];
+                currentPage  = 1;
+                renderStats(allLogs);
+                renderTable();
+
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-brand-red">
+                    <i data-lucide="wifi-off" class="w-5 h-5 inline mr-2"></i>
+                    Error al conectar con Firestore: ${err.message}
+                </td></tr>`;
+                lucide.createIcons();
+            }
+        };
+
+        // ──────────────────────────────────────────────
+        // Tarjetas de estadísticas
+        // ──────────────────────────────────────────────
+        function renderStats(logs) {
+            const today = new Date().toDateString();
+
+            const total       = logs.length;
+            const loginsHoy   = logs.filter(l => l.accion === 'INICIO_SESION'       && l.timestamp?.toDateString() === today).length;
+            const logoutsHoy  = logs.filter(l => l.accion === 'CIERRE_SESION'       && l.timestamp?.toDateString() === today).length;
+            const fallidos    = logs.filter(l => l.accion === 'INICIO_SESION_FALLIDO').length;
+            const accioUsuario= logs.filter(l => ['CREAR_USUARIO','ELIMINAR_USUARIO','CAMBIAR_ROL'].includes(l.accion)).length;
+            const navTotal    = logs.filter(l => l.accion === 'NAVEGACION').length;
+
+            const cards = [
+                { label: 'Total Eventos', value: total,        icon: 'activity',   color: 'text-white',     bg: 'bg-white/5'       },
+                { label: 'Logins Hoy',    value: loginsHoy,    icon: 'log-in',     color: 'text-green-400', bg: 'bg-green-950/30'  },
+                { label: 'Cierres Hoy',   value: logoutsHoy,   icon: 'log-out',    color: 'text-gray-400',  bg: 'bg-white/5'       },
+                { label: 'Intentos Fallidos',value: fallidos,  icon: 'shield-x',   color: 'text-red-400',   bg: 'bg-red-950/30'    },
+                { label: 'Acciones Usuarios',value:accioUsuario,icon: 'users',     color: 'text-purple-400',bg: 'bg-purple-950/30' },
+                { label: 'Navegaciones', value: navTotal,      icon: 'compass',    color: 'text-blue-400',  bg: 'bg-blue-950/30'   }
+            ];
+
+            const statsGrid = document.getElementById('stats-grid');
+            statsGrid.innerHTML = '';
+            cards.forEach(c => {
+                statsGrid.innerHTML += `
+                <div class="stat-card ${c.bg} border border-brand-border rounded-2xl p-5 flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-gray-500 font-semibold uppercase tracking-widest">${c.label}</span>
+                        <i data-lucide="${c.icon}" class="w-4 h-4 ${c.color}"></i>
+                    </div>
+                    <p class="text-3xl font-bold ${c.color}">${c.value.toLocaleString()}</p>
+                </div>`;
+            });
+            lucide.createIcons();
+        }
+
+        // ──────────────────────────────────────────────
+        // Renderizar tabla con paginación
+        // ──────────────────────────────────────────────
+        function renderTable() {
+            const tbody  = document.getElementById('audit-tbody');
+            const start  = (currentPage - 1) * PAGE_SIZE;
+            const end    = start + PAGE_SIZE;
+            const page   = filteredLogs.slice(start, end);
+            const total  = filteredLogs.length;
+            const pages  = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+            document.getElementById('results-count').textContent =
+                `${total.toLocaleString()} registro${total !== 1 ? 's' : ''} encontrado${total !== 1 ? 's' : ''}`;
+            document.getElementById('pagination-info').textContent =
+                `Mostrando ${start + 1}–${Math.min(end, total)} de ${total.toLocaleString()} registros`;
+            document.getElementById('page-indicator').textContent = `${currentPage} / ${pages}`;
+            document.getElementById('btn-prev').disabled = currentPage <= 1;
+            document.getElementById('btn-next').disabled = currentPage >= pages;
+
+            if (page.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-gray-500">
+                    <i data-lucide="search-x" class="w-8 h-8 mx-auto mb-3 text-gray-600"></i>
+                    <p>No se encontraron registros con los filtros aplicados.</p>
+                </td></tr>`;
+                lucide.createIcons();
+                return;
+            }
+
+            tbody.innerHTML = '';
+            page.forEach((log, i) => {
+                const row = document.createElement('tr');
+                row.className = 'row-animate';
+                row.style.animationDelay = `${i * 18}ms`;
+                row.innerHTML = `
+                    <td class="text-gray-400 text-xs whitespace-nowrap">${log.fechaLocal}</td>
+                    <td>
+                        <div class="font-semibold text-white text-xs">${escHtml(log.email)}</div>
+                        <div class="text-[10px] text-gray-600 font-mono mt-0.5">${escHtml(log.uid.substring(0,16))}${log.uid.length>16?'…':''}</div>
+                    </td>
+                    <td><span class="text-[10px] font-bold uppercase ${log.rol === 'admin' ? 'text-brand-red' : 'text-blue-400'}">${escHtml(log.rol)}</span></td>
+                    <td>${getBadge(log.accion)}</td>
+                    <td class="text-gray-300 text-xs">${escHtml(log.modulo)}</td>
+                    <td class="text-gray-400 text-xs max-w-xs truncate" title="${escHtml(log.detalles)}">${escHtml(log.detalles)}</td>`;
+                tbody.appendChild(row);
+            });
+        }
+
+        // ──────────────────────────────────────────────
+        // Utilidades
+        // ──────────────────────────────────────────────
+        function escHtml(str) {
+            return String(str)
+                .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        }
+
+        function getBadge(accion) {
+            const map = {
+                // Sesión
+                'INICIO_SESION':           ['badge-login',     'log-in',        'Inicio sesión'],
+                'INICIO_SESION_FALLIDO':   ['badge-failed',    'shield-x',      'Acceso fallido'],
+                'CIERRE_SESION':           ['badge-logout',    'log-out',       'Cierre sesión'],
+                'NAVEGACION':              ['badge-nav',       'compass',       'Navegación'],
+                // Usuarios
+                'CREAR_USUARIO':           ['badge-create',    'user-plus',     'Crear usuario'],
+                'ELIMINAR_USUARIO':        ['badge-delete',    'user-minus',    'Eliminar usuario'],
+                'CAMBIAR_ROL':             ['badge-role',      'refresh-cw',    'Cambio de rol'],
+                // Base de Datos
+                'CREAR_REGISTRO':          ['badge-create',    'plus-circle',   'Crear registro'],
+                'EDITAR_REGISTRO':         ['badge-edit',      'pencil',        'Editar registro'],
+                'ELIMINAR_REGISTRO':       ['badge-delete',    'trash-2',       'Eliminar registro'],
+                'IMPORTAR_REGISTROS':      ['badge-import',    'upload',        'Importar'],
+                // Módulos
+                'ENTRADA_INVENTARIO':      ['badge-inventory', 'package-plus',  'Entrada inventario'],
+                'CREAR_REQUISA':           ['badge-requisa',   'clipboard-list','Nueva requisa'],
+                'GENERAR_CERTIFICADO':     ['badge-cert',      'award',         'Certificado'],
+                'CREAR_COTIZACION':        ['badge-quote',     'file-text',     'Cotización'],
+                'CREAR_REPORTE_SERVICIO':  ['badge-report',    'clipboard-check','Reporte servicio'],
+            };
+            const [cls, icon, label] = map[accion] || ['badge-default', 'info', accion];
+            return `<span class="badge ${cls}"><i data-lucide="${icon}" style="width:11px;height:11px"></i>${escHtml(label)}</span>`;
+        }
+
+        // ──────────────────────────────────────────────
+        // Filtros
+        // ──────────────────────────────────────────────
+        window.applyFilters = () => {
+            const dateFrom = document.getElementById('filter-date-from').value;
+            const dateTo   = document.getElementById('filter-date-to').value;
+            const email    = document.getElementById('filter-email').value.trim().toLowerCase();
+            const action   = document.getElementById('filter-action').value;
+            const module_  = document.getElementById('filter-module').value;
+            const rol      = document.getElementById('filter-rol').value;
+
+            filteredLogs = allLogs.filter(log => {
+                if (dateFrom && log.timestamp && log.timestamp < new Date(dateFrom)) return false;
+                if (dateTo   && log.timestamp && log.timestamp > new Date(dateTo + 'T23:59:59')) return false;
+                if (email  && !log.email.toLowerCase().includes(email))   return false;
+                if (action && log.accion  !== action)  return false;
+                if (module_&& log.modulo  !== module_) return false;
+                if (rol    && log.rol     !== rol)     return false;
+                return true;
+            });
+
+            currentPage = 1;
+            renderTable();
+            lucide.createIcons();
+        };
+
+        window.clearFilters = () => {
+            ['filter-date-from','filter-date-to','filter-email','filter-action','filter-module','filter-rol']
+                .forEach(id => { document.getElementById(id).value = ''; });
+            filteredLogs = [...allLogs];
+            currentPage  = 1;
+            renderTable();
+            lucide.createIcons();
+        };
+
+        // ──────────────────────────────────────────────
+        // Paginación
+        // ──────────────────────────────────────────────
+        window.prevPage = () => { if (currentPage > 1) { currentPage--; renderTable(); lucide.createIcons(); window.scrollTo(0,0); } };
+        window.nextPage = () => {
+            const pages = Math.ceil(filteredLogs.length / PAGE_SIZE);
+            if (currentPage < pages) { currentPage++; renderTable(); lucide.createIcons(); window.scrollTo(0,0); }
+        };
+
+        // ──────────────────────────────────────────────
+        // EXPORTAR A PDF
+        // ──────────────────────────────────────────────
+        window.exportPDF = () => {
+            if (filteredLogs.length === 0) { alert('No hay registros para exportar.'); return; }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+            const now = new Date().toLocaleString('es-NI', { timeZone: 'America/Managua', hour12: true });
+
+            // Encabezado
+            doc.setFillColor(198, 40, 40);
+            doc.rect(0, 0, 297, 22, 'F');
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(14);
+            doc.setTextColor(255, 255, 255);
+            doc.text('FastControl – Auditoría del Sistema', 14, 14);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Generado: ${now}  |  Total registros: ${filteredLogs.length}`, 14, 20);
+
+            // Tabla
+            doc.autoTable({
+                startY: 27,
+                head: [['Fecha y Hora', 'Usuario', 'Rol', 'Acción', 'Módulo', 'Detalle']],
+                body: filteredLogs.map(l => [
+                    l.fechaLocal,
+                    l.email,
+                    l.rol.toUpperCase(),
+                    l.accion,
+                    l.modulo,
+                    l.detalles.substring(0, 80) + (l.detalles.length > 80 ? '…' : '')
+                ]),
+                headStyles: {
+                    fillColor: [26, 26, 26],
+                    textColor: [150, 150, 150],
+                    fontStyle: 'bold',
+                    fontSize: 8
+                },
+                bodyStyles: { fontSize: 8, textColor: [220, 220, 220], fillColor: [20, 20, 20] },
+                alternateRowStyles: { fillColor: [28, 28, 28] },
+                columnStyles: {
+                    0: { cellWidth: 38 },
+                    1: { cellWidth: 50 },
+                    2: { cellWidth: 22 },
+                    3: { cellWidth: 36 },
+                    4: { cellWidth: 32 },
+                    5: { cellWidth: 'auto' }
+                },
+                margin: { left: 14, right: 14 },
+                styles: { overflow: 'linebreak', halign: 'left' },
+                didParseCell: (data) => {
+                    if (data.section === 'body' && data.column.index === 3) {
+                        const colores = {
+                            'INICIO_SESION':            [74,  222, 128],
+                            'INICIO_SESION_FALLIDO':    [248, 113, 113],
+                            'CIERRE_SESION':            [156, 163, 175],
+                            'NAVEGACION':               [96,  165, 250],
+                            'CREAR_USUARIO':            [129, 140, 248],
+                            'ELIMINAR_USUARIO':         [239, 68,  68 ],
+                            'CAMBIAR_ROL':              [192, 132, 252],
+                            'CREAR_REGISTRO':           [129, 140, 248],
+                            'EDITAR_REGISTRO':          [147, 197, 253],
+                            'ELIMINAR_REGISTRO':        [239, 68,  68 ],
+                            'IMPORTAR_REGISTROS':       [134, 239, 172],
+                            'ENTRADA_INVENTARIO':       [110, 231, 183],
+                            'CREAR_REQUISA':            [251, 146,  60],
+                            'GENERAR_CERTIFICADO':      [165, 180, 252],
+                            'CREAR_COTIZACION':         [250, 204,  21],
+                            'CREAR_REPORTE_SERVICIO':   [ 52, 211, 153],
+                        };
+                        const color = colores[data.cell.text[0]];
+                        if (color) data.cell.styles.textColor = color;
+                    }
+                }
+            });
+
+            // Pie de página
+            const pages = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pages; i++) {
+                doc.setPage(i);
+                doc.setFontSize(7);
+                doc.setTextColor(100);
+                doc.text(`FastControl © ${new Date().getFullYear()} – Página ${i} de ${pages}`, 14, doc.internal.pageSize.height - 6);
+            }
+
+            doc.save(`FastControl_Auditoria_${new Date().toISOString().slice(0,10)}.pdf`);
+        };
+
+        // ──────────────────────────────────────────────
+        // EXPORTAR A EXCEL
+        // ──────────────────────────────────────────────
+        window.exportExcel = () => {
+            if (filteredLogs.length === 0) { alert('No hay registros para exportar.'); return; }
+
+            const rows = filteredLogs.map(l => ({
+                'Fecha y Hora':  l.fechaLocal,
+                'UID':           l.uid,
+                'Correo':        l.email,
+                'Rol':           l.rol,
+                'Acción':        l.accion,
+                'Módulo':        l.modulo,
+                'Detalle':       l.detalles,
+                'User Agent':    l.userAgent
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(rows);
+
+            // Ancho de columnas
+            ws['!cols'] = [
+                { wch: 22 }, { wch: 30 }, { wch: 32 }, { wch: 12 },
+                { wch: 24 }, { wch: 22 }, { wch: 60 }, { wch: 50 }
+            ];
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Auditoría');
+
+            // Hoja resumen
+            const now    = new Date().toLocaleString('es-NI', { timeZone: 'America/Managua', hour12: true });
+            const today  = new Date().toDateString();
+            const resumen = [
+                ['FastControl – Resumen de Auditoría', ''],
+                ['Generado:', now],
+                ['Total registros:', filteredLogs.length],
+                [],
+                ['Acción', 'Cantidad'],
+                ...[
+                    'INICIO_SESION','INICIO_SESION_FALLIDO','CIERRE_SESION','NAVEGACION',
+                    'CREAR_USUARIO','ELIMINAR_USUARIO','CAMBIAR_ROL',
+                    'CREAR_REGISTRO','EDITAR_REGISTRO','ELIMINAR_REGISTRO','IMPORTAR_REGISTROS',
+                    'ENTRADA_INVENTARIO','CREAR_REQUISA','GENERAR_CERTIFICADO',
+                    'CREAR_COTIZACION','CREAR_REPORTE_SERVICIO'
+                ].map(a => [a, filteredLogs.filter(l => l.accion === a).length])
+            ];
+            const wsRes = XLSX.utils.aoa_to_sheet(resumen);
+            wsRes['!cols'] = [{ wch: 28 }, { wch: 16 }];
+            XLSX.utils.book_append_sheet(wb, wsRes, 'Resumen');
+
+            XLSX.writeFile(wb, `FastControl_Auditoria_${new Date().toISOString().slice(0,10)}.xlsx`);
+        };
+
+        // ──────────────────────────────────────────────
+        // Arranque
+        // ──────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            loadAuditLogs();
+        });
+
+    </script>
+</body>
+</html>

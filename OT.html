@@ -1,0 +1,2810 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Órdenes de Trabajo - FC</title>
+
+  <!-- Fuentes Modernas -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       SISTEMA DE DISEÑO & ESTILOS PREMIUM (VANILLA CSS - DYNAMIC LIGHT/DARK)
+       ========================================================================== */
+    :root {
+      /* MODO CLARO (Predeterminado - Blanco Premium) */
+      --bg-body: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-input: #f1f5f9;
+      --border-color: rgba(15, 23, 42, 0.08);
+      --text-primary: #0f172a;
+      --text-secondary: #64748b;
+
+      --bg-header: rgba(255, 255, 255, 0.85);
+      --bg-nav-tabs: rgba(241, 245, 249, 0.8);
+      --bg-pill: rgba(241, 245, 249, 0.8);
+      --bg-drawer: rgba(255, 255, 255, 0.98);
+      --bg-btn-secondary: rgba(15, 23, 42, 0.05);
+      --bg-btn-secondary-hover: rgba(15, 23, 42, 0.08);
+      --bg-th: rgba(15, 23, 42, 0.02);
+      --bg-tr-hover: rgba(15, 23, 42, 0.01);
+      --bg-btn-action: rgba(15, 23, 42, 0.02);
+      --bg-toast: rgba(255, 255, 255, 0.98);
+
+      --color-primary: #dc2626;
+      /* Rojo Fast Control */
+      --color-primary-hover: #b91c1c;
+      --color-success: #10b981;
+      /* Esmeralda */
+      --color-danger: #ef4444;
+      /* Rojo */
+      --color-warning: #f59e0b;
+      /* Ámbar */
+      --color-accent: #4b5563;
+      /* Gris Corporativo */
+
+      --shadow-premium: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
+      --font-title: 'Plus Jakarta Sans', sans-serif;
+      --font-body: 'Outfit', sans-serif;
+
+      --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body.dark-theme {
+      /* MODO OSCURO */
+      --bg-body: #0b0f19;
+      --bg-card: #151d30;
+      --bg-input: #1e293b;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+
+      --bg-header: rgba(21, 29, 48, 0.85);
+      --bg-nav-tabs: rgba(30, 41, 59, 0.6);
+      --bg-pill: rgba(30, 41, 59, 0.6);
+      --bg-drawer: rgba(15, 23, 42, 0.98);
+      --bg-btn-secondary: rgba(255, 255, 255, 0.05);
+      --bg-btn-secondary-hover: rgba(255, 255, 255, 0.1);
+      --bg-th: rgba(255, 255, 255, 0.02);
+      --bg-tr-hover: rgba(255, 255, 255, 0.01);
+      --bg-btn-action: rgba(255, 255, 255, 0.02);
+      --bg-toast: rgba(21, 29, 48, 0.95);
+
+      --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      overflow-x: hidden;
+      width: 100%;
+    }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Barra de Navegación */
+    header {
+      background: var(--bg-header);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 16px 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      transition: var(--transition-smooth);
+    }
+
+    body.dark-theme header {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .nav-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: nowrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.4rem;
+      color: white;
+      box-shadow: 0 0 15px rgba(220, 38, 38, 0.4);
+    }
+
+    .brand-text h1 {
+      font-family: var(--font-title);
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+
+    .brand-text span {
+      font-size: 0.75rem;
+      color: var(--color-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      display: block;
+    }
+
+    /* Tabs de Navegación (PC) */
+    .nav-tabs {
+      display: flex;
+      background: var(--bg-nav-tabs);
+      padding: 6px;
+      border-radius: 30px;
+      border: 1px solid var(--border-color);
+      gap: 4px;
+      transition: var(--transition-smooth);
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-family: var(--font-title);
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 8px 18px;
+      border-radius: 25px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition-smooth);
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+      background: var(--bg-btn-secondary);
+    }
+
+    .tab-btn.active {
+      color: white;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+      box-shadow: 0 4px 10px rgba(220, 38, 38, 0.25);
+    }
+
+    /* Indicadores y Menú de Cabecera */
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--color-warning);
+      display: inline-block;
+      box-shadow: 0 0 8px var(--color-warning);
+      transition: var(--transition-smooth);
+    }
+
+    .status-dot.success {
+      background-color: var(--color-success);
+      box-shadow: 0 0 8px var(--color-success);
+    }
+
+    .status-dot.danger {
+      background-color: var(--color-danger);
+      box-shadow: 0 0 8px var(--color-danger);
+    }
+
+    .status-dot.warning {
+      background-color: var(--color-warning);
+      box-shadow: 0 0 8px var(--color-warning);
+    }
+
+    .status-pill {
+      background: var(--bg-pill);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition-smooth);
+    }
+
+    .status-pill:hover {
+      border-color: rgba(220, 38, 38, 0.25);
+      color: var(--text-primary);
+    }
+
+    @media (max-width: 768px) {
+      .status-pill span[id$="-text"] {
+        display: none;
+      }
+
+      .status-pill {
+        padding: 8px;
+        border-radius: 50%;
+      }
+
+      .status-group {
+        gap: 6px;
+      }
+    }
+
+    /* Menú Hamburguesa Móvil */
+    .menu-toggle {
+      display: none;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-smooth);
+      border: 1px solid var(--border-color);
+    }
+
+    .menu-toggle:hover {
+      background: var(--bg-btn-secondary-hover);
+    }
+
+    .mobile-menu-drawer {
+      display: none;
+      position: fixed;
+      top: 73px;
+      left: 0;
+      width: 100%;
+      background: var(--bg-drawer);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 16px;
+      z-index: 99;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      transition: background-color 0.3s ease;
+    }
+
+    body.dark-theme .mobile-menu-drawer {
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+
+    .mobile-menu-drawer.active {
+      display: flex;
+    }
+
+    .mobile-menu-btn {
+      background: var(--bg-btn-secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      font-family: var(--font-title);
+      font-size: 1.05rem;
+      font-weight: 600;
+      padding: 14px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+      transition: var(--transition-smooth);
+    }
+
+    .mobile-menu-btn.active {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+      color: white;
+      border-color: transparent;
+    }
+
+    @keyframes slideDown {
+      from {
+        transform: translateY(-20px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    /* Contenedor Principal */
+    main {
+      flex: 1;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    /* Pestañas de Contenido */
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Layout en Columnas para la Orden */
+    .module-grid-invoice {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 32px;
+      align-items: start;
+    }
+
+    @media (min-width: 1024px) {
+      .module-grid-invoice {
+        grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      }
+    }
+
+    /* Tarjetas (Glassmorphism) */
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: var(--shadow-premium);
+      backdrop-filter: blur(10px);
+      transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(220, 38, 38, 0.3);
+    }
+
+    .card-title {
+      font-family: var(--font-title);
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+    }
+
+    .card-title svg {
+      color: var(--color-primary);
+    }
+
+    /* Formularios */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    .form-control {
+      width: 100%;
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      padding: 10px 14px;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      transition: var(--transition-smooth);
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+      background-color: var(--bg-card);
+    }
+
+    .form-control:disabled,
+    .form-control[readonly] {
+      background-color: var(--bg-btn-secondary);
+      color: var(--text-secondary);
+      cursor: not-allowed;
+      border-style: dashed;
+    }
+
+    /* Input Prefix */
+    .input-prefix-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .input-prefix {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      font-family: monospace;
+      font-size: 0.95rem;
+      pointer-events: none;
+    }
+
+    .input-with-prefix {
+      padding-left: 36px;
+    }
+
+    /* Botones */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-family: var(--font-title);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      border: none;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+      color: white;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(220, 38, 38, 0.35);
+    }
+
+    .btn-secondary {
+      background: var(--bg-btn-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-btn-secondary-hover);
+      color: var(--text-primary);
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    /* Tablas Modernas */
+    .table-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .search-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .search-wrapper input {
+      padding-left: 36px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      pointer-events: none;
+    }
+
+    .table-responsive {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-premium);
+      background: var(--bg-card);
+      overflow-x: auto;
+      overflow-y: hidden;
+      transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background: var(--bg-th);
+      color: var(--text-secondary);
+      font-family: var(--font-title);
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--border-color);
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    td {
+      padding: 12px 10px;
+      font-size: 0.9rem;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-primary);
+      transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: var(--bg-tr-hover);
+    }
+
+    @media (min-width: 769px) {
+      .nowrap-column {
+        white-space: nowrap !important;
+      }
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-primary {
+      background: rgba(220, 38, 38, 0.1);
+      color: var(--color-primary);
+    }
+
+    .badge-success {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--color-success);
+    }
+
+    .badge-warning {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--color-warning);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-secondary);
+    }
+
+    /* Notificaciones Toast flotantes */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1010;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 380px;
+      width: calc(100% - 48px);
+    }
+
+    .toast {
+      background: var(--bg-toast);
+      border-left: 4px solid var(--color-primary);
+      border-top: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: var(--shadow-premium);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transform: translateX(120%);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      backdrop-filter: blur(10px);
+    }
+
+    .toast.show {
+      transform: translateX(0);
+    }
+
+    .toast.success {
+      border-left-color: var(--color-success);
+    }
+
+    .toast.warning {
+      border-left-color: var(--color-warning);
+    }
+
+    .toast.error {
+      border-left-color: var(--color-danger);
+    }
+
+    .toast-icon {
+      flex-shrink: 0;
+    }
+
+    .toast-content {
+      flex-grow: 1;
+    }
+
+    .toast-title {
+      font-family: var(--font-title);
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 2px;
+    }
+
+    .toast-message {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    /* Animación de carga para botones */
+    .spinner {
+      animation: rotate 2s linear infinite;
+      width: 18px;
+      height: 18px;
+      display: inline-block;
+    }
+
+    .spinner .path {
+      stroke: currentColor;
+      stroke-linecap: round;
+      animation: dash 1.5s ease-in-out infinite;
+    }
+
+    @keyframes rotate {
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes dash {
+      0% {
+        stroke-dasharray: 1, 150;
+        stroke-dashoffset: 0;
+      }
+
+      50% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -35;
+      }
+
+      100% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -124;
+      }
+    }
+
+    /* Control de iconos de tema */
+    body.dark-theme .theme-icon-sun {
+      display: block !important;
+    }
+
+    body.dark-theme .theme-icon-moon {
+      display: none !important;
+    }
+
+    body:not(.dark-theme) .theme-icon-sun {
+      display: none !important;
+    }
+
+    body:not(.dark-theme) .theme-icon-moon {
+      display: block !important;
+    }
+
+    /* Adaptabilidad de Tablas en Móviles */
+    @media (max-width: 768px) {
+      header {
+        padding: 12px 16px;
+      }
+
+      .nav-tabs {
+        display: none;
+      }
+
+      .menu-toggle {
+        display: flex;
+      }
+
+      main {
+        padding: 20px 16px;
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+
+      .tab-content {
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .table-responsive {
+        border: none;
+        background: transparent;
+        box-shadow: none;
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      table,
+      thead,
+      tbody,
+      th,
+      td,
+      tr {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tr {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        margin-bottom: 16px;
+        padding: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+        box-sizing: border-box;
+      }
+
+      body.dark-theme tr {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      td {
+        border-bottom: none;
+        padding: 8px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.9rem;
+        gap: 12px;
+        text-align: right;
+        flex-wrap: wrap;
+        box-sizing: border-box;
+      }
+
+      td::before {
+        content: attr(data-label);
+        font-family: var(--font-title);
+        font-weight: 700;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        text-align: left;
+        flex-shrink: 1;
+        max-width: 40%;
+        word-break: break-word;
+        overflow-wrap: break-word;
+      }
+
+      td strong {
+        font-size: 1rem;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .module-grid-invoice {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 24px;
+        width: 100%;
+      }
+
+      .card {
+        max-width: 100%;
+        width: 100%;
+        margin: 0 auto;
+        overflow: hidden;
+        box-sizing: border-box;
+      }
+
+      .form-grid-2 {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .btn-group {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .table-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .table-header>div {
+        justify-content: flex-start !important;
+        flex-direction: column;
+        align-items: stretch !important;
+        width: 100% !important;
+      }
+
+      .table-header>div>button,
+      .table-header>div>.search-wrapper {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+      }
+    }
+
+    /* ==========================================================================
+       ESTILOS PARA PANTALLA DE INICIO (SPLASH SCREEN)
+       ========================================================================== */
+    #splash-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #ffffff !important;
+      /* Pantalla blanca */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 99999;
+      transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s ease;
+      opacity: 1;
+      visibility: visible;
+    }
+
+    #splash-screen.fade-out {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .splash-content {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .splash-title {
+      font-family: var(--font-title);
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #0b1a30 !important;
+      /* Letras azul oscuro */
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      animation: pulseTitle 2.5s infinite ease-in-out;
+      text-shadow: 0 4px 12px rgba(11, 26, 48, 0.1);
+    }
+
+    .splash-loader {
+      width: 240px;
+      height: 6px;
+      background: #e2e8f0 !important;
+      /* Track gris suave */
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .splash-progress {
+      width: 0;
+      height: 100%;
+      background: #ef4444 !important;
+      /* Barra de progreso en rojo brillante */
+      border-radius: 10px;
+      animation: loadProgress 1.8s cubic-bezier(0.1, 0.8, 0.1, 1) forwards;
+    }
+
+    .splash-text {
+      font-family: var(--font-title);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #1e293b !important;
+      /* Letras azul oscuro secundario */
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-top: 8px;
+      animation: pulseText 1.5s infinite ease-in-out;
+    }
+
+    @keyframes pulseTitle {
+
+      0%,
+      100% {
+        transform: scale(1);
+        filter: brightness(1);
+      }
+
+      50% {
+        transform: scale(1.02);
+        filter: brightness(1.2);
+      }
+    }
+
+    @keyframes loadProgress {
+      0% {
+        width: 0%;
+      }
+
+      20% {
+        width: 15%;
+      }
+
+      50% {
+        width: 60%;
+      }
+
+      80% {
+        width: 90%;
+      }
+
+      100% {
+        width: 100%;
+      }
+    }
+
+    @keyframes pulseText {
+
+      0%,
+      100% {
+        opacity: 0.6;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+
+    /* ==========================================================================
+       ESTILOS DE LA HOJA FISICA DE LA FACTURA (TAMAÑO CARTA)
+       ========================================================================== */
+    .invoice-paper {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+      /* Forzado texto oscuro */
+      border: 1px solid rgba(15, 23, 42, 0.15);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      max-width: 650px;
+      margin: 0 auto;
+      width: 100%;
+      aspect-ratio: 1 / 1.29;
+      /* Proporción tamaño Carta */
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-sizing: border-box;
+    }
+
+    body.dark-theme .invoice-paper {
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .invoice-content {
+      font-size: 0.72rem;
+      line-height: 1.35;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+      justify-content: flex-start;
+    }
+
+    .invoice-header-block {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid var(--color-primary);
+      padding-bottom: 14px;
+    }
+
+    .invoice-code-badge {
+      background: rgba(220, 38, 38, 0.08);
+      border: 1px solid rgba(220, 38, 38, 0.2);
+      padding: 6px 12px;
+      border-radius: 8px;
+      text-align: right;
+    }
+
+    .invoice-grid-block {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      background: #f8fafc;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .invoice-grid-col {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .invoice-grid-col:last-child {
+      border-left: 1px solid #e2e8f0;
+      padding-left: 16px;
+    }
+
+    .invoice-section-title {
+      font-family: var(--font-title);
+      font-weight: 700;
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      color: #dc2626;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .invoice-table-wrapper {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .invoice-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .invoice-table th {
+      background: #0f172a !important;
+      /* Cabecera oscura */
+      color: #ffffff !important;
+      font-family: var(--font-title);
+      font-weight: 700;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      padding: 8px 10px;
+      border-bottom: none;
+    }
+
+    .invoice-table td {
+      padding: 7px 8px;
+      font-size: 0.7rem;
+      border-bottom: none;
+      color: #334155 !important;
+      background: #ffffff !important;
+    }
+
+    .invoice-observaciones-block {
+      background: rgba(245, 158, 11, 0.04);
+      border: 1px solid rgba(245, 158, 11, 0.15);
+      border-radius: 8px;
+      padding: 10px;
+      min-height: 38px;
+      color: #334155;
+      font-size: 0.72rem;
+      white-space: pre-wrap;
+    }
+
+    .invoice-signatures-block {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      padding-top: 18px;
+      padding-bottom: 8px;
+    }
+
+    .invoice-signature-line {
+      border-top: 1px solid #cbd5e1;
+      text-align: center;
+      padding-top: 6px;
+    }
+
+    .invoice-footer-block {
+      display: none !important;
+    }
+
+    /* ==========================================================================
+       MEDIA QUERY DE IMPRESIÓN (FORZADO TAMAÑO CARTA)
+       ========================================================================== */
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+
+      #print-area,
+      #print-area * {
+        visibility: visible !important;
+      }
+
+      #print-area {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+      }
+
+      @page {
+        size: letter;
+        margin: 15mm;
+      }
+
+      .invoice-paper {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 240mm !important;
+        background: white !important;
+        color: black !important;
+      }
+    }
+  </style>
+
+  <!-- PDF Generation Dependencies -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+</head>
+
+<body>
+  <img id="company-logo" src="https://lh3.googleusercontent.com/d/1RPpzt0-f9zQS6JnU6urBO7OdgMdDUuH0" crossorigin="anonymous" style="display: none;" alt="Logo Fast Control">
+
+  <!-- Script para prevenir parpadeo de tema -->
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem("theme") || "light";
+      if (savedTheme === "dark") {
+        document.body.classList.add("dark-theme");
+      }
+    })();
+  </script>
+
+  <!-- Pantalla de Inicio (Splash Screen) -->
+  <div id="splash-screen">
+    <div class="splash-content">
+      <h1 class="splash-title">FAST CONTROL</h1>
+      <div class="splash-loader">
+        <div class="splash-progress"></div>
+      </div>
+      <div class="splash-text">Cargando Sistema de Órdenes</div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      setTimeout(() => {
+        const splash = document.getElementById("splash-screen");
+        if (splash) {
+          splash.classList.add("fade-out");
+          setTimeout(() => {
+            splash.remove();
+          }, 600);
+        }
+      }, 1000); // Carga rápida (1s)
+    });
+  </script>
+
+  <!-- ==========================================================================
+       CABECERA Y BARRA DE NAVEGACIÓN
+       ========================================================================== -->
+  <header>
+    <div class="nav-container">
+      <a href="#" class="brand">
+        <div class="brand-logo">OT</div>
+        <div class="brand-text">
+          <h1>Fast Control</h1>
+          <span>Órdenes de Trabajo</span>
+        </div>
+      </a>
+
+      <!-- Pestañas Principales (Solo PC) -->
+      <nav class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('nueva-orden')">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Nueva Orden
+        </button>
+        <button class="tab-btn" onclick="switchTab('historial')">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          Historial
+        </button>
+      </nav>
+
+      <!-- Indicador de Conexión a Firebase -->
+      <div class="status-group">
+        <div class="status-pill" id="db-status-pill" title="Estado de Firebase Firestore">
+          <span class="status-dot warning" id="db-status-dot"></span>
+          <span id="db-status-text">Firestore: Conectando...</span>
+        </div>
+      </div>
+
+      <!-- Menú Móvil & Acciones -->
+      <div class="header-actions">
+        <!-- Conmutador de Tema Claro/Oscuro -->
+        <button id="theme-toggle" class="btn-action" onclick="toggleTheme()" title="Cambiar Tema"
+          style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+          <!-- Sol (Modo oscuro activo) -->
+          <svg class="theme-icon-sun" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+          </svg>
+          <!-- Luna (Modo claro activo) -->
+          <svg class="theme-icon-moon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        </button>
+        <!-- Botón de Hamburguesa para Móvil -->
+        <button class="menu-toggle" onclick="toggleMobileMenu()" aria-label="Abrir Menú">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Menú Desplegable Móvil -->
+    <div class="mobile-menu-drawer" id="mobile-menu-drawer">
+      <button class="mobile-menu-btn active" onclick="handleMobileNav('nueva-orden')">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Nueva Orden
+      </button>
+      <button class="mobile-menu-btn" onclick="handleMobileNav('historial')">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+        Historial de Órdenes
+      </button>
+    </div>
+  </header>
+
+  <!-- Contenedor para Notificaciones Emergentes -->
+  <div id="toast-container"></div>
+
+  <!-- Contenedor Principal -->
+  <main>
+
+    <!-- CONTENIDO: NUEVA ORDEN -->
+    <section id="tab-nueva-orden" class="tab-content active">
+      <div class="module-grid-invoice">
+
+        <!-- Formulario (Lado Izquierdo) -->
+        <div class="card">
+          <h2 class="card-title">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span>Datos Básicos de la Orden</span>
+          </h2>
+
+          <form id="order-form" class="form-grid">
+            <!-- Número de OT -->
+            <div class="form-group">
+              <label for="numero_ot">Número de OT <span style="color: var(--color-danger);">*</span></label>
+              <div class="input-prefix-wrapper">
+                <span class="input-prefix">OT</span>
+                <input type="text" id="numero_ot" required readonly class="form-control input-with-prefix"
+                  placeholder="OT-0001" title="Número consecutivo generado automáticamente">
+              </div>
+            </div>
+
+            <!-- Número de Factura -->
+            <div class="form-group">
+              <label for="numero_factura">Número de Factura <span style="color: var(--color-danger);">*</span></label>
+              <div class="input-prefix-wrapper">
+                <span class="input-prefix">N°</span>
+                <input type="text" id="numero_factura" required class="form-control input-with-prefix"
+                  placeholder="Digite el número de factura">
+              </div>
+            </div>
+
+            <!-- Fecha y Hora -->
+            <div class="form-group">
+              <label for="fecha_hora">Fecha y Hora Programada <span style="color: var(--color-danger);">*</span></label>
+              <input type="datetime-local" id="fecha_hora" required class="form-control">
+            </div>
+
+            <!-- Selección de Cliente -->
+            <div class="form-group">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label for="cliente_select" style="margin-bottom: 0;">Cliente <span
+                    style="color: var(--color-danger);">*</span></label>
+                <button type="button" onclick="promptQuickClient()"
+                  style="background: none; border: none; color: var(--color-primary); font-family: var(--font-title); font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 2px; transition: var(--transition-smooth);">
+                  <span style="font-size: 0.9rem;">+</span> Añadir temporal
+                </button>
+              </div>
+              <select id="cliente_select" required class="form-control">
+                <option value="">Conectando a Firebase...</option>
+              </select>
+            </div>
+
+            <!-- Selección de Servicio -->
+            <div class="form-group">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label for="servicio_select" style="margin-bottom: 0;">Servicio Solicitado <span
+                    style="color: var(--color-danger);">*</span></label>
+                <button type="button" onclick="promptQuickService()"
+                  style="background: none; border: none; color: var(--color-primary); font-family: var(--font-title); font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 2px; transition: var(--transition-smooth);">
+                  <span style="font-size: 0.9rem;">+</span> Añadir temporal
+                </button>
+              </div>
+              <select id="servicio_select" required class="form-control">
+                <option value="">Conectando a Firebase...</option>
+              </select>
+            </div>
+
+            <!-- Descripción del Servicio (Solo Lectura) -->
+            <div class="form-group">
+              <label style="color: var(--text-secondary);">Descripción del Servicio</label>
+              <textarea id="descripcion_servicio_display" readonly class="form-control"
+                style="font-size: 0.8rem; h-24: 96px; height: 96px; resize: none; leading-relaxed: 1.45;"
+                placeholder="La descripción del servicio seleccionado se cargará automáticamente aquí..."></textarea>
+            </div>
+
+            <!-- Dirección -->
+            <div class="form-group">
+              <label for="direccion">Dirección del Servicio</label>
+              <input type="text" id="direccion" readonly class="form-control"
+                placeholder="Se carga automáticamente desde el cliente">
+            </div>
+
+            <!-- Atención y Sector -->
+            <div class="form-grid-2">
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="contacto">Atención de</label>
+                <input type="text" id="contacto" readonly class="form-control" placeholder="Se carga desde el cliente">
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="sector">Sector</label>
+                <input type="text" id="sector" readonly class="form-control" placeholder="Se carga desde el cliente">
+              </div>
+            </div>
+
+            <!-- Técnico Asignado -->
+            <div class="form-group">
+              <label for="tecnico">Técnico Responsable <span style="color: var(--color-danger);">*</span></label>
+              <input type="text" id="tecnico" required class="form-control" placeholder="Nombre completo del técnico">
+            </div>
+
+            <!-- Tipo de Servicio -->
+            <div class="form-group">
+              <label>Tipo de Servicio</label>
+              <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 4px;">
+                <label
+                  style="display:flex; align-items:center; gap:6px; font-size:0.9rem; color:var(--text-primary); font-weight:500; cursor:pointer; margin-bottom:0;">
+                  <input type="checkbox" id="tipo_inicial"
+                    style="width:16px;height:16px;accent-color:var(--color-primary);cursor:pointer;"> Inicial
+                </label>
+                <label
+                  style="display:flex; align-items:center; gap:6px; font-size:0.9rem; color:var(--text-primary); font-weight:500; cursor:pointer; margin-bottom:0;">
+                  <input type="checkbox" id="tipo_regular"
+                    style="width:16px;height:16px;accent-color:var(--color-primary);cursor:pointer;"> Regular
+                </label>
+                <label
+                  style="display:flex; align-items:center; gap:6px; font-size:0.9rem; color:var(--text-primary); font-weight:500; cursor:pointer; margin-bottom:0;">
+                  <input type="checkbox" id="tipo_ciclo"
+                    style="width:16px;height:16px;accent-color:var(--color-primary);cursor:pointer;"> Ciclo de Control
+                </label>
+              </div>
+            </div>
+
+            <!-- Observaciones -->
+            <div class="form-group">
+              <label for="observacion">Observaciones y Recomendaciones</label>
+              <textarea id="observacion" rows="3" class="form-control" style="resize: none;"
+                placeholder="Detalle fallas encontradas, materiales, diagnósticos especiales..."></textarea>
+            </div>
+
+            <!-- Botones -->
+            <div class="btn-group">
+              <button type="submit" id="btn-save" class="btn btn-primary">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+                <span>Guardar Orden</span>
+              </button>
+              <button type="button" onclick="clearForm()" class="btn btn-secondary">Limpiar</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Visualización del Documento PDF (Lado Derecho) -->
+        <div class="card" style="display: flex; flex-direction: column;">
+          <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 12px;">
+            <div>
+              <h2 class="card-title" style="border: none; margin: 0; padding: 0;">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>Previsualización y Exportación</span>
+              </h2>
+              <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">Previsualiza el documento
+                final a tamaño Carta física.</p>
+            </div>
+            <button onclick="printInvoice()" class="btn btn-primary"
+              style="width: auto; padding: 8px 16px; font-size: 0.85rem; height: 38px;">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>Descargar PDF</span>
+            </button>
+          </div>
+
+          <!-- Contenedor del documento Carta (Papel Real) -->
+          <div class="invoice-paper" id="invoice-preview-container">
+            <div id="invoice-preview" class="invoice-content">
+
+              <div class="invoice-header-block">
+                <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px;">
+                  <h3
+                    style="font-weight: 800; font-size: 1.4rem; color: #0f172a; margin: 0; font-family: var(--font-title);">
+                    Fast Control</h3>
+                  <p style="font-size: 0.72rem; color: #475569; font-style: italic; font-weight: 600; margin: 0;">Manejo
+                    Integrado De Plagas</p>
+                  <p style="font-size: 0.65rem; color: #64748b; margin: 0;">Nº RUC: 0012704961001T</p>
+                  <p style="font-size: 0.65rem; color: #64748b; margin: 0;">Bº Naciones Unidas, Terminal ruta 165, 1c.
+                    Al sur 1c. Al este, managua</p>
+                  <p style="font-size: 0.65rem; color: #64748b; margin: 0;">Email: info@fastcontrolni.com</p>
+                  <p style="font-size: 0.65rem; color: #64748b; margin: 0; margin-bottom: 8px;">Tel: 2253-7290 /
+                    7894-4984</p>
+
+                  <h4
+                    style="font-weight: 800; font-size: 1.05rem; letter-spacing: -0.02em; text-transform: uppercase; margin: 0; color: #dc2626;">
+                    ORDEN DE TRABAJO</h4>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-start; text-align: right;">
+                  <!-- Logo de Fast Control -->
+                  <img src="https://lh3.googleusercontent.com/d/1RPpzt0-f9zQS6JnU6urBO7OdgMdDUuH0" alt="Logo Fast Control" style="max-height: 52px; width: auto; object-fit: contain; margin-bottom: 6px;">
+                  
+                  <div style="text-align: right;">
+                    <p
+                      style="font-size: 0.6rem; font-weight: 700; color: #dc2626; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">
+                      Número de OT</p>
+                    <p id="preview-factura"
+                      style="font-size: 0.95rem; font-weight: 800; color: #0f172a; font-family: monospace;">--------</p>
+                    <p style="font-size: 0.65rem; color:#64748b; margin-top:2px;">Factura: <span
+                        id="preview-numero-factura" style="font-weight:700;color:#334155;">--------</span></p>
+                  </div>
+                  <p style="font-size: 0.6rem; color: #94a3b8; margin-top: 4px;">Emitido el: <span
+                      id="preview-print-date">--/--/----</span></p>
+                </div>
+              </div>
+
+              <!-- 2. Información del Cliente y Orden -->
+              <div class="invoice-grid-block">
+                <!-- Col Izquierda: Cliente -->
+                <div class="invoice-grid-col">
+                  <h4 class="invoice-section-title">DATOS DEL CLIENTE</h4>
+                  <p style="color: #64748b; font-size: 0.7rem;">Cliente: <span id="preview-cliente-nombre"
+                      style="font-weight: 700; color: #0f172a;">Seleccione un cliente...</span></p>
+                  <p style="color: #64748b; font-size: 0.7rem;">Dirección: <span id="preview-direccion"
+                      style="font-weight: 600; color: #334155;">--------</span></p>
+                  <p style="color: #64748b; font-size: 0.7rem;">Atención de: <span id="preview-contacto"
+                      style="font-weight: 600; color: #334155;">--------</span></p>
+                  <p style="color: #64748b; font-size: 0.7rem;">Sector: <span id="preview-sector"
+                      style="font-weight: 600; color: #334155;">--------</span></p>
+                </div>
+                <!-- Col Derecha: Orden -->
+                <div class="invoice-grid-col">
+                  <h4 class="invoice-section-title">INFORMACIÓN DEL TRABAJO</h4>
+                  <p style="color: #64748b; font-size: 0.7rem;">Fecha programada: <span id="preview-fecha"
+                      style="font-weight: 700; color: #0f172a;">--/--/---- --:--</span></p>
+                  <p style="color: #64748b; font-size: 0.7rem;">Técnico: <span id="preview-tecnico"
+                      style="font-weight: 600; color: #334155;">--------</span></p>
+                  <p style="color: #64748b; font-size: 0.7rem;">Tipo de servicio: <span id="preview-tipo-servicio"
+                      style="font-weight: 600; color: #334155;">--------</span></p>
+                </div>
+              </div>
+
+              <!-- 3. Especificación del Servicio -->
+              <div>
+                <h4 class="invoice-section-title" style="margin-bottom: 8px;">SERVICIO SELECCIONADO Y DESCRIPCIÓN</h4>
+                <div class="invoice-table-wrapper">
+                  <table class="invoice-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 35%;">Servicio</th>
+                        <th style="width: 65%;">Descripción del Trabajo</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td id="preview-servicio-nombre"
+                          style="font-weight: 700; font-size: 0.75rem; vertical-align: top;">Seleccione un servicio...
+                        </td>
+                        <td id="preview-servicio-desc"
+                          style="font-size: 0.7rem; color: #475569; font-style: italic; vertical-align: top; line-height: 1.4;">
+                          La descripción registrada en Firebase aparecerá aquí automáticamente...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- 5. Observaciones y Anotaciones -->
+              <div>
+                <h4 class="invoice-section-title" style="margin-bottom: 6px;">OBSERVACIONES Y RECOMENDACIONES</h4>
+                <div class="invoice-observaciones-block" id="preview-observaciones">Sin observaciones registradas por el
+                  momento.</div>
+              </div>
+
+              <!-- 6. Firmas de Autorización -->
+              <div class="invoice-signatures-block">
+                <div class="invoice-signature-line">
+                  <p style="font-weight: 700; color: #334155; font-size: 0.7rem;">Ejecutivo de Servicio</p>
+                  <p id="preview-firma-tecnico"
+                    style="color: #94a3b8; font-size: 0.65rem; text-transform: uppercase; margin-top: 4px;">--------</p>
+                  <p style="color: #64748b; font-size: 0.6rem; margin-top: 2px;">(Nombre)</p>
+                </div>
+                <div class="invoice-signature-line">
+                  <p style="font-weight: 700; color: #334155; font-size: 0.7rem;">Cliente</p>
+                  <p style="color: #94a3b8; font-size: 0.65rem; text-transform: uppercase; margin-top: 4px;">Firma
+                    Autorizada</p>
+                  <p style="color: #64748b; font-size: 0.6rem; margin-top: 2px;">(Nombre y Cédula)</p>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- 6. Pie del Documento -->
+            <div class="invoice-footer-block">
+              <p
+                style="font-family: monospace; font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase; color: #cbd5e1;">
+                *** REGISTRO ELECTRÓNICO PROCESADO EN FIREBASE ***</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CONTENIDO: HISTORIAL -->
+    <section id="tab-historial" class="tab-content">
+      <div class="card">
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 12px;">
+          <h2 class="card-title" style="border: none; margin: 0; padding: 0;">
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <span>Historial de Órdenes de Trabajo</span>
+          </h2>
+          <span class="badge badge-primary" id="orders-count">0 Órdenes</span>
+        </div>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th class="nowrap-column">Factura/Orden</th>
+                <th>Cliente</th>
+                <th>Servicio</th>
+                <th>Técnico</th>
+                <th class="nowrap-column">Fecha Programada</th>
+                <th class="nowrap-column">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="orders-table-body">
+              <tr>
+                <td colspan="6" class="empty-state">Cargando base de datos Firebase...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Área de Impresión Exclusiva (Forzado Impresora / PDF limpio) -->
+  <div id="print-area" class="hidden"></div>
+
+  <!-- Footer (No-print) -->
+  <footer
+    style="margin-top: auto; border-top: 1px solid var(--border-color); background: var(--bg-card); padding: 16px 24px; text-align: center; font-size: 0.8rem; color: var(--text-secondary); transition: var(--transition-smooth);">
+    <p>&copy; FAST CONTROL 2026 - Módulo de Órdenes de Trabajo
+  </footer>
+
+  <!-- Firebase SDK Importaciones (v10.8.0) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, doc, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Configuración provista por el usuario para su base de datos "pos-vbd"
+    const firebaseConfig = {
+      apiKey: "AIzaSyBWu-ewWbQb9z3f2gS9zQFrArZr-KUb-ok",
+      authDomain: "pos-vbd.firebaseapp.com",
+      projectId: "pos-vbd",
+      storageBucket: "pos-vbd.firebasestorage.app",
+      messagingSenderId: "491489024859",
+      appId: "1:491489024859:web:4c2448b8882c0099b6587e",
+      measurementId: "G-0NB1C3TJT7"
+    };
+
+    // Inicializar Firebase
+    let app, db;
+    let isConnected = false;
+
+    // Caché local
+    let cacheClientes = [];
+    let cacheServicios = [];
+    let cacheOrdenes = [];
+
+    // Buscadores dinámicos de campos para tolerancia a esquemas variables
+    function resolveClientName(cli) {
+      return cli.nombre || cli.nombre_cliente || cli.name || cli.cliente || cli.nombrecompleto || cli.fullname || cli.razon_social || cli.razonsocial || 'Cliente Sin Nombre';
+    }
+
+    function resolveClientPhone(cli) {
+      return cli.telefono || cli.phone || cli.celular || cli.contacto || cli.tel || 'Sin teléfono';
+    }
+
+    function resolveClientEmail(cli) {
+      return cli.correo || cli.email || cli.mail || cli.correo_electronico || cli.email_address || 'Sin correo';
+    }
+
+    function resolveClientAddress(cli) {
+      return cli.direccion || cli.direccion_servicio || cli.direccion_fiscal || cli.address || cli.ubicacion || cli.domicilio || cli.dir || '';
+    }
+
+    function resolveClientAttention(cli) {
+      return cli.gerente || cli.nombre_gerente || cli.gerente_general || cli.manager || cli.administrador || cli.atencion_de || cli.atencion || cli.atencion_a || cli.contacto_nombre || cli.nombre_contacto || cli.persona_contacto || cli.encargado || cli.representante || cli.contacto || '';
+    }
+
+    function resolveClientSector(cli) {
+      return cli.sector || cli.rubro || cli.area || cli.zona || cli.departamento || cli.categoria || '';
+    }
+
+    function applyClientDataToForm(cli) {
+      const direccion = cli ? resolveClientAddress(cli) : '';
+      const atencion = cli ? resolveClientAttention(cli) : '';
+      const sector = cli ? resolveClientSector(cli) : '';
+
+      direccionInput.value = direccion;
+      contactoInput.value = atencion;
+      sectorInput.value = sector;
+
+      document.getElementById('preview-direccion').innerText = direccion || '--------';
+      document.getElementById('preview-contacto').innerText = atencion || '--------';
+      document.getElementById('preview-sector').innerText = sector || '--------';
+    }
+
+    function resolveServiceName(srv) {
+      return srv.nombre || srv.nombre_servicio || srv.servicio || srv.name || srv.title || srv.servicename || 'Servicio Sin Nombre';
+    }
+
+    function resolveServiceDesc(srv) {
+      return srv.descripcion || srv.description || srv.detalle || srv.desc || srv.detail || 'Sin descripción guardada.';
+    }
+
+    window.onload = async function () {
+      setDefaultDateTime();
+      setNextOrderNumber();
+
+      const hoy = new Date();
+      document.getElementById('preview-print-date').innerText = `${hoy.getDate().toString().padStart(2, '0')}/${(hoy.getMonth() + 1).toString().padStart(2, '0')}/${hoy.getFullYear()}`;
+
+      try {
+        app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+
+        if (db) {
+          isConnected = true;
+          updateDbStatusIndicator("success", "Firestore: Conectado");
+          listenToFirebaseCollections();
+        } else {
+          throw new Error("No se pudo obtener la base de datos Firestore.");
+        }
+      } catch (error) {
+        console.error("Error al conectar con Firebase:", error);
+        updateDbStatusIndicator("danger", "Firestore: Sin Conexión");
+        showToast("Error de conexión con Firebase. Iniciando simulación local.", "warning");
+        enableLocalSimulation();
+      }
+    };
+
+    function updateDbStatusIndicator(type, text) {
+      console.log(`[Base de Datos] ${text}`);
+      const dot = document.getElementById("db-status-dot");
+      const label = document.getElementById("db-status-text");
+      if (dot && label) {
+        dot.className = `status-dot ${type}`;
+        label.textContent = text;
+      }
+    }
+
+    function listenToFirebaseCollections() {
+      // Clientes
+      onSnapshot(collection(db, "clientes"), (snapshot) => {
+        cacheClientes = [];
+        snapshot.forEach((doc) => {
+          cacheClientes.push({ id: doc.id, ...doc.data() });
+        });
+        console.log("Clientes actualizados desde Firebase:", cacheClientes);
+        updateClientesUI();
+      }, (error) => {
+        console.error("Falla al escuchar clientes:", error);
+        showToast("Error al sincronizar clientes. Verifique reglas de Firestore.", "error");
+      });
+
+      // Servicios
+      onSnapshot(collection(db, "servicios"), (snapshot) => {
+        cacheServicios = [];
+        snapshot.forEach((doc) => {
+          cacheServicios.push({ id: doc.id, ...doc.data() });
+        });
+        console.log("Servicios actualizados desde Firebase:", cacheServicios);
+        updateServiciosUI();
+      }, (error) => {
+        console.error("Falla al escuchar servicios:", error);
+        showToast("Error al sincronizar servicios.", "error");
+      });
+
+      // Órdenes
+      onSnapshot(collection(db, "ordenes"), (snapshot) => {
+        cacheOrdenes = [];
+        snapshot.forEach((doc) => {
+          cacheOrdenes.push({ id: doc.id, ...doc.data() });
+        });
+        console.log("Órdenes actualizadas desde Firebase:", cacheOrdenes);
+        updateOrdenesTabla(cacheOrdenes);
+        setNextOrderNumber();
+      }, (error) => {
+        console.error("Falla al escuchar órdenes:", error);
+      });
+    }
+
+    function enableLocalSimulation() {
+      cacheClientes = [
+        { id: 'cli-demo1', nombre: 'Distribuidora Díaz (Local)', telefono: '+503 2233-4455', correo: 'diaz@correo.com' },
+        { id: 'cli-demo2', nombre: 'Corporación Salvadoreña (Local)', telefono: '+503 7766-5544', correo: 'corpsalv@contacto.com' }
+      ];
+      cacheServicios = [
+        { id: 'srv-demo1', nombre: 'Mantenimiento Preventivo de Servidores', descripcion: 'Limpieza física de racks, optimización de discos principales, revisión del log de eventos críticos, parcheo del kernel del sistema operativo y verificación de respaldos.' },
+        { id: 'srv-demo2', nombre: 'Fusión e Instalación de Fibra Óptica', descripcion: 'Fusión de hilos monomodo por arco voltaico, prueba de atenuación con OTDR en puerto principal, empaquetado de fusiones en caja terminal y rotulado normativo.' }
+      ];
+      cacheOrdenes = [
+        {
+          numero_factura: 'OT-DEMO-001',
+          fecha_hora: '2026-05-20T10:00',
+          cliente_id: 'cli-demo1',
+          cliente_nombre: 'Distribuidora Díaz (Local)',
+          cliente_telefono: '+503 2233-4455',
+          cliente_correo: 'diaz@correo.com',
+          servicio_id: 'srv-demo1',
+          servicio_nombre: 'Mantenimiento Preventivo de Servidores',
+          servicio_descripcion: 'Limpieza física de racks, optimización de discos principales, revisión del log de eventos críticos, parcheo del kernel del sistema operativo y verificación de respaldos.',
+          tecnico: 'Carlos Gómez',
+          observacion: 'Optimización de Rack principal. Servidores en línea.',
+          fecha_creacion: new Date().toISOString()
+        }
+      ];
+
+      updateClientesUI();
+      updateServiciosUI();
+      updateOrdenesTabla(cacheOrdenes);
+      setNextOrderNumber();
+    }
+
+    // Añadir temporales
+    window.promptQuickClient = function () {
+      const nombre = prompt("Nombre del cliente nuevo o temporal:");
+      if (!nombre) return;
+      const telefono = prompt("Teléfono (Opcional):", "");
+      const correo = prompt("Correo electrónico (Opcional):", "");
+
+      const nuevoCli = {
+        id: "cli-temp-" + Date.now(),
+        nombre: nombre,
+        telefono: telefono || "Sin teléfono",
+        correo: correo || "Sin correo"
+      };
+
+      cacheClientes.push(nuevoCli);
+      updateClientesUI();
+      selectCliente.value = nuevoCli.id;
+      triggerClienteChange();
+      showToast("Cliente temporal agregado", "success");
+    };
+
+    window.promptQuickService = function () {
+      const nombre = prompt("Nombre del servicio nuevo o temporal:");
+      if (!nombre) return;
+      const descripcion = prompt("Descripción técnica detallada:");
+      if (!descripcion) return;
+
+      const nuevoSrv = {
+        id: "srv-temp-" + Date.now(),
+        nombre: nombre,
+        descripcion: descripcion
+      };
+
+      cacheServicios.push(nuevoSrv);
+      updateServiciosUI();
+      selectServicio.value = nuevoSrv.id;
+      triggerServicioChange();
+      showToast("Servicio temporal agregado", "success");
+    };
+
+    function updateClientesUI() {
+      const select = document.getElementById('cliente_select');
+      const currentVal = select.value;
+      select.innerHTML = '<option value="">-- Seleccione un Cliente --</option>';
+
+      if (cacheClientes.length === 0) {
+        select.innerHTML = '<option value="">Cargando clientes... Use "+ Añadir" para ingresar temporal</option>';
+        return;
+      }
+
+      cacheClientes.forEach(cli => {
+        const option = document.createElement('option');
+        option.value = cli.id;
+        option.textContent = resolveClientName(cli);
+        select.appendChild(option);
+      });
+
+      if (currentVal) select.value = currentVal;
+    }
+
+    function updateServiciosUI() {
+      const select = document.getElementById('servicio_select');
+      const currentVal = select.value;
+      select.innerHTML = '<option value="">-- Seleccione un Servicio --</option>';
+
+      if (cacheServicios.length === 0) {
+        select.innerHTML = '<option value="">Cargando servicios... Use "+ Añadir" para ingresar temporal</option>';
+        return;
+      }
+
+      cacheServicios.forEach(srv => {
+        const option = document.createElement('option');
+        option.value = srv.id;
+        option.textContent = resolveServiceName(srv);
+        select.appendChild(option);
+      });
+
+      if (currentVal) select.value = currentVal;
+    }
+
+    const numOtInput = document.getElementById('numero_ot');
+    const numFacturaInput = document.getElementById('numero_factura');
+    const fechaHoraInput = document.getElementById('fecha_hora');
+    const tecnicoInput = document.getElementById('tecnico');
+    const selectCliente = document.getElementById('cliente_select');
+    const selectServicio = document.getElementById('servicio_select');
+    const descServicioTextarea = document.getElementById('descripcion_servicio_display');
+    const observacionInput = document.getElementById('observacion');
+    const direccionInput = document.getElementById('direccion');
+    const contactoInput = document.getElementById('contacto');
+    const sectorInput = document.getElementById('sector');
+    const tipoServicioInputs = [
+      { input: document.getElementById('tipo_inicial'), label: 'Inicial' },
+      { input: document.getElementById('tipo_regular'), label: 'Regular' },
+      { input: document.getElementById('tipo_ciclo'), label: 'Ciclo de Control' }
+    ];
+
+    numOtInput.addEventListener('input', () => {
+      document.getElementById('preview-factura').innerText = numOtInput.value || '--------';
+    });
+
+    numFacturaInput.addEventListener('input', () => {
+      document.getElementById('preview-numero-factura').innerText = numFacturaInput.value || '--------';
+    });
+
+    function formatDateTime12H(rawVal) {
+      if (!rawVal) return '--/--/---- --:--';
+      try {
+        const dateObj = new Date(rawVal.replace(' ', 'T')); // Handle both space and T separators safely
+        if (isNaN(dateObj.getTime())) {
+          return rawVal.replace('T', ' ');
+        }
+        const yyyy = dateObj.getFullYear();
+        const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const dd = String(dateObj.getDate()).padStart(2, '0');
+
+        let hours = dateObj.getHours();
+        const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        const formattedHours = String(hours).padStart(2, '0');
+
+        return `${yyyy}-${mm}-${dd} ${formattedHours}:${minutes} ${ampm}`;
+      } catch (e) {
+        return rawVal.replace('T', ' ');
+      }
+    }
+
+    fechaHoraInput.addEventListener('change', () => {
+      document.getElementById('preview-fecha').innerText = formatDateTime12H(fechaHoraInput.value);
+    });
+
+    tecnicoInput.addEventListener('input', () => {
+      document.getElementById('preview-tecnico').innerText = tecnicoInput.value || '--------';
+      document.getElementById('preview-firma-tecnico').innerText = tecnicoInput.value || '--------';
+    });
+
+    observacionInput.addEventListener('input', () => {
+      document.getElementById('preview-observaciones').innerText = observacionInput.value || 'Sin observaciones registradas por el momento.';
+      if (typeof updatePreviewLayoutSnugness === 'function') updatePreviewLayoutSnugness();
+    });
+
+    direccionInput.addEventListener('input', () => {
+      document.getElementById('preview-direccion').innerText = direccionInput.value || '--------';
+    });
+
+    contactoInput.addEventListener('input', () => {
+      document.getElementById('preview-contacto').innerText = contactoInput.value || '--------';
+    });
+
+    sectorInput.addEventListener('input', () => {
+      document.getElementById('preview-sector').innerText = sectorInput.value || '--------';
+    });
+
+    tipoServicioInputs.forEach(({ input }) => {
+      input.addEventListener('change', updatePreviewTipoServicio);
+    });
+
+    function triggerClienteChange() {
+      const id = selectCliente.value;
+      // Corregida búsqueda robusta con conversión de tipo a String para evitar fallas
+      const clienteEncontrado = cacheClientes.find(c => String(c.id) === String(id));
+      if (clienteEncontrado) {
+        document.getElementById('preview-cliente-nombre').innerText = resolveClientName(clienteEncontrado);
+        applyClientDataToForm(clienteEncontrado);
+      } else {
+        document.getElementById('preview-cliente-nombre').innerText = 'Seleccione un cliente...';
+        applyClientDataToForm(null);
+      }
+      if (typeof updatePreviewLayoutSnugness === 'function') updatePreviewLayoutSnugness();
+    }
+
+    function triggerServicioChange() {
+      const id = selectServicio.value;
+      // Corregida búsqueda robusta con conversión de tipo a String para evitar fallas
+      const servicioEncontrado = cacheServicios.find(s => String(s.id) === String(id));
+      if (servicioEncontrado) {
+        const nombre = resolveServiceName(servicioEncontrado);
+        const desc = resolveServiceDesc(servicioEncontrado);
+
+        descServicioTextarea.value = desc;
+        document.getElementById('preview-servicio-nombre').innerText = nombre;
+        document.getElementById('preview-servicio-desc').innerText = desc;
+      } else {
+        descServicioTextarea.value = '';
+        document.getElementById('preview-servicio-nombre').innerText = 'Seleccione un servicio...';
+        document.getElementById('preview-servicio-desc').innerText = 'La descripción registrada en Firebase aparecerá aquí automáticamente...';
+      }
+      if (typeof updatePreviewLayoutSnugness === 'function') updatePreviewLayoutSnugness();
+    }
+
+    selectCliente.addEventListener('change', triggerClienteChange);
+    selectServicio.addEventListener('change', triggerServicioChange);
+
+    document.getElementById('order-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const clienteId = selectCliente.value;
+      const servicioId = selectServicio.value;
+
+      // Búsqueda de clientes y servicios robusta
+      const clienteObj = cacheClientes.find(c => String(c.id) === String(clienteId));
+      const servicioObj = cacheServicios.find(s => String(s.id) === String(servicioId));
+
+      if (!clienteId || !servicioId) {
+        showToast("Por favor, seleccione un cliente y un servicio válidos.", "error");
+        return;
+      }
+
+      applyClientDataToForm(clienteObj);
+
+      const cliente_nombre = clienteObj ? resolveClientName(clienteObj) : "Cliente Desconocido";
+      const cliente_telefono = clienteObj ? resolveClientPhone(clienteObj) : "--------";
+      const cliente_correo = clienteObj ? resolveClientEmail(clienteObj) : "--------";
+
+      const servicio_nombre = servicioObj ? resolveServiceName(servicioObj) : "Servicio Desconocido";
+      const servicio_descripcion = servicioObj ? resolveServiceDesc(servicioObj) : "Sin descripción";
+      const tipoServicioSeleccionado = getSelectedTipoServicio();
+
+      const nuevaOrden = {
+        numero_ot: numOtInput.value,
+        numero_factura: numFacturaInput.value,
+        fecha_hora: fechaHoraInput.value,
+        cliente_id: clienteId,
+        cliente_nombre: cliente_nombre,
+        cliente_telefono: cliente_telefono,
+        cliente_correo: cliente_correo,
+        direccion: direccionInput.value,
+        atencion_de: contactoInput.value,
+        sector: sectorInput.value,
+        tipo_servicio: tipoServicioSeleccionado,
+        servicio_id: servicioId,
+        servicio_nombre: servicio_nombre,
+        servicio_descripcion: servicio_descripcion,
+        tecnico: tecnicoInput.value,
+        observacion: observacionInput.value,
+        fecha_creacion: new Date().toISOString()
+      };
+
+      const btnSave = document.getElementById('btn-save');
+
+      if (isConnected) {
+        try {
+          btnSave.disabled = true;
+          const originalHTML = btnSave.innerHTML;
+          btnSave.innerHTML = `
+            <svg class="spinner" viewBox="0 0 50 50">
+              <circle class="path" cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5"></circle>
+            </svg>
+            Guardando...
+          `;
+
+          await addDoc(collection(db, "ordenes"), nuevaOrden);
+          reserveNextOrderNumber(nuevaOrden.numero_ot);
+          // Auditor\u00eda
+          if (window.parent && typeof window.parent.logAudit === 'function') {
+            window.parent.logAudit('CREAR_REGISTRO', 'Orden de Trabajo',
+              `OT ${nuevaOrden.numero_ot || '—'} | Cliente: ${nuevaOrden.cliente_nombre} | Servicio: ${nuevaOrden.servicio_nombre} | T\u00e9cnico: ${nuevaOrden.tecnico || '—'} | Tipo: ${(nuevaOrden.tipo_servicio||[]).join(', ')}`
+            );
+          }
+          showToast("Orden de trabajo guardada con \u00e9xito", "success");
+          clearForm();
+        } catch (err) {
+          console.error("Error al registrar en Firestore:", err);
+          showToast("Falla al escribir la orden en Firebase", "error");
+        } finally {
+          btnSave.disabled = false;
+          btnSave.innerHTML = `
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+            </svg>
+            <span>Guardar Orden</span>
+          `;
+        }
+      } else {
+        cacheOrdenes.unshift(nuevaOrden);
+        updateOrdenesTabla(cacheOrdenes);
+        reserveNextOrderNumber(nuevaOrden.numero_ot);
+        showToast("Guardado local exitoso (Modo Simulación)", "success");
+        clearForm();
+      }
+    });
+
+    window.clearForm = function () {
+      document.getElementById('order-form').reset();
+      descServicioTextarea.value = '';
+
+      document.getElementById('preview-numero-factura').innerText = '--------';
+      document.getElementById('preview-fecha').innerText = '--/--/---- --:--';
+      document.getElementById('preview-tecnico').innerText = '--------';
+      document.getElementById('preview-firma-tecnico').innerText = '--------';
+      document.getElementById('preview-cliente-nombre').innerText = 'Seleccione un cliente...';
+      document.getElementById('preview-direccion').innerText = '--------';
+      document.getElementById('preview-contacto').innerText = '--------';
+      document.getElementById('preview-sector').innerText = '--------';
+      document.getElementById('preview-servicio-nombre').innerText = 'Seleccione un servicio...';
+      document.getElementById('preview-servicio-desc').innerText = 'La descripción registrada en Firebase aparecerá aquí automáticamente...';
+      document.getElementById('preview-observaciones').innerText = 'Sin observaciones registradas por el momento.';
+      document.getElementById('preview-tipo-servicio').innerText = '--------';
+
+      setDefaultDateTime();
+      setNextOrderNumber();
+      if (typeof updatePreviewLayoutSnugness === 'function') updatePreviewLayoutSnugness();
+    };
+
+    function updateOrdenesTabla(ordenes) {
+      const tableBody = document.getElementById('orders-table-body');
+      const countBadge = document.getElementById('orders-count');
+      countBadge.innerText = `${ordenes.length} Órdenes`;
+
+      tableBody.innerHTML = '';
+
+      if (ordenes.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="6" class="empty-state">No se encontraron órdenes guardadas.</td></tr>`;
+        return;
+      }
+
+      const sorted = [...ordenes].sort((a, b) => new Date(b.fecha_creacion || 0) - new Date(a.fecha_creacion || 0));
+
+      sorted.forEach(ord => {
+        let fechaLegible = ord.fecha_hora || ord.fecha || 'Sin asignar';
+        fechaLegible = fechaLegible.replace('T', ' ');
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td data-label="Factura/Orden" class="nowrap-column" style="font-weight: 700; color: var(--color-primary);">${escapeHTML(getOrderIdentifier(ord))}</td>
+          <td data-label="Cliente" style="font-weight: 500;">${escapeHTML(ord.cliente_nombre)}</td>
+          <td data-label="Servicio" style="color: var(--text-secondary);">${escapeHTML(ord.servicio_nombre)}</td>
+          <td data-label="Técnico">${escapeHTML(ord.tecnico)}</td>
+          <td data-label="Fecha Programada" class="nowrap-column" style="font-family: monospace; font-size: 0.8rem;">${fechaLegible}</td>
+          <td data-label="Acción" class="nowrap-column">
+            <button onclick="cargarOrdenEnFormulario('${escapeHTML(getOrderIdentifier(ord))}')" class="btn-action edit" title="Cargar Orden" style="width: auto; padding: 4px 10px; font-size: 0.75rem; height: auto;">
+              Cargar
+            </button>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    window.cargarOrdenEnFormulario = function (facturaNum) {
+      const encontrada = cacheOrdenes.find(o => String(getOrderIdentifier(o)) === String(facturaNum));
+
+      if (encontrada) {
+        const clienteId = encontrada.cliente_id || 'cli-history-' + Date.now();
+        const servicioId = encontrada.servicio_id || 'srv-history-' + Date.now();
+
+        // Si los IDs de la orden no están en caché, los agregamos para que la UI los pinte correctamente
+        if (!cacheClientes.some(c => String(c.id) === String(clienteId))) {
+          cacheClientes.push({
+            id: clienteId,
+            nombre: encontrada.cliente_nombre,
+            telefono: encontrada.cliente_telefono || "--------",
+            correo: encontrada.cliente_correo || "--------"
+          });
+          updateClientesUI();
+        }
+
+        if (!cacheServicios.some(s => String(s.id) === String(servicioId))) {
+          cacheServicios.push({
+            id: servicioId,
+            nombre: encontrada.servicio_nombre,
+            descripcion: encontrada.servicio_descripcion || "Sin descripción"
+          });
+          updateServiciosUI();
+        }
+
+        numOtInput.value = getOrderIdentifier(encontrada);
+        numFacturaInput.value = getInvoiceNumber(encontrada);
+        fechaHoraInput.value = encontrada.fecha_hora || encontrada.fecha || '';
+        tecnicoInput.value = encontrada.tecnico || '';
+        observacionInput.value = encontrada.observacion || '';
+        direccionInput.value = encontrada.direccion || '';
+        contactoInput.value = encontrada.atencion_de || encontrada.contacto || '';
+        sectorInput.value = encontrada.sector || '';
+        applyTipoServicioSelection(encontrada.tipo_servicio);
+
+        selectCliente.value = String(clienteId);
+        selectServicio.value = String(servicioId);
+        descServicioTextarea.value = encontrada.servicio_descripcion || '';
+
+        document.getElementById('preview-factura').innerText = getOrderIdentifier(encontrada) || '--------';
+        document.getElementById('preview-numero-factura').innerText = getInvoiceNumber(encontrada) || '--------';
+        document.getElementById('preview-fecha').innerText = formatDateTime12H(encontrada.fecha_hora || encontrada.fecha || '');
+        document.getElementById('preview-tecnico').innerText = encontrada.tecnico || '--------';
+        document.getElementById('preview-firma-tecnico').innerText = encontrada.tecnico || '--------';
+
+        document.getElementById('preview-cliente-nombre').innerText = encontrada.cliente_nombre || 'Seleccionado';
+        document.getElementById('preview-direccion').innerText = encontrada.direccion || '--------';
+        document.getElementById('preview-contacto').innerText = encontrada.atencion_de || encontrada.contacto || '--------';
+        document.getElementById('preview-sector').innerText = encontrada.sector || '--------';
+        updatePreviewTipoServicio();
+
+        document.getElementById('preview-servicio-nombre').innerText = encontrada.servicio_nombre || 'Seleccionado';
+        document.getElementById('preview-servicio-desc').innerText = encontrada.servicio_descripcion || '';
+        document.getElementById('preview-observaciones').innerText = encontrada.observacion || 'Sin observaciones registradas.';
+
+        if (typeof updatePreviewLayoutSnugness === 'function') updatePreviewLayoutSnugness();
+        showToast(`Orden ${getOrderIdentifier(encontrada)} cargada con éxito`, "success");
+        switchTab('nueva-orden');
+      }
+    };
+
+    // Ajustador dinámico de fuentes y relleno en la previsualización del navegador
+    window.updatePreviewLayoutSnugness = function () {
+      const descText = document.getElementById('preview-servicio-desc').innerText;
+      const obsText = document.getElementById('preview-observaciones').innerText;
+      const totalLen = descText.length + obsText.length;
+
+      const previewContainer = document.getElementById('invoice-preview');
+      const tableDescCell = document.getElementById('preview-servicio-desc');
+      const obsBlock = document.getElementById('preview-observaciones');
+
+      if (!previewContainer || !tableDescCell || !obsBlock) return;
+
+      if (totalLen > 900) {
+        previewContainer.style.fontSize = '0.62rem';
+        tableDescCell.style.fontSize = '0.58rem';
+        tableDescCell.style.lineHeight = '1.25';
+        obsBlock.style.fontSize = '0.60rem';
+        obsBlock.style.lineHeight = '1.25';
+        obsBlock.style.padding = '6px';
+      } else if (totalLen > 600) {
+        previewContainer.style.fontSize = '0.66rem';
+        tableDescCell.style.fontSize = '0.64rem';
+        tableDescCell.style.lineHeight = '1.3';
+        obsBlock.style.fontSize = '0.64rem';
+        obsBlock.style.lineHeight = '1.3';
+        obsBlock.style.padding = '8px';
+      } else {
+        previewContainer.style.fontSize = '0.72rem';
+        tableDescCell.style.fontSize = '0.7rem';
+        tableDescCell.style.lineHeight = '1.4';
+        obsBlock.style.fontSize = '0.72rem';
+        obsBlock.style.lineHeight = '1.4';
+        obsBlock.style.padding = '10px';
+      }
+    };
+
+    // Método interactivo para imprimir / guardar PDF tamaño Carta
+    window.printInvoice = function () {
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        showToast("Error: La librería PDF no está cargada. Verifique su conexión a internet.", "error");
+        console.error("jsPDF no disponible en window.jspdf");
+        return;
+      }
+
+      if (!numOtInput.value || !numFacturaInput.value || !selectCliente.value || !selectServicio.value) {
+        showToast("Por favor, complete la OT, factura, cliente y servicio antes de descargar el PDF.", "warning");
+        return;
+      }
+
+      try {
+        const numOt = numOtInput.value || '--------';
+        const numFactura = numFacturaInput.value || '--------';
+        const fechaHoraVal = fechaHoraInput.value ? fechaHoraInput.value.replace('T', ' ') : '--/--/---- --:--';
+        const tecnicoVal = tecnicoInput.value || '--------';
+        const clienteObj = cacheClientes.find(c => String(c.id) === String(selectCliente.value));
+        const servicioObj = cacheServicios.find(s => String(s.id) === String(selectServicio.value));
+        applyClientDataToForm(clienteObj);
+
+        const clienteNombre = clienteObj ? resolveClientName(clienteObj) : 'Seleccione un cliente...';
+        const servicioNombre = servicioObj ? resolveServiceName(servicioObj) : 'Seleccione un servicio...';
+
+        // Dynamic fits for PDF
+        const hasObservaciones = observacionInput.value.trim().length > 0;
+        const rawObsValue = hasObservaciones ? observacionInput.value : 'Sin observaciones registradas por el momento.';
+
+        const servicioDesc = servicioObj ? resolveServiceDesc(servicioObj) : '';
+        const observacionVal = rawObsValue;
+
+        const direccionVal = direccionInput.value || '--------';
+        const atencionVal = contactoInput.value || '--------';
+        const sectorVal = sectorInput.value || '--------';
+        const tipoServicioVal = getSelectedTipoServicio().join(', ') || '--------';
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
+        const primary = [220, 38, 38];
+        const dark = [15, 23, 42];
+        const slate = [100, 116, 139];
+        const line = [226, 232, 240];
+        const hoy = new Date();
+        const fechaEmision = `${hoy.getDate().toString().padStart(2, '0')}/${(hoy.getMonth() + 1).toString().padStart(2, '0')}/${hoy.getFullYear()}`;
+
+        // AUTOMATIC LAYOUT SCALING ENGINE FOR SINGLE PAGE
+        const totalTextLen = servicioDesc.length + (hasObservaciones ? observacionInput.value.length : 0);
+        let tableFontSize = 10.5; // Increased for a larger font size
+        let tablePadding = 3.0;
+        let obsFontSize = 10.0;   // Increased for observations text
+        let obsLineSpacing = 4.8;
+
+        if (totalTextLen > 900) {
+          tableFontSize = 8.5;
+          tablePadding = 1.6;
+          obsFontSize = 8.0;
+          obsLineSpacing = 3.8;
+        } else if (totalTextLen > 600) {
+          tableFontSize = 9.2;
+          tablePadding = 2.0;
+          obsFontSize = 9.0;
+          obsLineSpacing = 4.2;
+        } else if (totalTextLen > 400) {
+          tableFontSize = 9.8;
+          tablePadding = 2.5;
+          obsFontSize = 9.5;
+          obsLineSpacing = 4.5;
+        }
+
+        // Company Information Text Block (Screenshot 2)
+        doc.setTextColor(...dark);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(16.5);
+        doc.text("Fast Control", 15, 15);
+
+        doc.setTextColor(51, 65, 85);
+        doc.setFont('helvetica', 'bolditalic');
+        doc.setFontSize(9.5);
+        doc.text("Manejo Integrado De Plagas", 15, 20.2);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8.5);
+        doc.text("Nº RUC: 0012704961001T", 15, 24.8);
+        doc.text("Bº Naciones Unidas, Terminal ruta 165, 1c. Al sur 1c. Al este, managua", 15, 29.2);
+        doc.text("Email: info@fastcontrolni.com", 15, 33.6);
+        doc.text("Tel: 2253-7290 / 7894-4984", 15, 38.0);
+
+        // ORDEN DE TRABAJO Title Below Company Details
+        doc.setTextColor(...primary);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(14.5);
+        doc.text("ORDEN DE TRABAJO", 15, 45);
+
+        // Render Fast Control Logo on PDF (Top Right)
+        const logoImg = document.getElementById('company-logo');
+        if (logoImg && logoImg.complete && logoImg.naturalWidth !== 0) {
+          doc.addImage(logoImg, 'PNG', 155, 12, 45, 16);
+        }
+
+        doc.setTextColor(...primary);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.text("NÚMERO DE OT", 200, 32.5, { align: 'right' });
+        doc.setTextColor(...dark);
+        doc.setFont('courier', 'bold');
+        doc.setFontSize(13);
+        doc.text(numOt, 200, 37.5, { align: 'right' });
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(...slate);
+        doc.text("Factura: " + numFactura, 200, 42.0, { align: 'right' });
+        doc.text("Emitido el: " + fechaEmision, 200, 46.0, { align: 'right' });
+
+        doc.setDrawColor(...primary);
+        doc.setLineWidth(0.6);
+        doc.line(15, 49, 200, 49);
+
+        // BOX DATOS CLIENTE - TIGHTER & ELEGANTER (HEIGHT 30 FOR MULTI-LINE ADDRESS WRAPPING)
+        doc.setDrawColor(...line);
+        doc.setFillColor(248, 250, 252);
+        doc.setLineWidth(0.3);
+        doc.roundedRect(15, 52, 185, 30, 2, 2, 'FD');
+        doc.line(107.5, 52, 107.5, 82);
+
+        doc.setTextColor(...primary);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.text("DATOS DEL CLIENTE", 20, 57.5);
+        doc.text("INFORMACIÓN DEL TRABAJO", 112.5, 57.5);
+
+        // RENDER DATOS DEL CLIENTE WITH DYNAMIC WRAPPING SUPPORT FOR ADDRESS
+        const leftLabels = ["Cliente:", "Dirección:", "Atención de:", "Sector:"];
+        const leftValues = [clienteNombre, direccionVal, atencionVal, sectorVal];
+
+        let currentLeftY = 62.2;
+        leftLabels.forEach((label, idx) => {
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(...slate);
+          doc.setFontSize(8.5);
+          doc.text(label, 20, currentLeftY);
+
+          doc.setFont('helvetica', idx === 0 ? 'bold' : 'normal');
+          doc.setTextColor(...dark);
+          doc.setFontSize(9);
+
+          const value = leftValues[idx];
+          // Allow address (idx === 1) to wrap up to 2 lines, others 1 line
+          const maxLines = idx === 1 ? 2 : 1;
+          const wrappedLines = doc.splitTextToSize(value, 58).slice(0, maxLines);
+
+          wrappedLines.forEach((lineText, lineIdx) => {
+            doc.text(lineText, 44, currentLeftY + lineIdx * 3.5);
+          });
+
+          // Move vertical cursor downwards dynamically
+          currentLeftY += 4.6 + (wrappedLines.length - 1) * 3.5;
+        });
+
+        // Format Date to 12H AM/PM format
+        const formattedFecha12H = formatDateTime12H(fechaHoraInput.value);
+
+        const rightRows = [
+          ["Fecha:", formattedFecha12H],
+          ["Técnico:", tecnicoVal],
+          ["Tipo:", tipoServicioVal]
+        ];
+        rightRows.forEach(([label, value], idx) => {
+          const y = 62.2 + idx * 4.6;
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(...slate);
+          doc.setFontSize(8.5);
+          doc.text(label, 112.5, y);
+          doc.setTextColor(...dark);
+          doc.setFontSize(9);
+          doc.text(doc.splitTextToSize(value, 53).slice(0, 1)[0] || '', 133, y);
+        });
+
+        // SERVICE TABLE - NO MIN-CELL-HEIGHT FOR SNUGNESS (STARTING AT Y = 86)
+        doc.autoTable({
+          startY: 86,
+          margin: { left: 15, right: 15 },
+          theme: 'grid',
+          head: [["Servicio", "Descripción del Trabajo"]],
+          body: [[servicioNombre, servicioDesc]],
+          styles: {
+            font: 'helvetica',
+            fontSize: tableFontSize,
+            cellPadding: tablePadding,
+            valign: 'top',
+            lineColor: line,
+            lineWidth: 0.3,
+            textColor: [51, 65, 85],
+            overflow: 'linebreak'
+          },
+          headStyles: {
+            fillColor: dark,
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            fontSize: tableFontSize + 1,
+            cellPadding: tablePadding + 0.5,
+            halign: 'left'
+          },
+          columnStyles: {
+            0: { cellWidth: 50, fontStyle: 'bold', textColor: dark },
+            1: { cellWidth: 135 }
+          }
+        });
+
+        let currentY = doc.lastAutoTable.finalY + 6;
+        if (currentY > 195) {
+          currentY = 195;
+        }
+
+        const obsLines = doc.splitTextToSize(observacionVal, 172);
+        let obsHeight = hasObservaciones ? (obsLines.length * obsLineSpacing + 6) : 12;
+        if (obsHeight > 26) {
+          obsHeight = 26; // Keep the observations block compact at the bottom
+        }
+
+        // SIGNATURES - FIRMLY ANCHORED AT THE BOTTOM OF THE PAGE
+        const signatureY = 246;
+        const maxObsBottom = 232; // Ends exactly 14mm above signature line
+        const obsTop = maxObsBottom - obsHeight;
+
+        // Check if the observations text exceeds the compact observations block height
+        const allowedObsLines = Math.floor((obsHeight - 6) / obsLineSpacing);
+        let finalObsLines = [...obsLines];
+        if (obsLines.length > allowedObsLines && allowedObsLines > 0) {
+          finalObsLines = obsLines.slice(0, allowedObsLines - 1);
+          finalObsLines.push("... [Texto truncado]");
+        }
+
+        doc.setFillColor(255, 251, 235);
+        doc.setDrawColor(253, 230, 138);
+        doc.roundedRect(15, obsTop, 185, obsHeight, 1.5, 1.5, 'FD');
+
+        doc.setTextColor(...primary);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(obsFontSize + 1);
+        doc.text("OBSERVACIONES Y RECOMENDACIONES", 15, obsTop - 4);
+
+        doc.setTextColor(51, 65, 85);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(obsFontSize);
+        doc.text(finalObsLines, 20, obsTop + 7.5);
+
+        doc.setDrawColor(203, 213, 225);
+        doc.setLineWidth(0.4);
+        doc.line(25, signatureY, 95, signatureY);
+        doc.line(120, signatureY, 190, signatureY);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(51, 65, 85);
+        doc.setFontSize(10);
+        doc.text("Ejecutivo de Servicio", 60, signatureY + 5, { align: 'center' });
+        doc.text("Cliente", 155, signatureY + 5, { align: 'center' });
+
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(148, 163, 184);
+        doc.setFontSize(8.5);
+        doc.text(tecnicoVal, 60, signatureY + 9, { align: 'center' });
+        doc.text("Firma Autorizada", 155, signatureY + 9, { align: 'center' });
+
+        doc.setTextColor(100, 116, 139);
+        doc.setFontSize(7.5);
+        doc.text("(Nombre)", 60, signatureY + 13, { align: 'center' });
+        doc.text("(Nombre y Cédula)", 155, signatureY + 13, { align: 'center' });
+
+        if (doc.internal.getNumberOfPages() > 1) {
+          while (doc.internal.getNumberOfPages() > 1) doc.deletePage(doc.internal.getNumberOfPages());
+        }
+
+        doc.save(`Orden_${numOt}.pdf`);
+        showToast("PDF descargado con éxito", "success");
+      } catch (err) {
+        console.error("Error al generar el PDF:", err);
+        showToast("Error al generar el PDF: " + err.message, "error");
+      }
+    };
+
+    function setDefaultDateTime() {
+      const ahora = new Date();
+      ahora.setMinutes(ahora.getMinutes() - ahora.getTimezoneOffset());
+      fechaHoraInput.value = ahora.toISOString().slice(0, 16);
+    }
+
+    function fitTextForPdf(value, maxLength) {
+      const text = String(value || '').trim();
+      if (text.length <= maxLength) return text;
+      return text.slice(0, maxLength - 3).trim() + '...';
+    }
+
+    function getOrderIdentifier(ord) {
+      if (!ord) return '';
+      if (ord.numero_ot) return ord.numero_ot;
+      if (parseOrderSequence(ord.numero_factura)) return ord.numero_factura;
+      return ord.ot || ord.factura_ot || ord.factura || ord.numero_factura || '';
+    }
+
+    function getInvoiceNumber(ord) {
+      if (!ord) return '';
+      if (ord.numero_ot && ord.numero_factura) return ord.numero_factura;
+      if (parseOrderSequence(ord.numero_factura)) return ord.factura || '';
+      return ord.numero_factura || ord.factura || '';
+    }
+
+    function parseOrderSequence(value) {
+      const match = String(value || '').match(/^OT-(?:(\d{4})-)?(\d+)$/i);
+      if (!match) return 0;
+      return Number(match[2]) || 0;
+    }
+
+    function getMaxExistingOrderSequence() {
+      return cacheOrdenes.reduce((max, ord) => {
+        return Math.max(max, parseOrderSequence(getOrderIdentifier(ord)));
+      }, 0);
+    }
+
+    function getNextOrderSequence() {
+      const stored = Number(localStorage.getItem('fc_next_ot_sequence') || 1);
+      return Math.max(stored, getMaxExistingOrderSequence() + 1, 1);
+    }
+
+    function formatOrderNumber(sequence) {
+      return `OT-${String(sequence).padStart(4, '0')}`;
+    }
+
+    function setNextOrderNumber() {
+      if (!numOtInput) return;
+      const nextNumber = formatOrderNumber(getNextOrderSequence());
+      numOtInput.value = nextNumber;
+      document.getElementById('preview-factura').innerText = nextNumber;
+    }
+
+    function reserveNextOrderNumber(orderNumber) {
+      const usedSequence = parseOrderSequence(orderNumber);
+      if (usedSequence) {
+        localStorage.setItem('fc_next_ot_sequence', String(usedSequence + 1));
+      }
+    }
+
+    function getSelectedTipoServicio() {
+      return tipoServicioInputs
+        .filter(({ input }) => input.checked)
+        .map(({ label }) => label);
+    }
+
+    function updatePreviewTipoServicio() {
+      const selected = getSelectedTipoServicio();
+      document.getElementById('preview-tipo-servicio').innerText = selected.length ? selected.join(', ') : '--------';
+    }
+
+    function applyTipoServicioSelection(value) {
+      const selected = Array.isArray(value) ? value : String(value || '').split(',').map(item => item.trim()).filter(Boolean);
+      tipoServicioInputs.forEach(({ input, label }) => {
+        input.checked = selected.includes(label);
+      });
+      updatePreviewTipoServicio();
+    }
+
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>'"]/g,
+        tag => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[tag] || tag)
+      );
+    }
+
+    // Control de Navegación de Pestañas (Homologadas a index.html)
+    window.switchTab = function (tabName) {
+      document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+      document.querySelectorAll(".mobile-menu-btn").forEach(btn => btn.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active"));
+
+      const pcBtn = Array.from(document.querySelectorAll(".tab-btn")).find(btn =>
+        btn.getAttribute("onclick").includes(`'${tabName}'`)
+      );
+      if (pcBtn) pcBtn.classList.add("active");
+
+      const mobBtn = Array.from(document.querySelectorAll(".mobile-menu-btn")).find(btn =>
+        btn.getAttribute("onclick").includes(`'${tabName}'`)
+      );
+      if (mobBtn) mobBtn.classList.add("active");
+
+      const activeContent = document.getElementById(`tab-${tabName}`);
+      if (activeContent) activeContent.classList.add("active");
+    };
+
+    window.toggleMobileMenu = function () {
+      const drawer = document.getElementById("mobile-menu-drawer");
+      if (drawer) drawer.classList.toggle("active");
+    };
+
+    window.handleMobileNav = function (tabName) {
+      switchTab(tabName);
+      toggleMobileMenu();
+    };
+
+    // Alternador de Temas Claro / Oscuro
+    window.toggleTheme = function () {
+      const isDark = document.body.classList.toggle("dark-theme");
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+      showToast(isDark ? "Modo oscuro activado" : "Modo claro activado", "info");
+    };
+
+    // Notificaciones Toast
+    window.showToast = function (message, type = "success") {
+      const container = document.getElementById("toast-container");
+      if (!container) return;
+
+      const toast = document.createElement("div");
+      toast.className = `toast ${type}`;
+
+      let iconSvg = "";
+      if (type === "success") {
+        iconSvg = `<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+      } else if (type === "warning" || type === "info") {
+        iconSvg = `<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+      } else if (type === "error") {
+        iconSvg = `<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+      }
+
+      const title = type.charAt(0).toUpperCase() + type.slice(1);
+
+      toast.innerHTML = `
+        <div class="toast-icon">${iconSvg}</div>
+        <div class="toast-content">
+          <div class="toast-title">${title}</div>
+          <div class="toast-message">${message}</div>
+        </div>
+      `;
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add("show");
+      }, 50);
+
+      setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => {
+          toast.remove();
+        }, 400);
+      }, 4000);
+    };
+  </script>
+</body>
+
+</html>

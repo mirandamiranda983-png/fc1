@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fast Control - Sistema</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .active-nav {
+            background-color: #c62828 !important;
+            color: white !important;
+        }
+
+        #main-iframe {
+            transition: opacity 0.3s ease;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { colors: { brand: { red: '#c62828', black: '#000000', dark: '#1a1a1a', border: '#333333' } } } }
+        }
+    </script>
+</head>
+
+<body class="bg-gray-50 text-gray-800 dark:bg-brand-black dark:text-gray-100 min-h-screen">
+
+    <!-- PANTALLA DE LOGIN -->
+    <div id="login-screen" class="fixed inset-0 z-[100] flex items-center justify-center bg-brand-black">
+        <div class="w-full max-w-md p-8 bg-brand-dark rounded-2xl border border-brand-border shadow-2xl">
+            <div class="text-center mb-8">
+                <div
+                    class="bg-brand-red w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-red/20">
+                    <i data-lucide="shield-check" class="text-white w-10 h-10"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white">Bienvenido</h2>
+                <p class="text-gray-400 text-sm">Inicia sesión en FastControl</p>
+            </div>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Correo Electrónico</label>
+                    <input type="email" id="login-email" list="email-suggestions"
+                        class="w-full bg-brand-black border border-brand-border rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-red transition-all"
+                        placeholder="admin@fastcontrolni.com" required autocomplete="off">
+                    <!-- Desplegable para sugerir correos de usuarios -->
+                    <datalist id="email-suggestions"></datalist>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Contraseña</label>
+                    <input type="password" id="login-pass"
+                        class="w-full bg-brand-black border border-brand-border rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-red transition-all"
+                        placeholder="••••••••" required>
+                </div>
+                <button type="submit"
+                    class="w-full bg-brand-red hover:bg-red-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-brand-red/20 transition-all mt-4">
+                    Entrar al Sistema
+                </button>
+                <p id="login-error" class="text-brand-red text-xs text-center mt-2 hidden">Credenciales incorrectas</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- ESTRUCTURA DASHBOARD (Oculta por defecto) -->
+    <div id="dashboard-layout" class="hidden flex min-h-screen">
+
+        <!-- SIDEBAR -->
+        <aside id="sidebar"
+            class="fixed inset-y-0 left-0 w-64 bg-brand-black border-r border-brand-border flex flex-col z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300">
+            <div class="h-20 flex items-center px-6 border-b border-brand-border gap-3">
+                <div class="bg-brand-red p-2 rounded-lg"><i data-lucide="layout-grid" class="w-6 h-6 text-white"></i>
+                </div>
+                <h1 class="text-lg font-bold text-white tracking-wider">FAST <span class="text-brand-red">CONTROL</span>
+                </h1>
+            </div>
+
+            <nav id="nav-menu" class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+                <p class="px-3 text-[10px] font-bold text-gray-500 uppercase mb-4 tracking-widest">Navegación</p>
+            </nav>
+
+            <div class="p-4 border-t border-brand-border">
+                <button onclick="logout()"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                    <i data-lucide="log-out" class="w-5 h-5"></i> Cerrar Sesión
+                </button>
+            </div>
+        </aside>
+
+        <!-- CONTENIDO -->
+        <main class="flex-1 flex flex-col lg:ml-64 w-full">
+            <header
+                class="h-20 bg-white dark:bg-brand-dark border-b border-gray-200 dark:border-brand-border flex items-center justify-between px-6 sticky top-0 z-40">
+                <div class="flex items-center gap-4">
+                    <button onclick="document.getElementById('sidebar').classList.toggle('-translate-x-full')"
+                        class="lg:hidden p-2"><i data-lucide="menu"></i></button>
+                    <div class="flex items-center gap-3">
+                        <div id="header-icon" class="text-brand-red"><i data-lucide="home"></i></div>
+                        <h2 id="page-title" class="text-xl font-bold dark:text-white">Panel Principal</h2>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <button onclick="document.documentElement.classList.toggle('dark')"
+                        class="p-2.5 rounded-xl border border-gray-200 dark:border-brand-border"><i data-lucide="moon"
+                            class="dark:text-yellow-400"></i></button>
+
+                    <!-- PERFIL CON MENU DROPDOWN -->
+                    <div class="relative group">
+                        <button class="flex items-center gap-3 pl-4 border-l border-brand-border">
+                            <div class="text-right">
+                                <p id="user-display-name" class="text-sm font-bold dark:text-white leading-none">
+                                    Cargando...</p>
+                                <p id="user-role-label" class="text-[10px] text-brand-red font-bold uppercase">Rol</p>
+                            </div>
+                            <div id="profile-avatar"
+                                class="w-10 h-10 rounded-full bg-brand-red flex items-center justify-center font-bold text-white shadow-lg">
+                                FC</div>
+                        </button>
+                        <!-- Dropdown -->
+                        <div
+                            class="absolute right-0 mt-2 w-48 bg-brand-dark border border-brand-border rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                            <div class="py-2">
+                                <button id="btn-user-mgmt"
+                                    onclick="loadPage('Usuarios_Gestor', 'Gestión de Usuarios', 'users')"
+                                    class="hidden w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:bg-brand-red hover:text-white">
+                                    <i data-lucide="users" class="w-4 h-4"></i> Gestión Usuarios
+                                </button>
+                                <button onclick="logout()"
+                                    class="w-full flex items-center gap-2 px-4 py-2 text-sm text-brand-red hover:bg-red-900/20">
+                                    <i data-lucide="log-out" class="w-4 h-4"></i> Salir
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="flex-1 bg-gray-100 dark:bg-brand-black overflow-hidden relative">
+                <!-- IFRAME PARA PAGINAS -->
+                <iframe id="main-iframe" class="w-full h-full border-0 absolute inset-0" src=""></iframe>
+
+                <!-- GESTOR DE USUARIOS (VISTA INTERNA) -->
+                <div id="user-manager-view"
+                    class="hidden absolute inset-0 bg-gray-100 dark:bg-brand-black p-8 overflow-y-auto">
+                    <div class="max-w-4xl mx-auto">
+                        <div class="flex justify-between items-center mb-8">
+                            <h3 class="text-2xl font-bold">Gestión de Usuarios</h3>
+                            <button onclick="toggleUserModal()"
+                                class="bg-brand-red hover:bg-red-700 text-white px-4 py-2 rounded-lg font-bold transition-all shadow-md shadow-brand-red/15">+
+                                Nuevo Usuario</button>
+                        </div>
+                        <div class="bg-brand-dark border border-brand-border rounded-2xl overflow-hidden shadow-xl">
+                            <table class="w-full text-left border-collapse">
+                                <thead
+                                    class="bg-brand-black text-xs font-bold text-gray-500 uppercase border-b border-brand-border">
+                                    <tr>
+                                        <th class="p-4">Email de Acceso</th>
+                                        <th class="p-4">Rol Asignado</th>
+                                        <th class="p-4 text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="user-table-body" class="text-sm">
+                                    <!-- Carga dinámica -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL NUEVO USUARIO -->
+    <div id="user-modal" class="fixed inset-0 z-[110] bg-black/80 flex items-center justify-center hidden">
+        <div class="bg-brand-dark w-full max-w-sm p-6 rounded-2xl border border-brand-border shadow-2xl">
+            <h3 class="text-xl font-bold mb-4 text-white">Registrar Nuevo Usuario</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Email</label>
+                    <input type="email" id="new-user-email" placeholder="correo@empresa.com"
+                        class="w-full bg-brand-black border border-brand-border rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand-red transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Contraseña</label>
+                    <input type="password" id="new-user-pass" placeholder="••••••••"
+                        class="w-full bg-brand-black border border-brand-border rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand-red transition-all">
+                    <p class="text-[10px] text-gray-500 mt-1">Si es menor a 6 caracteres, se ajustará automáticamente.
+                    </p>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Rol</label>
+                    <select id="new-user-role"
+                        class="w-full bg-brand-black border border-brand-border rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand-red transition-all">
+                        <option value="tecnico">Técnico (Acceso limitado)</option>
+                        <option value="admin">Administrador (Acceso total)</option>
+                    </select>
+                </div>
+                <button onclick="registerNewUser()"
+                    class="w-full bg-brand-red hover:bg-red-700 py-3 rounded-lg font-bold text-white transition-all shadow-lg shadow-brand-red/20 mt-2">
+                    Guardar en Firestore
+                </button>
+                <button onclick="toggleUserModal()"
+                    class="w-full text-gray-400 hover:text-white text-sm transition-all py-1">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMACION PERSONALIZADO (Reemplaza a confirm) -->
+    <div id="confirm-modal" class="fixed inset-0 z-[120] bg-black/80 flex items-center justify-center hidden">
+        <div class="bg-brand-dark w-full max-w-sm p-6 rounded-2xl border border-brand-border text-center shadow-2xl">
+            <div
+                class="text-brand-red w-12 h-12 rounded-full bg-brand-red/10 flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="help-circle" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2 text-white">¿Estás seguro?</h3>
+            <p id="confirm-msg" class="text-gray-400 text-sm mb-6">Esta acción no se puede deshacer.</p>
+            <div class="flex gap-3">
+                <button id="confirm-cancel-btn"
+                    class="flex-1 bg-brand-black border border-brand-border py-2.5 rounded-lg text-sm font-semibold hover:bg-white/5 transition-all text-gray-300">Cancelar</button>
+                <button id="confirm-ok-btn"
+                    class="flex-1 bg-brand-red hover:bg-red-700 py-2.5 rounded-lg text-sm font-semibold text-white transition-all">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS FIREBASE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInAnonymously, browserSessionPersistence, setPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWu-ewWbQb9z3f2gS9zQFrArZr-KUb-ok",
+            authDomain: "pos-vbd.firebaseapp.com",
+            projectId: "pos-vbd",
+            storageBucket: "pos-vbd.firebasestorage.app",
+            messagingSenderId: "491489024859",
+            appId: "1:491489024859:web:4c2448b8882c0099b6587e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Usar persistencia de sesión: al cerrar el navegador/pestaña se cierra la sesión automáticamente
+        await setPersistence(auth, browserSessionPersistence);
+
+        // Variables Globales
+        window.userRole = '';
+        window.currentUserEmail = '';
+
+        // =============================================
+        // MODULO DE AUDITORIA - Registro de eventos
+        // =============================================
+        window.logAudit = async (accion, modulo, detalles = '') => {
+            try {
+                const user = auth.currentUser;
+                if (!user || user.isAnonymous) return;
+                await addDoc(collection(db, 'auditoria'), {
+                    timestamp:    serverTimestamp(),
+                    fechaLocal:   new Date().toLocaleString('es-NI', { timeZone: 'America/Managua', hour12: true }),
+                    uid:          user.uid,
+                    email:        user.email || window.currentUserEmail,
+                    rol:          window.userRole || 'desconocido',
+                    accion,
+                    modulo,
+                    detalles,
+                    userAgent:    navigator.userAgent.substring(0, 120)
+                });
+            } catch (e) {
+                console.warn('Auditoría: no se pudo registrar el evento:', e);
+            }
+        };
+
+        // Función Helper para adaptar contraseñas cortas al mínimo de 6 caracteres exigido por Firebase
+        function getFirebasePassword(rawPassword) {
+            if (rawPassword.length < 6) {
+                return rawPassword + "_fastcontrol_secure_padding";
+            }
+            return rawPassword;
+        }
+
+        // LOGIN
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value.trim();
+            const rawPass = document.getElementById('login-pass').value;
+            const pass = getFirebasePassword(rawPass);
+            const errorLabel = document.getElementById('login-error');
+
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                // El log de inicio de sesión se registra en onAuthStateChanged al detectar el usuario
+            } catch (error) {
+                // Registrar intento fallido (sin uid real disponible, se usa 'anonimo')
+                try {
+                    await addDoc(collection(db, 'auditoria'), {
+                        timestamp:  serverTimestamp(),
+                        fechaLocal: new Date().toLocaleString('es-NI', { timeZone: 'America/Managua', hour12: true }),
+                        uid:        'N/A',
+                        email:      email,
+                        rol:        'N/A',
+                        accion:     'INICIO_SESION_FALLIDO',
+                        modulo:     'Autenticación',
+                        detalles:   `Intento de acceso fallido con el correo: ${email}`,
+                        userAgent:  navigator.userAgent.substring(0, 120)
+                    });
+                } catch (_) {}
+
+                // Auto-registro en primer inicio para el administrador preestablecido
+                if (email === "soporte@fastcontrolni.com" && rawPass === "1234") {
+                    try {
+                        const res = await createUserWithEmailAndPassword(auth, email, pass);
+                        await setDoc(doc(db, "users", res.user.uid), { email, role: 'admin' });
+                        window.showNotification("¡Usuario administrador configurado con éxito!");
+                        return;
+                    } catch (createErr) {
+                        console.error("Fallo de auto-registro:", createErr);
+                    }
+                }
+                errorLabel.classList.remove('hidden');
+                errorLabel.textContent = "Credenciales incorrectas o problemas de conexión.";
+                console.error(error);
+            }
+        });
+
+        // OBSERVADOR DE ESTADO DE AUTENTICACION
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                if (user.isAnonymous) {
+                    // Si el inicio de sesión es temporal para cargar sugerencias
+                    await window.loadEmailSuggestions();
+                    document.getElementById('login-screen').classList.remove('hidden');
+                    document.getElementById('dashboard-layout').classList.add('hidden');
+                    return;
+                }
+
+                const docRef = doc(db, "users", user.uid);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    window.userRole = docSnap.data().role;
+                    window.currentUserEmail = user.email;
+                    setupDashboard(user, window.userRole);
+                    // Registrar inicio de sesión exitoso
+                    await window.logAudit('INICIO_SESION', 'Autenticación', `El usuario inició sesión correctamente. Rol: ${window.userRole}`);
+                } else {
+                    if (user.email === "soporte@fastcontrolni.com") {
+                        await setDoc(doc(db, "users", user.uid), { email: user.email, role: 'admin' });
+                        window.userRole = 'admin';
+                        window.currentUserEmail = user.email;
+                        setupDashboard(user, 'admin');
+                        await window.logAudit('INICIO_SESION', 'Autenticación', 'Primer inicio de sesión del administrador del sistema.');
+                    }
+                }
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('dashboard-layout').classList.remove('hidden');
+            } else {
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('dashboard-layout').classList.add('hidden');
+
+                // Iniciar sesión de forma anónima y silenciosa para precargar las sugerencias
+                try {
+                    await signInAnonymously(auth);
+                } catch (e) {
+                    console.warn("Inicio de sesión anónimo no disponible. Las sugerencias se cargarán al autenticar.");
+                }
+            }
+        });
+
+        function setupDashboard(user, role) {
+            const userName = user.email.split('@')[0];
+            document.getElementById('user-display-name').textContent = userName;
+            document.getElementById('user-role-label').textContent = role;
+
+            // Colocar iniciales en el Avatar de Perfil
+            document.getElementById('profile-avatar').textContent = userName.substring(0, 2).toUpperCase();
+
+            const menu = document.getElementById('nav-menu');
+            menu.innerHTML = '<p class="px-3 text-[10px] font-bold text-gray-500 uppercase mb-4 tracking-widest">Navegación</p>';
+
+            // Estructura de módulos con restricción estricta de Roles
+            const allItems = [
+                { id: 'Base_de_Datos.html',       label: 'Base de Datos',     icon: 'database',      roles: ['admin'] },
+                { id: 'Certificados.html',         label: 'Certificados',      icon: 'award',         roles: ['admin', 'tecnico'] },
+                { id: 'Cotizaciones.html',         label: 'Cotizaciones',      icon: 'file-text',     roles: ['admin'] },
+                { id: 'Inventario.html',           label: 'Inventario',        icon: 'package',       roles: ['admin'] },
+                { id: 'kardex.html',               label: 'Kardex',            icon: 'trending-up',   roles: ['admin'] },
+                { id: 'OT.html',                   label: 'OT',                icon: 'wrench',        roles: ['admin'] },
+                { id: 'Reporte_de_Servicios.html', label: 'Reporte Servicios', icon: 'bar-chart',     roles: ['admin', 'tecnico'] },
+                { id: 'Requisas.html',             label: 'Requisas',          icon: 'clipboard-list',roles: ['admin', 'tecnico'] },
+                { id: 'Auditoria.html',            label: 'Auditoría',         icon: 'shield-alert',  roles: ['admin'] }
+            ];
+
+            allItems.forEach(item => {
+                if (item.roles.includes(role)) {
+                    const btn = document.createElement('button');
+                    btn.id = `btn-${item.id}`;
+                    btn.className = "nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all group";
+                    btn.innerHTML = `<i data-lucide="${item.icon}" class="w-5 h-5 group-hover:text-brand-red"></i><span>${item.label}</span>`;
+                    btn.onclick = () => window.loadPage(item.id, item.label, item.icon);
+                    menu.appendChild(btn);
+                }
+            });
+
+            if (role === 'admin') {
+                document.getElementById('btn-user-mgmt').classList.remove('hidden');
+            } else {
+                document.getElementById('btn-user-mgmt').classList.add('hidden');
+            }
+
+            lucide.createIcons();
+
+            // Cargar página predeterminada según privilegios
+            if (role === 'admin') {
+                window.loadPage('Base_de_Datos.html', 'Base de Datos', 'database');
+            } else {
+                window.loadPage('Certificados.html', 'Certificados', 'award');
+            }
+        }
+
+        // CARGAR SUGERENCIAS DE CORREOS EN EL LOGIN
+        window.loadEmailSuggestions = async () => {
+            const datalist = document.getElementById('email-suggestions');
+            if (!datalist) return;
+            datalist.innerHTML = '';
+            try {
+                const querySnapshot = await getDocs(collection(db, "users"));
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data && data.email) {
+                        const option = document.createElement('option');
+                        option.value = data.email;
+                        datalist.appendChild(option);
+                    }
+                });
+            } catch (e) {
+                console.error("No se pudo leer la colección para sugerencias:", e);
+            }
+        };
+
+        // GESTOR DE USUARIOS - MOSTRAR TABLA
+        window.loadUsersTable = async () => {
+            const tbody = document.getElementById('user-table-body');
+            tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-400">Cargando base de datos...</td></tr>';
+
+            try {
+                const querySnapshot = await getDocs(collection(db, "users"));
+                tbody.innerHTML = '';
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    tbody.innerHTML += `
+                        <tr class="border-b border-brand-border hover:bg-white/5">
+                            <td class="p-4 text-white font-medium">${data.email}</td>
+                            <td class="p-4 uppercase text-xs font-bold ${data.role === 'admin' ? 'text-brand-red' : 'text-blue-400'}">${data.role}</td>
+                            <td class="p-4 text-right space-x-2">
+                                <button onclick="window.updateUserRole('${doc.id}', '${data.role}')" class="text-gray-400 hover:text-white inline-flex p-1.5 rounded hover:bg-white/5 transition-all" title="Alternar Rol">
+                                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="window.deleteUserFromDb('${doc.id}')" class="text-brand-red hover:text-red-500 inline-flex p-1.5 rounded hover:bg-red-950/20 transition-all" title="Eliminar">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                lucide.createIcons();
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-brand-red">Error al leer la base de datos de usuarios.</td></tr>';
+            }
+        };
+
+        // REGISTRAR NUEVO USUARIO
+        window.registerNewUser = async () => {
+            const email = document.getElementById('new-user-email').value.trim();
+            const rawPass = document.getElementById('new-user-pass').value;
+            const pass = getFirebasePassword(rawPass);
+            const role = document.getElementById('new-user-role').value;
+
+            if (!email || !rawPass) {
+                window.showNotification("Por favor completa todos los campos", true);
+                return;
+            }
+
+            try {
+                // Registrar credenciales
+                const res = await createUserWithEmailAndPassword(auth, email, pass);
+                // Vincular su respectivo rol en Firestore
+                await setDoc(doc(db, "users", res.user.uid), { email, role });
+
+                await window.logAudit('CREAR_USUARIO', 'Gestión de Usuarios', `Se creó el usuario: ${email} con el rol: ${role}`);
+
+                window.showNotification("Usuario guardado con éxito");
+                window.toggleUserModal();
+                window.loadUsersTable();
+
+                // Limpiar campos
+                document.getElementById('new-user-email').value = '';
+                document.getElementById('new-user-pass').value = '';
+            } catch (e) {
+                window.showNotification("Error: " + e.message, true);
+            }
+        };
+
+        // ELIMINAR USUARIO
+        window.deleteUserFromDb = async (id) => {
+            // Obtener el email del usuario antes de eliminar para el log
+            let emailEliminado = id;
+            try {
+                const snap = await getDoc(doc(db, 'users', id));
+                if (snap.exists()) emailEliminado = snap.data().email || id;
+            } catch (_) {}
+
+            window.customConfirm("¿Eliminar acceso de este usuario en la base de datos?", async () => {
+                try {
+                    await deleteDoc(doc(db, "users", id));
+                    await window.logAudit('ELIMINAR_USUARIO', 'Gestión de Usuarios', `Se eliminó el usuario: ${emailEliminado} (UID: ${id})`);
+                    window.showNotification("Usuario eliminado");
+                    window.loadUsersTable();
+                } catch (e) {
+                    window.showNotification("Error: " + e.message, true);
+                }
+            });
+        };
+
+        // ACTUALIZAR ROL
+        window.updateUserRole = async (id, currentRole) => {
+            const newRole = currentRole === 'admin' ? 'tecnico' : 'admin';
+            let emailAfectado = id;
+            try {
+                const snap = await getDoc(doc(db, 'users', id));
+                if (snap.exists()) emailAfectado = snap.data().email || id;
+            } catch (_) {}
+            try {
+                await updateDoc(doc(db, "users", id), { role: newRole });
+                await window.logAudit('CAMBIAR_ROL', 'Gestión de Usuarios', `Rol del usuario ${emailAfectado} cambiado de '${currentRole}' a '${newRole}'`);
+                window.showNotification(`Usuario configurado como ${newRole}`);
+                window.loadUsersTable();
+            } catch (e) {
+                window.showNotification("Error: " + e.message, true);
+            }
+        };
+
+        // CERRAR SESION
+        window.logout = async () => {
+            await window.logAudit('CIERRE_SESION', 'Autenticación', `El usuario cerró sesión manualmente.`);
+            // Limpiar campos del formulario de login antes de cerrar sesión
+            document.getElementById('login-email').value = '';
+            document.getElementById('login-pass').value = '';
+            document.getElementById('login-error').classList.add('hidden');
+            window.currentUserEmail = '';
+            window.userRole = '';
+            await signOut(auth);
+        };
+
+        // UI NOTIFICACION PERSONALIZADA
+        window.showNotification = (msg, isError = false) => {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-5 right-5 z-[200] px-6 py-3 rounded-xl shadow-lg text-white font-bold transform transition-all duration-300 translate-y-10 opacity-0 ${isError ? 'bg-brand-red' : 'bg-green-600'}`;
+            toast.innerHTML = `<div class="flex items-center gap-2"><i data-lucide="${isError ? 'alert-circle' : 'check-circle'}" class="w-5 h-5"></i><span>${msg}</span></div>`;
+            document.body.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => { toast.classList.remove('translate-y-10', 'opacity-0'); }, 50);
+            setTimeout(() => {
+                toast.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        };
+
+        // CONFIRMACIÓN PERSONALIZADA
+        window.customConfirm = (msg, onConfirm) => {
+            const modal = document.getElementById('confirm-modal');
+            const msgEl = document.getElementById('confirm-msg');
+            const cancelBtn = document.getElementById('confirm-cancel-btn');
+            const okBtn = document.getElementById('confirm-ok-btn');
+
+            msgEl.textContent = msg;
+            modal.classList.remove('hidden');
+
+            const close = () => modal.classList.add('hidden');
+
+            cancelBtn.onclick = () => { close(); };
+            okBtn.onclick = () => { onConfirm(); close(); };
+        };
+
+        // CONTROL DE CARGA DE PAGINAS E IFRAMES
+        window.loadPage = (id, title, icon) => {
+            const iframe = document.getElementById('main-iframe');
+            const userView = document.getElementById('user-manager-view');
+            const titleEl = document.getElementById('page-title');
+            const iconBox = document.getElementById('header-icon');
+
+            if (id === 'Usuarios_Gestor') {
+                iframe.classList.add('hidden');
+                userView.classList.remove('hidden');
+                window.loadUsersTable();
+            } else {
+                iframe.classList.remove('hidden');
+                userView.classList.add('hidden');
+                iframe.src = id;
+            }
+
+            titleEl.textContent = title;
+            iconBox.innerHTML = `<i data-lucide="${icon}"></i>`;
+            lucide.createIcons();
+
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active-nav'));
+            const activeBtn = document.getElementById(`btn-${id}`);
+            if (activeBtn) activeBtn.classList.add('active-nav');
+
+            // Registrar navegación en la auditoría (excluir el propio módulo para no generar ruido)
+            if (id !== 'Auditoria.html') {
+                window.logAudit('NAVEGACION', title, `Accedió al módulo: ${title}`);
+            }
+        };
+
+        window.toggleUserModal = () => document.getElementById('user-modal').classList.toggle('hidden');
+
+    </script>
+</body>
+
+</html>

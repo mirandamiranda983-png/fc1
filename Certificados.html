@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificados FC</title>
+
+    <!-- Fuentes Modernas -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Dependencia para Descarga Directa de PDF de Alta Fidelidad -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        /* ==========================================================================
+           SISTEMA DE DISEÑO & ESTILOS PREMIUM (VANILLA CSS - DYNAMIC LIGHT/DARK)
+           ========================================================================== */
+
+        .custom-footer {
+            background-color: #fdfdfd;
+            /* Fondo casi blanco/gris ultra claro */
+            border-top: 1px solid #e5e7eb;
+            /* La línea delgada gris de arriba */
+            padding: 15px 30px;
+            /* Espacio interno (arriba/abajo y lados) */
+            text-align: center;
+            /* Alinea el texto a la derecha */
+        }
+
+        .custom-footer p {
+            margin: 0;
+            color: #4b7b9b;
+            /* El color azul/gris de la imagen */
+            font-size: 13px;
+            /* Tamaño de letra fino y limpio */
+            font-family: system-ui, -apple-system, sans-serif;
+            /* Tipografía moderna */
+            letter-spacing: 0.3px;
+            /* Ligero espacio entre letras */
+        }
+
+        :root {
+            /* MODO CLARO (Predeterminado - Blanco Premium) */
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-input: #f1f5f9;
+            --border-color: rgba(15, 23, 42, 0.08);
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+
+            --bg-header: rgba(255, 255, 255, 0.85);
+            --bg-pill: rgba(241, 245, 249, 0.8);
+            --bg-drawer: rgba(255, 255, 255, 0.98);
+            --bg-btn-secondary: rgba(15, 23, 42, 0.05);
+            --bg-btn-secondary-hover: rgba(15, 23, 42, 0.08);
+            --bg-btn-action: rgba(15, 23, 42, 0.02);
+            --bg-toast: rgba(255, 255, 255, 0.98);
+
+            --color-primary: #dc2626;
+            /* Rojo Fast Control */
+            --color-primary-hover: #b91c1c;
+            --color-success: #10b981;
+            --color-danger: #ef4444;
+            --color-warning: #f59e0b;
+            --color-accent: #4b5563;
+
+            --shadow-premium: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
+            --font-title: 'Plus Jakarta Sans', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body.dark-theme {
+            /* MODO OSCURO */
+            --bg-body: #0b0f19;
+            --bg-card: #151d30;
+            --bg-input: #1e293b;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+
+            --bg-header: rgba(21, 29, 48, 0.85);
+            --bg-pill: rgba(30, 41, 59, 0.6);
+            --bg-drawer: rgba(15, 23, 42, 0.98);
+            --bg-btn-secondary: rgba(255, 255, 255, 0.05);
+            --bg-btn-secondary-hover: rgba(255, 255, 255, 0.1);
+            --bg-btn-action: rgba(255, 255, 255, 0.02);
+            --bg-toast: rgba(21, 29, 48, 0.95);
+
+            --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Barra de Navegación */
+        header {
+            background: var(--bg-header);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 16px 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            transition: var(--transition-smooth);
+        }
+
+        body.dark-theme header {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .brand-logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: white;
+            box-shadow: 0 0 15px rgba(220, 38, 38, 0.4);
+        }
+
+        .brand-text h1 {
+            font-family: var(--font-title);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        .brand-text span {
+            font-size: 0.75rem;
+            color: var(--color-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            display: block;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--color-warning);
+            display: inline-block;
+            box-shadow: 0 0 8px var(--color-warning);
+            transition: var(--transition-smooth);
+        }
+
+        .status-dot.success {
+            background-color: var(--color-success);
+            box-shadow: 0 0 8px var(--color-success);
+        }
+
+        .status-dot.danger {
+            background-color: var(--color-danger);
+            box-shadow: 0 0 8px var(--color-danger);
+        }
+
+        .status-dot.warning {
+            background-color: var(--color-warning);
+            box-shadow: 0 0 8px var(--color-warning);
+        }
+
+        .status-pill {
+            background: var(--bg-pill);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition-smooth);
+        }
+
+        /* Conmutador de Tema */
+        .btn-action {
+            background: var(--bg-btn-action);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-action:hover {
+            background: var(--bg-btn-secondary-hover);
+        }
+
+        /* Contenedor Principal */
+        main {
+            flex: 1;
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        /* Tarjeta de Formulario */
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: var(--shadow-premium);
+            backdrop-filter: blur(10px);
+            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(220, 38, 38, 0.3);
+        }
+
+        .card-title {
+            font-family: var(--font-title);
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 14px;
+        }
+
+        .card-title svg {
+            color: var(--color-primary);
+        }
+
+        /* Formularios */
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .form-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            padding: 12px 16px;
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            transition: var(--transition-smooth);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+            background-color: var(--bg-card);
+        }
+
+        .form-control[readonly] {
+            background-color: var(--bg-btn-secondary);
+            color: var(--text-secondary);
+            cursor: not-allowed;
+            border-style: dashed;
+        }
+
+        /* Sugerencias Autocompletado */
+        .suggestions-container {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow-premium);
+            z-index: 1000;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 4px;
+        }
+
+        .suggestion-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            transition: var(--transition-smooth);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-item:hover {
+            background-color: var(--bg-input);
+            color: var(--color-primary);
+        }
+
+        .suggestion-ruc {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-family: monospace;
+            background: rgba(15, 23, 42, 0.04);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        body.dark-theme .suggestion-ruc {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        /* Botones */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-family: var(--font-title);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            border: none;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+            color: white;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(220, 38, 38, 0.35);
+        }
+
+        .btn-secondary {
+            background: var(--bg-btn-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-btn-secondary-hover);
+        }
+
+        /* Ocultar elementos */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Notificaciones Toast flotantes */
+        #toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1010;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 380px;
+            width: calc(100% - 48px);
+        }
+
+        .toast {
+            background: var(--bg-toast);
+            border-left: 4px solid var(--color-primary);
+            border-top: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-premium);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(120%);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(10px);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            border-left-color: var(--color-success);
+        }
+
+        .toast.warning {
+            border-left-color: var(--color-warning);
+        }
+
+        .toast.error {
+            border-left-color: var(--color-danger);
+        }
+
+        .toast-icon {
+            flex-shrink: 0;
+        }
+
+        .toast-content {
+            flex-grow: 1;
+        }
+
+        .toast-title {
+            font-family: var(--font-title);
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+        }
+
+        .toast-message {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        body.dark-theme .theme-icon-sun {
+            display: block !important;
+        }
+
+        body.dark-theme .theme-icon-moon {
+            display: none !important;
+        }
+
+        body:not(.dark-theme) .theme-icon-sun {
+            display: none !important;
+        }
+
+        body:not(.dark-theme) .theme-icon-moon {
+            display: block !important;
+        }
+
+        /* Estilos específicos para la previsualización del certificado */
+        #cert-section {
+            max-width: 850px;
+            margin: 20px auto 0 auto;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        /* Hoja de papel física del certificado */
+        #cert-paper {
+            background: white !important;
+            color: black !important;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            line-height: 1.6;
+            padding: 2.5rem;
+            border: none !important;
+            /* Borde gris eliminado completamente por petición */
+            box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 10.5in;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid-2 {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            #cert-paper {
+                padding: 1.5rem;
+            }
+        }
+
+        /* ==========================================================================
+           ESTILOS PARA CUANDO SE IMPRIMA O GUARDE COMO PDF
+           ========================================================================== */
+        @media print {
+            body {
+                background-color: white !important;
+                padding: 0 !important;
+                color: black !important;
+            }
+
+            header {
+                display: none !important;
+            }
+
+            #form-section {
+                display: none !important;
+            }
+
+            #cert-section {
+                display: block !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
+            }
+
+            #cert-paper {
+                display: flex !important;
+                flex-direction: column !important;
+                height: 11in !important;
+                box-sizing: border-box !important;
+                margin: 0 !important;
+                padding: 0.5in !important;
+                /* Reducido a 0.5 pulgadas para garantizar ajuste en 1 página Carta */
+                box-shadow: none !important;
+                border: none !important;
+                border-radius: 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                overflow: hidden !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            @page {
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- CABECERA Y CONEXIÓN -->
+    <header class="no-print">
+        <div class="nav-container">
+            <a href="#" class="brand">
+                <div class="brand-logo">C</div>
+                <div class="brand-text">
+                    <h1>Fast Control</h1>
+                    <span>Certificados FC</span>
+                </div>
+            </a>
+
+            <!-- Indicador de Conexión a Firebase -->
+            <div class="status-group">
+                <div class="status-pill" id="db-status-pill" title="Estado de Firebase Firestore">
+                    <span class="status-dot warning" id="db-status-dot"></span>
+                    <span id="db-status-text">Firestore: Conectando...</span>
+                </div>
+            </div>
+
+            <!-- Acciones de Cabecera -->
+            <div class="header-actions">
+                <button id="theme-toggle" class="btn-action" onclick="toggleTheme()" title="Cambiar Tema"
+                    style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: none;">
+                    <!-- Sol (Modo oscuro activo) -->
+                    <svg class="theme-icon-sun" width="18" height="18" fill="none" stroke="currentColor"
+                        stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+                    </svg>
+                    <!-- Luna (Modo claro activo) -->
+                    <svg class="theme-icon-moon" width="18" height="18" fill="none" stroke="currentColor"
+                        stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenedor para Notificaciones Emergentes -->
+    <div id="toast-container" class="no-print"></div>
+
+    <!-- Contenedor Principal -->
+    <main>
+
+        <!-- SECCIÓN DEL FORMULARIO (Se oculta al imprimir) -->
+        <div id="form-section" class="card no-print">
+            <h2 class="card-title">
+                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>Generador de Certificado</span>
+            </h2>
+
+            <!-- Mensaje de error visual -->
+            <div id="error-msg"
+                class="hidden mb-6 p-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-900/30 dark:text-red-400"
+                role="alert" style="margin-bottom: 20px;">
+                Por favor, llena todos los campos obligatorios antes de generar el certificado.
+            </div>
+
+            <form id="pestControlForm" class="form-grid">
+                <!-- Cliente Autocompletado -->
+                <div class="form-group">
+                    <label for="cliente">Nombre de la Empresa / Cliente <span
+                            style="color: var(--color-danger);">*</span></label>
+                    <input type="text" id="cliente" name="cliente"
+                        placeholder="Escriba el nombre del cliente para buscar..." class="form-control"
+                        autocomplete="off" required>
+
+                    <!-- Contenedor flotante de sugerencias -->
+                    <div id="cliente_suggestions" class="suggestions-container hidden"></div>
+                </div>
+
+                <!-- RUC (No Editable/Lectura obligatoria) -->
+                <div class="form-group">
+                    <label for="ruc">RUC de la Empresa <span style="color: var(--color-danger);">*</span></label>
+                    <input type="text" id="ruc" name="ruc" placeholder="Auto-completado al sugerir el cliente"
+                        class="form-control" readonly required>
+                </div>
+
+                <!-- Mes y Año en fila -->
+                <div class="form-grid-2">
+                    <!-- Mes del Servicio -->
+                    <div class="form-group">
+                        <label for="mes">Mes del Servicio <span style="color: var(--color-danger);">*</span></label>
+                        <select id="mes" name="mes" class="form-control" required>
+                            <option value="enero">Enero</option>
+                            <option value="febrero">Febrero</option>
+                            <option value="marzo">Marzo</option>
+                            <option value="abril">Abril</option>
+                            <option value="mayo">Mayo</option>
+                            <option value="junio">Junio</option>
+                            <option value="julio">Julio</option>
+                            <option value="agosto">Agosto</option>
+                            <option value="septiembre">Septiembre</option>
+                            <option value="octubre">Octubre</option>
+                            <option value="noviembre">Noviembre</option>
+                            <option value="diciembre">Diciembre</option>
+                        </select>
+                    </div>
+
+                    <!-- Año del Servicio -->
+                    <div class="form-group">
+                        <label for="anio">Año <span style="color: var(--color-danger);">*</span></label>
+                        <input type="number" id="anio" name="anio" min="2020" max="2100" class="form-control" required>
+                    </div>
+                </div>
+
+                <!-- Acciones de Generación -->
+                <div style="margin-top: 12px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                    <button type="button" onclick="generarCertificado()" class="btn btn-primary">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <span>Generar Vista Previa</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- SECCIÓN DEL CERTIFICADO (Oculta en web, visible al imprimir) -->
+        <div id="cert-section" class="hidden">
+
+            <!-- BOTONES DE ACCIÓN: Totalmente FUERA del documento impreso/hoja real -->
+            <div class="no-print" id="acciones-cert"
+                style="display: flex; justify-content: flex-end; gap: 12px; margin-bottom: 20px;">
+                <button onclick="volver()" class="btn btn-secondary" style="width: auto; padding: 10px 20px;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span>Editar Datos</span>
+                </button>
+                <button onclick="imprimirPDF()" class="btn btn-primary" style="width: auto; padding: 10px 20px;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    <span>Descargar PDF</span>
+                </button>
+            </div>
+
+            <!-- HOJA REAL DEL CERTIFICADO (Cert-Paper) -->
+            <div id="cert-paper">
+
+                <!-- Encabezado Modificado (A la izquierda: Datos de captura con letras pequeñas, A la derecha: Logo ubicado arriba) -->
+                <div
+                    style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #dc2626; padding-bottom: 12px; margin-bottom: 30px; margin-top: 2px;">
+                    <!-- Izquierda: Encabezado de la captura (Letras reducidas para mayor fineza y elegancia) -->
+                    <div
+                        style="text-align: left; font-family: 'Plus Jakarta Sans', sans-serif; color: #0f172a; line-height: 1.35;">
+                        <h1
+                            style="font-weight: 800; font-size: 1.5rem; color: #0f172a; margin: 0; line-height: 1.0; letter-spacing: -0.01em;">
+                            Fast Control</h1>
+                        <p
+                            style="font-size: 0.85rem; color: #475569; font-style: italic; font-weight: 700; margin: 2px 0 4px 0;">
+                            Manejo Integrado De Plagas</p>
+                        <p style="font-size: 0.7rem; color: #334155; font-weight: 600; margin: 0 0 2px 0;">Nº RUC:
+                            0012704961001T</p>
+                        <p
+                            style="font-size: 0.65rem; color: #64748b; margin: 0 0 1px 0; max-width: 450px; line-height: 1.3;">
+                            Bº Naciones Unidas, Terminal ruta 165, 1c. Al sur 1c. Al este, managua</p>
+                        <p style="font-size: 0.65rem; color: #64748b; margin: 0; font-weight: 500;">Tel: 2253-7290 /
+                            7894-4984</p>
+                    </div>
+                    <!-- Derecha: Logo alineado verticalmente al centro -->
+                    <div style="display: flex; align-items: center; justify-content: flex-end; align-self: center;">
+                        <img src="https://lh3.googleusercontent.com/d/1RPpzt0-f9zQS6JnU6urBO7OdgMdDUuH0"
+                            alt="Logo Fast Control" style="max-height: 75px; width: auto; object-fit: contain;">
+                    </div>
+                </div>
+
+                <!-- Título del Certificado -->
+                <div style="text-align: center; margin-bottom: 20px; margin-top: 5px;">
+                    <h3
+                        style="font-size: 1.25rem; font-weight: 800; text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 2px; text-transform: uppercase;">
+                        CERTIFICADO DE MANEJO INTEGRADO DE PLAGAS</h3>
+                </div>
+
+                <!-- Cuerpo del texto -->
+                <div
+                    style="text-align: justify; font-size: 1.05rem; line-height: 1.6; color: #0f172a; font-family: 'Outfit', sans-serif;">
+                    <p style="margin-bottom: 12px;">
+                        En el presente documento hacemos constar que la empresa <strong style="font-weight: 800;">FAST
+                            CONTROL</strong>
+                        (SERVICIO EN MANEJO INTEGRADO DE PLAGAS Y DESINFECCION PROFESIONAL)
+                        Autorizado por el ministerio de salud (MINSA) Con Numero de Licencia: <span
+                            style="color: #dc2626; font-weight: 800;">LF-00010-03</span>;
+                        en el uso de las facultades que confiere la ley 274 ley básica para la regulación y
+                        control de sustancias toxicas peligrosas y similares y ley 434 ley general de salud
+                        brindo servicios en MANEJO INTEGRADO DE PLAGAS; correspondiente al mes
+                        de <strong id="cert-mes" style="text-transform: uppercase; font-weight: 800;"></strong> de
+                        <strong id="cert-anio" style="font-weight: 800;"></strong> a la empresa:
+                    </p>
+
+                    <!-- Datos del Cliente Destacados (Más compacto para asegurar caber en una sola página) -->
+                    <div style="text-align: center; padding: 16px 0;">
+                        <h2 id="cert-cliente"
+                            style="font-size: 1.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                        </h2>
+                        <p style="font-size: 1.1rem; font-weight: 700;">RUC: <span id="cert-ruc"></span></p>
+                    </div>
+
+                    <p style="margin-bottom: 12px;">
+                        Los productos utilizados son biodegradables y autorizados por el ministerio de
+                        agricultura y ganadería para el control de plaga de salud pública, garantizando de
+                        esta manera el control de plaga y la inocuidad de los productos.
+                    </p>
+
+                    <p style="margin-bottom: 18px;">
+                        <strong style="font-weight: 800;">FAST CONTROL</strong> garantiza de esta forma la seguridad
+                        requerida para su debido
+                        funcionamiento.
+                    </p>
+                </div>
+
+                <!-- Pie de página (Optimizado verticalmente para una sola página Carta) -->
+                <div style="margin-top: auto; text-align: center; font-family: 'Plus Jakarta Sans', sans-serif;">
+                    <div style="width: 250px; border-top: 2px solid black; margin: 0 auto 6px auto;"></div>
+                    <p style="font-weight: 800; font-size: 1.05rem; margin-bottom: 8px;">Firma Autorizada</p>
+
+                    <p
+                        style="font-size: 1.0rem; font-style: italic; font-weight: 700; color: #1e293b; margin-bottom: 4px;">
+                        "Su mejor solución en Control de Plagas"</p>
+                    <p style="font-size: 0.8rem; color: #475569; margin: 0 0 2px 0;">Bº la Fuente, del portón trasero de
+                        la Normal, 20 varas al sur</p>
+                    <p style="font-size: 0.8rem; color: #475569; margin: 0;">Teléfonos 2253-7290 - Celular
+                        77582226-57119014</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+
+    <footer class="custom-footer">
+        <p>&copy; FAST CONTROL <span id="year"></span> - Módulo de Certificados</p>
+    </footer>
+
+    <script>
+        document.getElementById("year").textContent = new Date().getFullYear();
+    </script>
+
+
+    <!-- Firebase SDK Importaciones (v10.8.0) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Configuración de Firebase provista por el usuario
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWu-ewWbQb9z3f2gS9zQFrArZr-KUb-ok",
+            authDomain: "pos-vbd.firebaseapp.com",
+            projectId: "pos-vbd",
+            storageBucket: "pos-vbd.firebasestorage.app",
+            messagingSenderId: "491489024859",
+            appId: "1:491489024859:web:4c2448b8882c0099b6587e",
+            measurementId: "G-0NB1C3TJT7"
+        };
+
+        let app, db;
+        let isConnected = false;
+        let cacheClientes = [];
+
+        // Buscador dinámico de campos por compatibilidad con diferentes esquemas
+        function resolveClientName(cli) {
+            return cli.nombre || cli.nombre_cliente || cli.name || cli.cliente || cli.nombrecompleto || cli.fullname || cli.razon_social || cli.razonsocial || 'Cliente Sin Nombre';
+        }
+
+        // Obtener el RUC del cliente y asegurar un valor por defecto de '0' si no existe
+        function resolveClientRuc(cli) {
+            const rawRuc = cli.ruc || cli.ruc_cliente || cli.nit || cli.identificacion || cli.cedula || cli.id_fiscal || cli.registro;
+            if (!rawRuc || rawRuc.toString().trim() === '' || rawRuc.toString().toLowerCase() === 'sin ruc') {
+                return '0';
+            }
+            return rawRuc.toString().trim();
+        }
+
+        window.onload = async function () {
+            // Aplicar tema guardado
+            const savedTheme = localStorage.getItem("theme") || "light";
+            if (savedTheme === "dark") {
+                document.body.classList.add("dark-theme");
+            }
+
+            // Setear el año actual por defecto
+            document.getElementById('anio').value = new Date().getFullYear();
+
+            // Sincronizar Firebase Firestore
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+
+                if (db) {
+                    isConnected = true;
+                    updateDbStatusIndicator("success", "Firestore: Conectado");
+                    listenToFirebaseCollections();
+                } else {
+                    throw new Error("No se pudo obtener la base de datos Firestore.");
+                }
+            } catch (error) {
+                console.error("Error al conectar con Firebase:", error);
+                updateDbStatusIndicator("danger", "Firestore: Sin Conexión");
+                showToast("Error de conexión con Firebase. Iniciando simulación local.", "warning");
+                enableLocalSimulation();
+            }
+        };
+
+        // Indicador visual de conexión
+        function updateDbStatusIndicator(type, text) {
+            console.log(`[Base de Datos] ${text}`);
+            const dot = document.getElementById("db-status-dot");
+            const label = document.getElementById("db-status-text");
+            if (dot && label) {
+                dot.className = `status-dot ${type}`;
+                label.textContent = text;
+            }
+        }
+
+        // Listener en tiempo real de colecciones Firebase
+        function listenToFirebaseCollections() {
+            onSnapshot(collection(db, "clientes"), (snapshot) => {
+                cacheClientes = [];
+                snapshot.forEach((doc) => {
+                    cacheClientes.push({ id: doc.id, ...doc.data() });
+                });
+                console.log("Clientes actualizados desde Firebase:", cacheClientes);
+            }, (error) => {
+                console.error("Falla al escuchar clientes:", error);
+                showToast("Error al sincronizar clientes. Verifique reglas de Firestore.", "error");
+                enableLocalSimulation();
+            });
+        }
+
+        // Simulación local de respaldo en caso de desconexión
+        function enableLocalSimulation() {
+            cacheClientes = [
+                { id: 'cli-demo1', nombre: 'Distribuidora Díaz (Local)', ruc: '0011408820005K' },
+                { id: 'cli-demo2', nombre: 'Corporación Salvadoreña (Local)', ruc: '0012704961001T' },
+                { id: 'cli-demo3', nombre: 'COMEDOR LA FINCA (Local)', ruc: '0012506840003H' }
+            ];
+        }
+
+        // Autocompletado del Campo de Cliente
+        const clienteInput = document.getElementById('cliente');
+        const suggestionsContainer = document.getElementById('cliente_suggestions');
+        const rucInput = document.getElementById('ruc');
+
+        clienteInput.addEventListener('input', function (e) {
+            const query = e.target.value.trim();
+            const queryLower = query.toLowerCase();
+            suggestionsContainer.innerHTML = '';
+
+            if (!query) {
+                suggestionsContainer.classList.add('hidden');
+                rucInput.value = '';
+                return;
+            }
+
+            // Establecer por defecto a '0' para clientes que no están en la base de datos (clientes manuales/temporales)
+            rucInput.value = '0';
+
+            const filtered = cacheClientes.filter(cli => {
+                const name = resolveClientName(cli).toLowerCase();
+                const ruc = (cli.ruc || cli.ruc_cliente || cli.nit || '').toLowerCase();
+                return name.includes(queryLower) || ruc.includes(queryLower);
+            });
+
+            if (filtered.length === 0) {
+                suggestionsContainer.classList.add('hidden');
+                return;
+            }
+
+            filtered.forEach(cli => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+
+                const clientName = resolveClientName(cli);
+                const clientRuc = resolveClientRuc(cli);
+
+                div.innerHTML = `
+                    <span>${clientName}</span>
+                    <span class="suggestion-ruc">${clientRuc}</span>
+                `;
+
+                div.addEventListener('click', function () {
+                    clienteInput.value = clientName;
+                    rucInput.value = clientRuc;
+                    suggestionsContainer.classList.add('hidden');
+                    showToast("Cliente seleccionado", "success");
+                });
+
+                suggestionsContainer.appendChild(div);
+            });
+
+            suggestionsContainer.classList.remove('hidden');
+        });
+
+        // Ocultar sugerencias si se hace clic fuera del input/sugerencias
+        document.addEventListener('click', function (e) {
+            if (e.target !== clienteInput && e.target !== suggestionsContainer) {
+                suggestionsContainer.classList.add('hidden');
+            }
+        });
+
+        // Generar Certificado (Muestra Vista Previa)
+        function generarCertificado() {
+            const clienteVal = clienteInput.value;
+            const rucVal = rucInput.value;
+            const mes = document.getElementById('mes').value;
+            const anio = document.getElementById('anio').value;
+            const errorMsg = document.getElementById('error-msg');
+
+            // Validar campos obligatorios
+            if (!clienteVal.trim() || !rucVal.trim() || !anio) {
+                errorMsg.classList.remove('hidden');
+                showToast("Complete todos los campos obligatorios", "error");
+                return;
+            }
+            errorMsg.classList.add('hidden');
+
+            // Llenar datos en el certificado
+            document.getElementById('cert-cliente').innerText = clienteVal;
+            document.getElementById('cert-ruc').innerText = rucVal;
+            document.getElementById('cert-mes').innerText = mes;
+            document.getElementById('cert-anio').innerText = anio;
+
+            // Transici\u00f3n visual
+            document.getElementById('form-section').classList.add('hidden');
+            document.getElementById('cert-section').classList.remove('hidden');
+            showToast("Vista previa generada", "success");
+
+            // Auditor\u00eda
+            if (window.parent && typeof window.parent.logAudit === 'function') {
+              window.parent.logAudit('GENERAR_CERTIFICADO', 'Certificados',
+                `Vista previa generada para: ${clienteVal} | RUC: ${rucVal} | Per\u00edodo: ${mes} ${anio}`
+              );
+            }
+        }
+
+        // Volver al formulario
+        function volver() {
+            document.getElementById('cert-section').classList.add('hidden');
+            document.getElementById('form-section').classList.remove('hidden');
+        }
+
+        // Descargar Directamente el PDF o lanzar diálogo nativo como fallback
+        function imprimirPDF() {
+            const element = document.getElementById('cert-paper');
+            const cliente = clienteInput.value || 'Cliente';
+            const mes = document.getElementById('mes').value || 'servicio';
+            const anio = document.getElementById('anio').value || '2026';
+
+            const opt = {
+                margin: 0, // Margen cero para que la escala del canvas concuerde 1:1 con el Letter size
+                filename: `CERTIFICADO ${cliente}.pdf`,
+                image: { type: 'jpeg', quality: 1.0 },
+                html2canvas: {
+                    scale: 3, // Calidad super alta retina
+                    useCORS: true, // Habilitar CORS para el logo de Drive
+                    letterRendering: true
+                },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            showToast("Descargando PDF...", "info");
+
+            html2pdf().set(opt).from(element).save()
+                .then(() => {
+                    showToast("PDF descargado con éxito", "success");
+                })
+                .catch(err => {
+                    console.error("Error al exportar PDF con html2pdf:", err);
+                    showToast("Iniciando ventana de impresión estándar...", "warning");
+                    window.print();
+                });
+        }
+
+        // Cambiar tema visual
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle("dark-theme");
+            localStorage.setItem("theme", isDark ? "dark" : "light");
+            showToast(isDark ? "Modo oscuro activado" : "Modo claro activado", "info");
+        }
+
+        // Mostrar notificaciones Toast
+        function showToast(message, type = "success") {
+            const container = document.getElementById("toast-container");
+            if (!container) return;
+
+            const toast = document.createElement("div");
+            toast.className = `toast ${type}`;
+
+            let iconSvg = "";
+            if (type === "success") {
+                iconSvg = `<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+            } else if (type === "warning" || type === "info") {
+                iconSvg = `<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+            } else if (type === "error") {
+                iconSvg = `<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+            }
+
+            const title = type === "success" ? "Éxito" : type === "error" ? "Error" : "Aviso";
+
+            toast.innerHTML = `
+                <div class="toast-icon">${iconSvg}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add("show");
+            }, 50);
+
+            setTimeout(() => {
+                toast.classList.remove("show");
+                setTimeout(() => {
+                    toast.remove();
+                }, 400);
+            }, 4000);
+        }
+
+        // Exponer funciones necesarias al scope global (para eventos HTML onclick)
+        window.generarCertificado = generarCertificado;
+        window.volver = volver;
+        window.imprimirPDF = imprimirPDF;
+        window.toggleTheme = toggleTheme;
+        window.showToast = showToast;
+    </script>
+</body>
+
+</html>

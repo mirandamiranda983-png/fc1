@@ -1,0 +1,3513 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Base de Datos - FC</title>
+
+  <!-- Fuentes Modernas -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       SISTEMA DE DISEÑO & ESTILOS PREMIUM (VANILLA CSS - DYNAMIC LIGHT/DARK)
+       ========================================================================== */
+    :root {
+      /* MODO CLARO (Predeterminado - Rojo, Negro y Gris Oscuro) */
+      --bg-body: #f5f5f5;
+      --bg-card: #ffffff;
+      --bg-input: #e8e8e8;
+      --border-color: rgba(28, 28, 28, 0.12);
+      --text-primary: #1c1c1c;
+      --text-secondary: #565656;
+
+      --bg-header: rgba(255, 255, 255, 0.95);
+      --bg-nav-tabs: rgba(232, 232, 232, 0.85);
+      --bg-pill: rgba(232, 232, 232, 0.85);
+      --bg-drawer: rgba(255, 255, 255, 0.99);
+      --bg-btn-secondary: rgba(28, 28, 28, 0.06);
+      --bg-btn-secondary-hover: rgba(28, 28, 28, 0.1);
+      --bg-th: rgba(28, 28, 28, 0.03);
+      --bg-tr-hover: rgba(28, 28, 28, 0.02);
+      --bg-btn-action: rgba(28, 28, 28, 0.03);
+      --bg-toast: rgba(255, 255, 255, 0.99);
+
+      --color-primary: #dc2626;
+      /* Rojo */
+      --color-primary-hover: #b91c1c;
+      /* Rojo Oscuro */
+      --color-success: #16a34a;
+      /* Verde */
+      --color-danger: #ef4444;
+      /* Rojo Claro */
+      --color-warning: #ea580c;
+      /* Naranja */
+      --color-accent: #374151;
+      /* Gris Oscuro */
+
+      --shadow-premium: 0 10px 30px -10px rgba(28, 28, 28, 0.12);
+      --font-title: 'Plus Jakarta Sans', sans-serif;
+      --font-body: 'Outfit', sans-serif;
+
+      --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body.dark-theme {
+      /* MODO OSCURO (Rojo, Negro y Gris Oscuro) */
+      --bg-body: #0f0f0f;
+      --bg-card: #1a1a1a;
+      --bg-input: #252525;
+      --border-color: rgba(255, 255, 255, 0.1);
+      --text-primary: #f5f5f5;
+      --text-secondary: #b0b0b0;
+
+      --bg-header: rgba(26, 26, 26, 0.92);
+      --bg-nav-tabs: rgba(37, 37, 37, 0.7);
+      --bg-pill: rgba(37, 37, 37, 0.7);
+      --bg-drawer: rgba(15, 15, 15, 0.99);
+      --bg-btn-secondary: rgba(255, 255, 255, 0.08);
+      --bg-btn-secondary-hover: rgba(255, 255, 255, 0.12);
+      --bg-th: rgba(255, 255, 255, 0.03);
+      --bg-tr-hover: rgba(255, 255, 255, 0.02);
+      --bg-btn-action: rgba(255, 255, 255, 0.03);
+      --bg-toast: rgba(26, 26, 26, 0.97);
+
+      --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.8);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      overflow-x: hidden;
+      width: 100%;
+    }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Barra de Navegación */
+    header {
+      background: var(--bg-header);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 16px 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      transition: var(--transition-smooth);
+    }
+
+    body.dark-theme header {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .nav-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: nowrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.4rem;
+      color: white;
+      box-shadow: 0 0 15px rgba(220, 38, 38, 0.5);
+    }
+
+    .brand-text h1 {
+      font-family: var(--font-title);
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+
+    .brand-text span {
+      font-size: 0.75rem;
+      color: var(--color-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      display: block;
+    }
+
+    /* Tabs de Navegación (PC) */
+    .nav-tabs {
+      display: flex;
+      background: var(--bg-nav-tabs);
+      padding: 6px;
+      border-radius: 30px;
+      border: 1px solid var(--border-color);
+      gap: 4px;
+      transition: var(--transition-smooth);
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-family: var(--font-title);
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 8px 18px;
+      border-radius: 25px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition-smooth);
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+      background: var(--bg-btn-secondary);
+    }
+
+    .tab-btn.active {
+      color: white;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+      box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3);
+    }
+
+    /* Indicadores y Menú de Cabecera */
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Indicadores Visuales de Conexión */
+    .status-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--color-warning);
+      display: inline-block;
+      box-shadow: 0 0 8px var(--color-warning);
+      transition: var(--transition-smooth);
+    }
+
+    .status-dot.success {
+      background-color: var(--color-success);
+      box-shadow: 0 0 8px var(--color-success);
+    }
+
+    .status-dot.danger {
+      background-color: var(--color-danger);
+      box-shadow: 0 0 8px var(--color-danger);
+    }
+
+    .status-dot.warning {
+      background-color: var(--color-warning);
+      box-shadow: 0 0 8px var(--color-warning);
+    }
+
+    .status-pill {
+      background: var(--bg-pill);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition-smooth);
+    }
+
+    .status-pill:hover {
+      border-color: rgba(220, 38, 38, 0.3);
+      color: var(--text-primary);
+    }
+
+    @media (max-width: 768px) {
+      .status-pill span[id$="-text"] {
+        display: none;
+        /* Oculta texto en móviles */
+      }
+
+      .status-pill {
+        padding: 8px;
+        border-radius: 50%;
+      }
+
+      .status-group {
+        gap: 6px;
+      }
+    }
+
+    /* Menú Hamburguesa Móvil */
+    .menu-toggle {
+      display: none;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-smooth);
+      border: 1px solid var(--border-color);
+    }
+
+    .menu-toggle:hover {
+      background: var(--bg-btn-secondary-hover);
+    }
+
+    .mobile-menu-drawer {
+      display: none;
+      position: fixed;
+      top: 73px;
+      left: 0;
+      width: 100%;
+      background: var(--bg-drawer);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 16px;
+      z-index: 99;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      transition: background-color 0.3s ease;
+    }
+
+    body.dark-theme .mobile-menu-drawer {
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+
+    .mobile-menu-drawer.active {
+      display: flex;
+    }
+
+    .mobile-menu-btn {
+      background: var(--bg-btn-secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      font-family: var(--font-title);
+      font-size: 1.05rem;
+      font-weight: 600;
+      padding: 14px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+      transition: var(--transition-smooth);
+    }
+
+    .mobile-menu-btn.active {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+      color: white;
+      border-color: transparent;
+    }
+
+    @keyframes slideDown {
+      from {
+        transform: translateY(-20px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    /* Contenedor Principal */
+    main {
+      flex: 1;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    /* Pestañas de Contenido */
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Layout en Columnas: Formulario a la Izquierda, Tabla a la Derecha */
+    .module-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 32px;
+      align-items: start;
+    }
+
+    @media (min-width: 1024px) {
+      .module-grid {
+        grid-template-columns: 380px minmax(0, 1fr);
+      }
+    }
+
+    /* Tarjetas (Glassmorphism) */
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: var(--shadow-premium);
+      backdrop-filter: blur(10px);
+      transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(220, 38, 38, 0.3);
+    }
+
+    .card-title {
+      font-family: var(--font-title);
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+    }
+
+    .card-title svg {
+      color: var(--color-primary);
+    }
+
+    /* Formularios */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    .form-control {
+      width: 100%;
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      padding: 10px 14px;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      transition: var(--transition-smooth);
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+      background-color: var(--bg-card);
+    }
+
+    .form-control:disabled,
+    .form-control[readonly] {
+      background-color: var(--bg-btn-secondary);
+      color: var(--text-secondary);
+      cursor: not-allowed;
+      border-style: dashed;
+    }
+
+    /* Botones */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-family: var(--font-title);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      border: none;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+      color: white;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(220, 38, 38, 0.35);
+    }
+
+    .btn-secondary {
+      background: var(--bg-btn-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-btn-secondary-hover);
+      color: var(--text-primary);
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    /* Sección de Visualización de Datos (Tablas Modernas) */
+    .table-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      min-width: 0;
+      /* Prevents grid item from expanding beyond grid bounds on PC */
+    }
+
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .search-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .search-wrapper input {
+      padding-left: 36px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      pointer-events: none;
+    }
+
+    .table-responsive {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-premium);
+      background: var(--bg-card);
+      overflow-x: auto;
+      overflow-y: hidden;
+      transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background: var(--bg-th);
+      color: var(--text-secondary);
+      font-family: var(--font-title);
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 12px 10px;
+      /* Reduced padding to fit columns on PC screens */
+      border-bottom: 1px solid var(--border-color);
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    td {
+      padding: 12px 10px;
+      /* Reduced padding to fit columns on PC screens */
+      font-size: 0.9rem;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-primary);
+      transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: var(--bg-tr-hover);
+    }
+
+    /* Evitar que columnas críticas se envuelvan/apilen en pantallas de PC */
+    @media (min-width: 769px) {
+      .nowrap-column {
+        white-space: nowrap !important;
+      }
+
+      .nowrap-column .cell-content,
+      .nowrap-column .cell-content * {
+        white-space: nowrap !important;
+        word-break: keep-all !important;
+        overflow-wrap: normal !important;
+      }
+    }
+
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-primary {
+      background: rgba(220, 38, 38, 0.1);
+      color: var(--color-primary);
+    }
+
+    .badge-success {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--color-success);
+    }
+
+    .badge-accent {
+      background: rgba(139, 92, 246, 0.1);
+      color: var(--color-accent);
+    }
+
+    .sync-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .sync-badge.synced {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--color-success);
+    }
+
+    .sync-badge.pending {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--color-warning);
+    }
+
+    /* Estilos Premium para Columnas de Acciones */
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-btn-action);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .btn-action:hover {
+      background: var(--bg-btn-secondary-hover);
+      color: var(--text-primary);
+      transform: translateY(-1px);
+    }
+
+    .btn-action.edit:hover {
+      color: var(--color-primary);
+      border-color: rgba(220, 38, 38, 0.35);
+      background: rgba(220, 38, 38, 0.1);
+      box-shadow: 0 0 10px rgba(220, 38, 38, 0.15);
+    }
+
+    .btn-action.delete:hover {
+      color: var(--color-danger);
+      border-color: rgba(239, 68, 68, 0.35);
+      background: rgba(239, 68, 68, 0.1);
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.15);
+    }
+
+    .actions-cell {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .cell-content {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+      width: 100%;
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-secondary);
+    }
+
+    /* Notificaciones Toast flotantes */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1010;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 380px;
+      width: calc(100% - 48px);
+    }
+
+    .toast {
+      background: var(--bg-toast);
+      border-left: 4px solid var(--color-primary);
+      border-top: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: var(--shadow-premium);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transform: translateX(120%);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      backdrop-filter: blur(10px);
+    }
+
+    .toast.show {
+      transform: translateX(0);
+    }
+
+    .toast.success {
+      border-left-color: var(--color-success);
+    }
+
+    .toast.warning {
+      border-left-color: var(--color-warning);
+    }
+
+    .toast.error {
+      border-left-color: var(--color-danger);
+    }
+
+    .toast-icon {
+      flex-shrink: 0;
+    }
+
+    .toast-content {
+      flex-grow: 1;
+    }
+
+    .toast-title {
+      font-family: var(--font-title);
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 2px;
+    }
+
+    .toast-message {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    /* Animación de carga para botones */
+    .spinner {
+      animation: rotate 2s linear infinite;
+      width: 18px;
+      height: 18px;
+      display: inline-block;
+    }
+
+    .spinner .path {
+      stroke: currentColor;
+      stroke-linecap: round;
+      animation: dash 1.5s ease-in-out infinite;
+    }
+
+    @keyframes rotate {
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes dash {
+      0% {
+        stroke-dasharray: 1, 150;
+        stroke-dashoffset: 0;
+      }
+
+      50% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -35;
+      }
+
+      100% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -124;
+      }
+    }
+
+    /* Control de iconos de tema */
+    body.dark-theme .theme-icon-sun {
+      display: block !important;
+    }
+
+    body.dark-theme .theme-icon-moon {
+      display: none !important;
+    }
+
+    body:not(.dark-theme) .theme-icon-sun {
+      display: none !important;
+    }
+
+    body:not(.dark-theme) .theme-icon-moon {
+      display: block !important;
+    }
+
+    /* Media Queries */
+    @media (max-width: 768px) {
+      header {
+        padding: 12px 16px;
+      }
+
+      .nav-tabs {
+        display: none;
+      }
+
+      .menu-toggle {
+        display: flex;
+      }
+
+      .status-indicators {
+        display: none;
+      }
+
+      main {
+        padding: 20px 16px;
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+
+      .tab-content {
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      /* Adaptabilidad de Tablas en Móviles (Colocado al final para correcto override) */
+      .table-responsive {
+        border: none;
+        background: transparent;
+        box-shadow: none;
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      table,
+      thead,
+      tbody,
+      th,
+      td,
+      tr {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      thead {
+        display: none;
+        /* Oculta cabeceras en móviles */
+      }
+
+      tr {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        margin-bottom: 16px;
+        padding: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+
+      body.dark-theme tr {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      td {
+        border-bottom: none;
+        padding: 8px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.9rem;
+        gap: 12px;
+        text-align: right;
+        flex-wrap: wrap;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+
+      td::before {
+        content: attr(data-label);
+        font-family: var(--font-title);
+        font-weight: 700;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        text-align: left;
+        flex-shrink: 1;
+        max-width: 40%;
+        word-break: break-word;
+        overflow-wrap: break-word;
+      }
+
+      td strong {
+        font-size: 1rem;
+      }
+
+      .cell-content {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-end !important;
+        text-align: right !important;
+        max-width: 55% !important;
+        min-width: 0 !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        width: auto !important;
+      }
+    }
+
+    /* OPTIMIZACIÓN DE FORMULARIOS EN MÓVILES (Fijo a una sola columna y ancho ajustado) */
+    @media (max-width: 600px) {
+      .module-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 24px;
+        width: 100%;
+      }
+
+      .card {
+        max-width: 480px;
+        width: 100%;
+        margin: 0 auto;
+        overflow: hidden;
+        box-sizing: border-box;
+      }
+
+      .form-grid-2 {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .btn-group {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .table-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .table-header>div {
+        justify-content: flex-start !important;
+        flex-direction: column;
+        align-items: stretch !important;
+        width: 100% !important;
+      }
+
+      .table-header>div>button,
+      .table-header>div>.search-wrapper {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+      }
+    }
+
+    /* Additional fix for horizontal overflow on mobile (Clientes) */
+    @media (max-width: 600px) {
+
+      /* Ensure the grid and card do not exceed viewport */
+      #tab-clientes .module-grid {
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+
+      #tab-clientes .card {
+        max-width: 100%;
+        width: 100%;
+        overflow-x: hidden;
+        box-sizing: border-box;
+      }
+
+      /* Prevent long input values from breaking layout */
+      #tab-clientes .form-control {
+        word-break: break-word;
+        overflow-wrap: anywhere;
+      }
+    }
+
+    /* ==========================================================================
+       ESTILOS PARA PANTALLA DE INICIO (SPLASH SCREEN)
+       ========================================================================== */
+    .loader-main {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #1e293b;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+
+    .loader {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3498db;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 8px;
+      display: none;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .bg-glass {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    #splash-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #f1f5f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.8s ease, visibility 0.8s;
+    }
+
+    .fade-out {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .animate-fade-in {
+      animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Estilo para selects */
+    .custom-select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      background-size: 1.5em 1.5em;
+    }
+
+    body {
+      background-image: radial-gradient(circle at top right, #f1f5f9, #ffffff);
+      background-attachment: fixed;
+    }
+
+    /* ==========================================================================
+       ESTILOS PARA MODAL DE CONTRASEÑA (PASSWORD MODAL)
+       ========================================================================== */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(11, 15, 25, 0.5);
+      backdrop-filter: blur(10px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      width: 90%;
+      max-width: 420px;
+      box-shadow: var(--shadow-premium);
+      overflow: hidden;
+      transform: scale(0.92);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .modal-overlay.active .modal-card {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-family: var(--font-title);
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .modal-title svg {
+      color: var(--color-primary);
+    }
+
+    .btn-close-modal {
+      background: transparent;
+      border: none;
+      font-size: 1.8rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 4px;
+      transition: var(--transition-smooth);
+    }
+
+    .btn-close-modal:hover {
+      color: var(--color-danger);
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border-color);
+      background: var(--bg-th);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+  </style>
+
+  <!-- PDF Generation Dependencies -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+</head>
+
+<body>
+  <!-- Script para prevenir parpadeo de tema (Ejecutado de inmediato) -->
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem("theme") || "light";
+      if (savedTheme === "dark") {
+        document.body.classList.add("dark-theme");
+      }
+    })();
+  </script>
+
+  <!-- Pantalla de Inicio (Splash Screen) -->
+  </style>
+  </head>
+
+  <body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
+
+    <!-- Pantalla de Carga Inicial -->
+    <div id="splash-screen">
+      <div class="loader-main mb-4"></div>
+      <h2 class="text-2xl font-black text-slate-800 tracking-tighter">Base de Datos FC</h2>
+      <p class="text-slate-500 text-sm animate-pulse">Sincronizando servicios...</p>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        setTimeout(() => {
+          const splash = document.getElementById("splash-screen");
+          if (splash) {
+            splash.classList.add("fade-out");
+            setTimeout(() => {
+              splash.remove();
+            }, 600);
+          }
+        }, 3000);
+      });
+    </script>
+
+    <!-- ==========================================================================
+       CABECERA Y BARRA DE NAVEGACIÓN
+       ========================================================================== -->
+    <header>
+      <div class="nav-container">
+        <a href="#" class="brand">
+          <div class="brand-logo">A</div>
+          <div class="brand-text">
+            <h1>Fast Control</h1>
+            <span>Base de Datos</span>
+          </div>
+        </a>
+
+        <!-- Pestañas Principales (Solo PC) -->
+        <nav class="nav-tabs">
+          <button class="tab-btn active" onclick="switchTab('clientes')">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            Clientes
+          </button>
+          <button class="tab-btn" onclick="switchTab('servicios')">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            Servicios
+          </button>
+          <button class="tab-btn" onclick="switchTab('quimicos')">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg>
+            Químicos
+          </button>
+        </nav>
+
+        <!-- Indicadores de Conexión -->
+        <div class="status-group">
+          <div class="status-pill" id="db-status-pill" title="Estado de Firebase Firestore">
+            <span class="status-dot warning" id="db-status-dot"></span>
+            <span id="db-status-text">Firestore: Conectando...</span>
+          </div>
+          <div class="status-pill" id="sheets-status-pill" title="Estado de Google Sheets">
+            <span class="status-dot warning" id="sheets-status-dot"></span>
+            <span id="sheets-status-text">Sheets: Conectando...</span>
+          </div>
+        </div>
+
+        <!-- Menú Móvil & Acciones -->
+        <div class="header-actions">
+          <!-- Botón Exportar PDF -->
+          <button id="btn-export-pdf" class="btn-action" onclick="openPasswordModal()" title="Exportar PDF Completo"
+            style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: var(--color-primary); border-color: rgba(6, 182, 212, 0.2);">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </button>
+          <!-- Conmutador de Tema Claro/Oscuro -->
+          <button id="theme-toggle" class="btn-action" onclick="toggleTheme()" title="Cambiar Tema"
+            style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+            <!-- Sol (se muestra en modo oscuro) -->
+            <svg class="theme-icon-sun" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+            </svg>
+            <!-- Luna (se muestra en modo claro) -->
+            <svg class="theme-icon-moon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          </button>
+          <!-- Botón de Hamburguesa para Móvil -->
+          <button class="menu-toggle" onclick="toggleMobileMenu()" aria-label="Abrir Menú">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Menú Desplegable Móvil -->
+      <div class="mobile-menu-drawer" id="mobile-menu-drawer">
+        <button class="mobile-menu-btn active" onclick="handleMobileNav('clientes')">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          Clientes
+        </button>
+        <button class="mobile-menu-btn" onclick="handleMobileNav('servicios')">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+          Servicios
+        </button>
+        <button class="mobile-menu-btn" onclick="handleMobileNav('quimicos')">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+          </svg>
+          Químicos
+        </button>
+        <button class="mobile-menu-btn" onclick="openPasswordModal()"
+          style="border-top: 1px dashed var(--border-color); color: var(--color-primary);">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Exportar PDF
+        </button>
+      </div>
+
+    </header>
+
+    <main>
+      <!-- ==========================================================================
+         MÓDULO 1: PESTAÑA CLIENTES
+         ========================================================================== -->
+      <section id="tab-clientes" class="tab-content active">
+        <div class="module-grid">
+          <!-- Formulario Clientes -->
+          <div class="card">
+            <h2 class="card-title">
+              <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+              </svg>
+              Ingreso de Cliente
+            </h2>
+            <form id="form-cliente" onsubmit="handleSaveCliente(event)">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="cliente-id">ID Cliente (Autogenerado / Correlativo)</label>
+                  <input type="text" id="cliente-id" class="form-control" placeholder="Calculando..." readonly required>
+                </div>
+                <div class="form-group">
+                  <label for="cliente-nombre">Nombre Completo *</label>
+                  <input type="text" id="cliente-nombre" class="form-control" placeholder="Ej: William Miranda"
+                    required>
+                </div>
+
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label for="cliente-sector">Sector * (Selecciona o Escribe)</label>
+                    <input type="text" id="cliente-sector" list="sectores-list" class="form-control"
+                      placeholder="Ej: Residencial" required>
+                    <datalist id="sectores-list">
+                      <!-- Poblado dinámicamente -->
+                    </datalist>
+                  </div>
+                  <div class="form-group">
+                    <label for="cliente-actividad">Actividad * (Selecciona o Escribe)</label>
+                    <input type="text" id="cliente-actividad" list="actividades-list" class="form-control"
+                      placeholder="Ej: Control de Plagas" required>
+                    <datalist id="actividades-list">
+                      <!-- Poblado dinámicamente -->
+                    </datalist>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="cliente-gerente">Gerente General *</label>
+                  <input type="text" id="cliente-gerente" class="form-control" placeholder="Nombre del representante"
+                    required>
+                </div>
+                <div class="form-group">
+                  <label for="cliente-direccion">Dirección Física *</label>
+                  <input type="text" id="cliente-direccion" class="form-control" placeholder="Dirección completa"
+                    required>
+                </div>
+
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label for="cliente-telefono">Teléfono *</label>
+                    <input type="tel" id="cliente-telefono" class="form-control" placeholder="Ej: +506 8888-8888"
+                      required>
+                  </div>
+                  <div class="form-group">
+                    <label for="cliente-ruc">RUC *</label>
+                    <input type="text" id="cliente-ruc" class="form-control" placeholder="Nº de Registro Fiscal"
+                      required>
+                  </div>
+                </div>
+
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label for="cliente-email">Correo Electrónico *</label>
+                    <input type="email" id="cliente-email" class="form-control" placeholder="info@fastcontrolni.com"
+                      required>
+                  </div>
+                  <div class="form-group">
+                    <label for="cliente-fecha">Fecha Registro *</label>
+                    <input type="date" id="cliente-fecha" class="form-control" required>
+                  </div>
+                </div>
+              </div>
+
+              <div class="btn-group">
+                <button type="button" class="btn btn-secondary" onclick="resetForm('form-cliente')">Limpiar</button>
+                <button type="submit" class="btn btn-primary" id="btn-save-cliente">
+                  <span>Guardar Cliente</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Tabla Clientes -->
+          <div class="table-container">
+            <div class="table-header">
+              <h2 class="card-title" style="border: none; margin: 0; padding: 0;">
+                Clientes Registrados
+              </h2>
+              <div
+                style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; width: 100%; justify-content: flex-end; max-width: 520px;">
+                <button class="btn btn-secondary" id="btn-import-clientes" onclick="handleImportClientesFromSheets()"
+                  style="width: auto; padding: 8px 14px; font-size: 0.85rem; height: 38px; gap: 6px; display: inline-flex; align-items: center; border-radius: 8px; margin: 0;">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                  <span>Importar de Sheets</span>
+                </button>
+                <div class="search-wrapper" style="margin: 0; max-width: 260px; width: 100%;">
+                  <svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input type="text" id="search-clientes" class="form-control" placeholder="Buscar clientes..."
+                    onkeyup="filterTable('clientes')" style="height: 38px; padding-top: 8px; padding-bottom: 8px;">
+                </div>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table id="table-clientes">
+                <thead>
+                  <tr>
+                    <th class="nowrap-column">ID</th>
+                    <th>Nombre</th>
+                    <th>Sector / Actividad</th>
+                    <th>Contacto / RUC</th>
+                    <th>Dirección</th>
+                    <th class="nowrap-column">Fecha</th>
+                    <th class="nowrap-column">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-clientes">
+                  <tr>
+                    <td colspan="7" class="empty-state">Cargando clientes desde Firestore...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================================================
+         MÓDULO 2: PESTAÑA SERVICIOS
+         ========================================================================== -->
+      <section id="tab-servicios" class="tab-content">
+        <div class="module-grid">
+          <!-- Formulario Servicios -->
+          <div class="card">
+            <h2 class="card-title">
+              <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 112-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
+              Nuevo Servicio
+            </h2>
+            <form id="form-servicio" onsubmit="handleSaveServicio(event)">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="servicio-nombre">Nombre del Servicio *</label>
+                  <input type="text" id="servicio-nombre" class="form-control"
+                    placeholder="Ej: Control general de plagas industrial" required>
+                </div>
+                <div class="form-group">
+                  <label for="servicio-descripcion">Descripción Detallada *</label>
+                  <textarea id="servicio-descripcion" class="form-control" rows="5"
+                    placeholder="Especificaciones, técnica y alcances del servicio..." required
+                    style="resize: vertical;"></textarea>
+                </div>
+              </div>
+
+              <div class="btn-group">
+                <button type="button" class="btn btn-secondary" onclick="resetForm('form-servicio')">Limpiar</button>
+                <button type="submit" class="btn btn-primary" id="btn-save-servicio">
+                  <span>Guardar Servicio</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Tabla Servicios -->
+          <div class="table-container">
+            <div class="table-header">
+              <h2 class="card-title" style="border: none; margin: 0; padding: 0;">
+                Servicios Disponibles
+              </h2>
+              <div
+                style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; width: 100%; justify-content: flex-end; max-width: 520px;">
+                <button class="btn btn-secondary" id="btn-import-servicios" onclick="handleImportServiciosFromSheets()"
+                  style="width: auto; padding: 8px 14px; font-size: 0.85rem; height: 38px; gap: 6px; display: inline-flex; align-items: center; border-radius: 8px; margin: 0;">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                  <span>Importar de Sheets</span>
+                </button>
+                <div class="search-wrapper" style="margin: 0; max-width: 260px; width: 100%;">
+                  <svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input type="text" id="search-servicios" class="form-control" placeholder="Buscar servicios..."
+                    onkeyup="filterTable('servicios')" style="height: 38px; padding-top: 8px; padding-bottom: 8px;">
+                </div>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table id="table-servicios">
+                <thead>
+                  <tr>
+                    <th>Nombre del Servicio</th>
+                    <th>Descripción del Servicio</th>
+                    <th class="nowrap-column">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-servicios">
+                  <tr>
+                    <td colspan="3" class="empty-state">Cargando servicios desde Firestore...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================================================
+         MÓDULO 3: PESTAÑA QUÍMICOS
+         ========================================================================== -->
+      <section id="tab-quimicos" class="tab-content">
+        <div class="module-grid">
+          <!-- Formulario Químicos -->
+          <div class="card">
+            <h2 class="card-title">
+              <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+              </svg>
+              Ingreso de Químico
+            </h2>
+            <form id="form-quimico" onsubmit="handleSaveQuimico(event)">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="quimico-codigo">Código Químico (Autogenerado Dinámico)</label>
+                  <input type="text" id="quimico-codigo" class="form-control" placeholder="QUI-000" readonly required>
+                </div>
+                <div class="form-group">
+                  <label for="quimico-nombre">Nombre Comercial del Químico *</label>
+                  <input type="text" id="quimico-nombre" class="form-control" placeholder="Ej: Deltametrina"
+                    oninput="generateDynamicChemicalCode(this.value)" required>
+                </div>
+                <div class="form-group">
+                  <label for="quimico-activo">Ingrediente Activo *</label>
+                  <input type="text" id="quimico-activo" class="form-control" placeholder="Ej: Deltametrina 2.5%"
+                    required>
+                </div>
+
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label for="quimico-unidad">Unidad de Medida * (Selecciona o Escribe)</label>
+                    <input type="text" id="quimico-unidad" list="unidades-list" class="form-control"
+                      placeholder="Ej: Litros" required>
+                    <datalist id="unidades-list">
+                      <!-- Poblado dinámicamente -->
+                    </datalist>
+                  </div>
+                  <div class="form-group">
+                    <label for="quimico-categoria">Categoría * (Selecciona o Escribe)</label>
+                    <input type="text" id="quimico-categoria" list="categorias-list" class="form-control"
+                      placeholder="Ej: Liquido" required>
+                    <datalist id="categorias-list">
+                      <!-- Poblado dinámicamente -->
+                    </datalist>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="quimico-plaga">Plaga a Tratar *</label>
+                  <input type="text" id="quimico-plaga" class="form-control" placeholder="Ej: Cucarachas, Mosquitos"
+                    required>
+                </div>
+              </div>
+
+              <div class="btn-group">
+                <button type="button" class="btn btn-secondary" onclick="resetForm('form-quimico')">Limpiar</button>
+                <button type="submit" class="btn btn-primary" id="btn-save-quimico">
+                  <span>Guardar Químico</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Tabla Químicos -->
+          <div class="table-container">
+            <div class="table-header">
+              <h2 class="card-title" style="border: none; margin: 0; padding: 0;">
+                Inventario de Químicos
+              </h2>
+              <div
+                style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; width: 100%; justify-content: flex-end; max-width: 520px;">
+                <button class="btn btn-secondary" id="btn-import-quimicos" onclick="handleImportQuimicosFromSheets()"
+                  style="width: auto; padding: 8px 14px; font-size: 0.85rem; height: 38px; gap: 6px; display: inline-flex; align-items: center; border-radius: 8px; margin: 0;">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                  <span>Importar de Sheets</span>
+                </button>
+                <div class="search-wrapper" style="margin: 0; max-width: 260px; width: 100%;">
+                  <svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input type="text" id="search-quimicos" class="form-control" placeholder="Buscar químicos..."
+                    onkeyup="filterTable('quimicos')" style="height: 38px; padding-top: 8px; padding-bottom: 8px;">
+                </div>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table id="table-quimicos">
+                <thead>
+                  <tr>
+                    <th class="nowrap-column">Código</th>
+                    <th>Químico</th>
+                    <th>Ingrediente Activo</th>
+                    <th>U. Medida</th>
+                    <th>Plaga a Tratar</th>
+                    <th>Categoría</th>
+                    <th class="nowrap-column">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-quimicos">
+                  <tr>
+                    <td colspan="7" class="empty-state">Cargando químicos desde Firestore...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Contenedor flotante para notificaciones -->
+    <div id="toast-container"></div>
+
+    <!-- Modal de Contraseña para Exportar PDF -->
+    <div id="password-modal" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 class="modal-title">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Confirmar Contraseña
+          </h3>
+          <button class="btn-close-modal" onclick="closePasswordModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.5;">
+            Para exportar el reporte general y detallado del sistema a PDF, por favor ingrese la contraseña de
+            administrador autorizada.
+          </p>
+          <div class="form-group">
+            <label for="pdf-password">Contraseña Administrador *</label>
+            <input type="password" id="pdf-password" class="form-control" placeholder="Ingrese la contraseña"
+              onkeydown="if(event.key === 'Enter') verifyPasswordAndExport()">
+          </div>
+          <div id="password-error"
+            style="color: var(--color-danger); font-size: 0.8rem; font-weight: 600; margin-top: -8px; margin-bottom: 12px; display: none;">
+            Contraseña incorrecta. Por favor intente de nuevo.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closePasswordModal()" style="width: auto;">Cancelar</button>
+          <button class="btn btn-primary" onclick="verifyPasswordAndExport()"
+            style="width: auto; padding-left: 24px; padding-right: 24px;">Exportar</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ==========================================================================
+       LÓGICA DEL SISTEMA Y CONEXIÓN CON FIREBASE
+       ========================================================================== -->
+    <script type="module">
+      // Importamos los SDKs modulares de Firebase vía CDN
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+      // 1. CONFIGURACIÓN CENTRALIZADA E INTEGRACIÓN DIRECTA DE LA URL
+      // ==========================================================================
+      // Rellene aquí el resto de caracteres de su URL de Google Apps Script Web App.
+      // Ej: "https://script.google.com/macros/s/AKfycbzmlsJAXpBXXXXXXXXXXXXXXX/exec"
+      // ==========================================================================
+      const SHEETS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzmIsJAXpBCBATpum0-T-rdOsyfpYPn3NaHSh8I4dgeLX1M30dESfAV-Ytc9pxzTqrrZw/exec";
+
+      // CREDENCIALES REALES DE FIREBASE PROPORCIONADAS
+      const firebaseConfig = {
+        apiKey: "AIzaSyBWu-ewWbQb9z3f2gS9zQFrArZr-KUb-ok",
+        authDomain: "pos-vbd.firebaseapp.com",
+        projectId: "pos-vbd",
+        storageBucket: "pos-vbd.firebasestorage.app",
+        messagingSenderId: "491489024859",
+        appId: "1:491489024859:web:4c2448b8882c0099b6587e",
+        measurementId: "G-0NB1C3TJT7"
+      };
+
+      // Inicializamos Firebase
+      let app, db;
+      try {
+        app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        updateDbStatusIndicator("success", "Base de datos 1: Conectado");
+      } catch (error) {
+        console.error("Error al conectar con Firebase:", error);
+        updateDbStatusIndicator("danger", "Firestore: Error");
+      }
+
+      // Registrar cambios en auditoría — redirige al sistema centralizado del padre
+      async function logModification(modulo, accion, detalle) {
+        try {
+          // Mapear acciones locales a códigos del sistema de auditoría
+          const accionMap = {
+            'Creación':    'CREAR_REGISTRO',
+            'Modificación':'EDITAR_REGISTRO',
+            'Eliminación': 'ELIMINAR_REGISTRO',
+            'Importación': 'IMPORTAR_REGISTROS'
+          };
+          const accionCode = accionMap[accion] || accion.toUpperCase().replace(/ /g, '_');
+          if (window.parent && typeof window.parent.logAudit === 'function') {
+            await window.parent.logAudit(accionCode, `Base de Datos – ${modulo}`, detalle);
+          }
+        } catch (error) {
+          console.warn('logModification (Base de Datos): no se pudo registrar:', error);
+        }
+      }
+
+      // ESTADO GLOBAL DE LA APLICACIÓN
+      const state = {
+        clientes: [],
+        servicios: [],
+        quimicos: [],
+        auditoria: [],
+        sheetsUrl: SHEETS_WEB_APP_URL,
+        sheetsLastClientId: 0,
+        sheetsLastQuimicoNum: 0,
+        editingClienteDocId: null,
+        editingServicioDocId: null,
+        editingQuimicoDocId: null,
+        editingQuimicoOriginalCode: null
+      };
+
+      // Helper function to format dates nicely as DD/MM/YYYY (prevents PC table overflow)
+      function formatDisplayDate(dateStr) {
+        if (!dateStr) return '';
+        // If it's YYYY-MM-DD
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+          const parts = dateStr.split('-');
+          return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+        // If it's YYYY-MM-DD with time or other characters
+        if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+          const parts = dateStr.substring(0, 10).split('-');
+          return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+        // If it's a long date string like "Mon May 18 2026..."
+        try {
+          const d = new Date(dateStr);
+          if (!isNaN(d.getTime())) {
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}/${month}/${year}`;
+          }
+        } catch (e) {
+          // ignore
+        }
+        return dateStr;
+      }
+
+      // Al cargar, seteamos la fecha de hoy y calculamos consecutivos
+      document.addEventListener("DOMContentLoaded", () => {
+        const today = new Date().toISOString().split('T')[0];
+        const fechaInput = document.getElementById("cliente-fecha");
+        if (fechaInput) fechaInput.value = today;
+
+        // Verificar la URL de Sheets y sincronizar
+        if (state.sheetsUrl && state.sheetsUrl !== "https://script.google.com/macros/s/AKfycbzmlsJAXpB" && state.sheetsUrl.includes("/macros/s/")) {
+          checkAllDataSheetsStatus();
+        } else {
+          updateSheetsStatusIndicator("warning", "Sheets: Falta URL");
+          console.warn("Por favor, abre index.html en un editor y completa la URL en la constante 'SHEETS_WEB_APP_URL'.");
+        }
+      });
+
+      // LISTENERS EN TIEMPO REAL PARA REGISTROS
+      if (db) {
+        // Auditoría Listener
+        onSnapshot(collection(db, "auditoria"), (snapshot) => {
+          state.auditoria = snapshot.docs.map(doc => ({ docId: doc.id, ...doc.data() }));
+        }, (error) => {
+          console.error("Error al leer auditoría:", error);
+        });
+
+        // Clientes Listener
+        onSnapshot(collection(db, "clientes"), (snapshot) => {
+          state.clientes = snapshot.docs.map(doc => ({ docId: doc.id, ...doc.data() }));
+          renderClientesTable();
+          updateSectoresDatalist();
+          updateActividadesDatalist();
+          updateNextClientId();
+        }, (error) => {
+          console.error("Error al leer clientes:", error);
+        });
+
+        // Servicios Listener
+        onSnapshot(collection(db, "servicios"), (snapshot) => {
+          state.servicios = snapshot.docs.map(doc => ({ docId: doc.id, ...doc.data() }));
+          renderServiciosTable();
+        }, (error) => {
+          console.error("Error al leer servicios:", error);
+        });
+
+        // Químicos Listener
+        onSnapshot(collection(db, "quimicos"), (snapshot) => {
+          state.quimicos = snapshot.docs.map(doc => ({ docId: doc.id, ...doc.data() }));
+          renderQuimicosTable();
+          updateUnidadesDatalist();
+          updateCategoriasDatalist();
+          const nameVal = document.getElementById("quimico-nombre").value;
+          generateDynamicChemicalCode(nameVal);
+        }, (error) => {
+          console.error("Error al leer químicos:", error);
+        });
+      }
+
+      // ==========================================================================
+      // MÓDULO 1: CLIENTES
+      // ==========================================================================
+
+      // Calcula el próximo ID numérico consecutivo basándose en Firestore y Sheets
+      function updateNextClientId() {
+        const idInput = document.getElementById("cliente-id");
+        if (!idInput) return;
+
+        let maxFirestoreId = 0;
+        state.clientes.forEach(c => {
+          const idVal = parseInt(c.id);
+          if (!isNaN(idVal) && idVal > maxFirestoreId) {
+            maxFirestoreId = idVal;
+          }
+        });
+
+        const nextId = Math.max(maxFirestoreId, state.sheetsLastClientId) + 1;
+        idInput.value = nextId;
+      }
+
+      // Actualiza datalist dinámico de Sectores
+      function updateSectoresDatalist() {
+        const datalist = document.getElementById("sectores-list");
+        if (!datalist) return;
+        const defaults = ["Residencial", "Comercial", "Industrial"];
+        const dbValues = state.clientes.map(c => c.sector).filter(Boolean);
+        const uniqueValues = [...new Set([...defaults, ...dbValues])];
+        datalist.innerHTML = "";
+        uniqueValues.forEach(val => {
+          const option = document.createElement("option");
+          option.value = val;
+          datalist.appendChild(option);
+        });
+      }
+
+      // Actualiza datalist dinámico de Actividades
+      function updateActividadesDatalist() {
+        const datalist = document.getElementById("actividades-list");
+        if (!datalist) return;
+        const defaults = ["Control de Plagas", "Desinfección", "Limpieza", "Fumigación"];
+        const dbValues = state.clientes.map(c => c.actividad).filter(Boolean);
+        const uniqueValues = [...new Set([...defaults, ...dbValues])];
+        datalist.innerHTML = "";
+        uniqueValues.forEach(val => {
+          const option = document.createElement("option");
+          option.value = val;
+          datalist.appendChild(option);
+        });
+      }
+
+      // Actualiza datalist dinámico de Unidades de Medida
+      function updateUnidadesDatalist() {
+        const datalist = document.getElementById("unidades-list");
+        if (!datalist) return;
+        const defaults = ["Litros", "Galones", "Kilogramos", "Gramos", "Mililitros"];
+        const dbValues = state.quimicos.map(q => q.unidad_medida).filter(Boolean);
+        const uniqueValues = [...new Set([...defaults, ...dbValues])];
+        datalist.innerHTML = "";
+        uniqueValues.forEach(val => {
+          const option = document.createElement("option");
+          option.value = val;
+          datalist.appendChild(option);
+        });
+      }
+
+      // Actualiza datalist dinámico de Categorías Toxicológicas
+      function updateCategoriasDatalist() {
+        const datalist = document.getElementById("categorias-list");
+        if (!datalist) return;
+        const defaults = [
+          "Categoría I - Extremadamente Peligroso",
+          "Categoría II - Altamente Peligroso",
+          "Categoría III - Moderadamente Peligroso",
+          "Categoría IV - Ligeramente Peligroso"
+        ];
+        const dbValues = state.quimicos.map(q => q.categoria).filter(Boolean);
+        const uniqueValues = [...new Set([...defaults, ...dbValues])];
+        datalist.innerHTML = "";
+        uniqueValues.forEach(val => {
+          const option = document.createElement("option");
+          option.value = val;
+          datalist.appendChild(option);
+        });
+      }
+
+      // Guardar Cliente (Soporta Agregar y Editar) (Firestore + Google Sheets)
+      window.handleSaveCliente = async function (event) {
+        event.preventDefault();
+
+        const btn = document.getElementById("btn-save-cliente");
+        const originalText = btn.innerHTML;
+        setButtonLoading(btn, true);
+
+        const nextId = parseInt(document.getElementById("cliente-id").value);
+        const nombre = document.getElementById("cliente-nombre").value.trim();
+        const sector = document.getElementById("cliente-sector").value.trim();
+        const actividad = document.getElementById("cliente-actividad").value.trim();
+        const gerente = document.getElementById("cliente-gerente").value.trim();
+        const direccion = document.getElementById("cliente-direccion").value.trim();
+        const telefono = document.getElementById("cliente-telefono").value.trim();
+        const email = document.getElementById("cliente-email").value.trim();
+        const ruc = document.getElementById("cliente-ruc").value.trim();
+        const fecha = document.getElementById("cliente-fecha").value;
+
+        if (!nombre || !sector || !actividad || !gerente || !direccion || !telefono || !email || !ruc || !fecha) {
+          showToast("Rellena todos los campos obligatorios.", "error");
+          setButtonLoading(btn, false, originalText);
+          return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          showToast("Formato de correo electrónico inválido.", "error");
+          setButtonLoading(btn, false, originalText);
+          return;
+        }
+
+        const newCliente = {
+          id: nextId,
+          nombre,
+          sector,
+          actividad,
+          gerente,
+          direccion,
+          telefono,
+          email,
+          ruc,
+          fecha
+        };
+
+        try {
+          const isSheetsConfigured = state.sheetsUrl && state.sheetsUrl.includes("/macros/s/");
+          if (state.editingClienteDocId) {
+            // 1. Actualizar en Firebase Firestore
+            await updateDoc(doc(db, "clientes", state.editingClienteDocId), newCliente);
+
+            // Registrar modificación detallada (qué campos cambiaron)
+            const origCliente = state.clientes.find(c => c.docId === state.editingClienteDocId);
+            let changeDetail = "";
+            if (origCliente) {
+              const fields = {
+                nombre: "Nombre",
+                sector: "Sector",
+                actividad: "Actividad",
+                gerente: "Gerente",
+                direccion: "Dirección",
+                telefono: "Teléfono",
+                email: "Correo",
+                ruc: "RUC/Cédula",
+                fecha: "Fecha"
+              };
+              const diffs = [];
+              for (const [key, label] of Object.entries(fields)) {
+                const origVal = origCliente[key] !== undefined ? String(origCliente[key]).trim() : "";
+                const newVal = newCliente[key] !== undefined ? String(newCliente[key]).trim() : "";
+                if (origVal !== newVal) {
+                  diffs.push(`${label}: "${origVal}" → "${newVal}"`);
+                }
+              }
+              changeDetail = diffs.length > 0 ? `Modificó cliente #${newCliente.id} (${newCliente.nombre}). Cambios: ${diffs.join(", ")}` : `Modificó cliente #${newCliente.id} (${newCliente.nombre}) sin cambios en campos`;
+            } else {
+              changeDetail = `Modificó cliente #${newCliente.id} (${newCliente.nombre})`;
+            }
+            await logModification("Clientes", "Modificación", changeDetail);
+
+            // 2. Intentar Sincronizar en Google Sheets (CORS-friendly)
+            if (isSheetsConfigured) {
+              try {
+                const sheetsResult = await syncWithGoogleSheets("updateCliente", newCliente);
+                if (sheetsResult) {
+                  showToast(`¡Cliente actualizado con éxito en Firestore y Google Sheets!`, "success");
+                } else {
+                  showToast(`Actualizado en Firebase. Sincronización en Sheets pendiente.`, "warning");
+                }
+              } catch (e) {
+                showToast(`Actualizado en Firebase. Sheets pendiente de sincronización.`, "warning");
+              }
+            } else {
+              showToast(`¡Cliente actualizado con éxito en Firebase!`, "success");
+            }
+          } else {
+            // 1. Guardar nuevo en Firebase Firestore
+            await addDoc(collection(db, "clientes"), newCliente);
+
+            // Registrar creación
+            await logModification("Clientes", "Creación", `Se registró al cliente #${newCliente.id} - ${newCliente.nombre}`);
+
+            // 2. Intentar Sincronizar en Google Sheets (CORS-friendly)
+            if (isSheetsConfigured) {
+              try {
+                const sheetsResult = await syncWithGoogleSheets("addCliente", newCliente);
+                if (sheetsResult) {
+                  showToast(`¡Cliente registrado con éxito en Firestore y Google Sheets!`, "success");
+                } else {
+                  showToast(`Guardado en Firebase. Sincronización en Sheets pendiente.`, "warning");
+                }
+              } catch (e) {
+                showToast(`Guardado en Firebase. Sheets pendiente de sincronización.`, "warning");
+              }
+            } else {
+              showToast(`¡Cliente guardado en Firebase! (Completa la constante 'SHEETS_WEB_APP_URL' en el código HTML para sincronizar con Sheets)`, "warning");
+            }
+          }
+
+          resetForm("form-cliente");
+          document.getElementById("cliente-fecha").value = new Date().toISOString().split('T')[0];
+
+        } catch (err) {
+          console.error("Error al procesar cliente:", err);
+          showToast("Error al guardar en base de datos.", "error");
+        } finally {
+          const isEditing = state.editingClienteDocId !== null;
+          const restoredText = isEditing ? "<span>Actualizar Cliente</span>" : "<span>Guardar Cliente</span>";
+          setButtonLoading(btn, false, restoredText);
+        }
+      };
+
+      // Iniciar edición de Cliente
+      window.startEditCliente = function (docId) {
+        const c = state.clientes.find(item => item.docId === docId);
+        if (!c) return;
+
+        state.editingClienteDocId = docId;
+
+        document.getElementById("cliente-id").value = c.id;
+        document.getElementById("cliente-nombre").value = c.nombre;
+        document.getElementById("cliente-sector").value = c.sector;
+        document.getElementById("cliente-actividad").value = c.actividad;
+        document.getElementById("cliente-gerente").value = c.gerente;
+        document.getElementById("cliente-direccion").value = c.direccion;
+        document.getElementById("cliente-telefono").value = c.telefono;
+        document.getElementById("cliente-email").value = c.email;
+        document.getElementById("cliente-ruc").value = c.ruc;
+        document.getElementById("cliente-fecha").value = c.fecha;
+
+        // Cambiar texto de los botones
+        document.getElementById("btn-save-cliente").querySelector("span").textContent = "Actualizar Cliente";
+        const clearBtn = document.querySelector("#form-cliente .btn-secondary");
+        if (clearBtn) clearBtn.textContent = "Cancelar";
+
+        showToast("Editando cliente #" + c.id, "info");
+        document.getElementById("form-cliente").scrollIntoView({ behavior: 'smooth' });
+      };
+
+      // Eliminar Cliente
+      window.handleDeleteCliente = async function (docId, id) {
+        if (!confirm(`¿Está seguro de que desea eliminar permanentemente al cliente #${id}? Esta acción no se puede deshacer y se sincronizará con Google Sheets.`)) {
+          return;
+        }
+
+        try {
+          // 1. Eliminar de Firebase Firestore
+          const clientObj = state.clientes.find(item => item.docId === docId);
+          const nameStr = clientObj ? ` - ${clientObj.nombre}` : "";
+
+          await deleteDoc(doc(db, "clientes", docId));
+
+          // Registrar eliminación
+          await logModification("Clientes", "Eliminación", `Se eliminó al cliente #${id}${nameStr}`);
+
+          // 2. Sincronizar eliminación en Google Sheets
+          const isSheetsConfigured = state.sheetsUrl && state.sheetsUrl.includes("/macros/s/");
+          if (isSheetsConfigured) {
+            try {
+              await syncWithGoogleSheets("deleteCliente", { id: id });
+              showToast("Cliente eliminado de Firestore y Google Sheets con éxito.", "success");
+            } catch (e) {
+              showToast("Cliente eliminado de Firestore. Sincronización en Sheets pendiente.", "warning");
+            }
+          } else {
+            showToast("Cliente eliminado de Firestore con éxito.", "success");
+          }
+
+          // Si se estaba editando el cliente eliminado, restablecer el formulario
+          if (state.editingClienteDocId === docId) {
+            resetForm("form-cliente");
+          }
+
+        } catch (err) {
+          console.error("Error al eliminar cliente:", err);
+          showToast("Error al eliminar de la base de datos.", "error");
+        }
+      };
+
+      // Renderizar Tabla de Clientes con columna Acciones
+      function renderClientesTable() {
+        const tbody = document.getElementById("tbody-clientes");
+        if (!tbody) return;
+
+        if (state.clientes.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No hay clientes registrados en Firestore.</td></tr>`;
+          return;
+        }
+
+        const clientesOrdenados = [...state.clientes].sort((a, b) => b.id - a.id);
+
+        tbody.innerHTML = "";
+        clientesOrdenados.forEach(c => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+          <td data-label="ID" class="nowrap-column">
+            <div class="cell-content">
+              <strong style="color: var(--color-primary);">#${c.id}</strong>
+            </div>
+          </td>
+          <td data-label="Nombre">
+            <div class="cell-content">
+              <div style="font-weight: 600;">${escapeHtml(c.nombre)}</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary);">${escapeHtml(c.email)}</div>
+            </div>
+          </td>
+          <td data-label="Sector / Actividad">
+            <div class="cell-content">
+              <div><span class="badge badge-primary">${escapeHtml(c.sector)}</span></div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">${escapeHtml(c.actividad)}</div>
+            </div>
+          </td>
+          <td data-label="Contacto / RUC">
+            <div class="cell-content">
+              <div style="font-weight: 500;">${escapeHtml(c.telefono)}</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary);">${escapeHtml(c.ruc)}</div>
+            </div>
+          </td>
+          <td data-label="Dirección">
+            <div class="cell-content">
+              <div>${escapeHtml(c.direccion)}</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary);">Gte: ${escapeHtml(c.gerente)}</div>
+            </div>
+          </td>
+          <td data-label="Fecha" class="nowrap-column">
+            <div class="cell-content">
+              <div>${escapeHtml(formatDisplayDate(c.fecha))}</div>
+            </div>
+          </td>
+          <td data-label="Acciones" class="nowrap-column">
+            <div class="actions-cell">
+              <button class="btn-action edit" onclick="startEditCliente('${c.docId}')" title="Editar Cliente">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+              </button>
+              <button class="btn-action delete" onclick="handleDeleteCliente('${c.docId}', ${c.id})" title="Eliminar Cliente">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </div>
+          </td>
+        `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // ==========================================================================
+      // MÓDULO 2: SERVICIOS
+      // ==========================================================================
+
+      // Guardar Servicio (Soporta Agregar y Editar) (Firestore + Google Sheets)
+      window.handleSaveServicio = async function (event) {
+        event.preventDefault();
+
+        const btn = document.getElementById("btn-save-servicio");
+        const originalText = btn.innerHTML;
+        setButtonLoading(btn, true);
+
+        const servicio = document.getElementById("servicio-nombre").value.trim();
+        const descripcion = document.getElementById("servicio-descripcion").value.trim();
+
+        if (!servicio || !descripcion) {
+          showToast("Todos los campos obligatorios son requeridos.", "error");
+          setButtonLoading(btn, false, originalText);
+          return;
+        }
+
+        const newServicio = {
+          servicio,
+          descripcion
+        };
+
+        try {
+          const isSheetsConfigured = state.sheetsUrl && state.sheetsUrl.includes("/macros/s/");
+          if (state.editingServicioDocId) {
+            // 1. Actualizar en Firebase Firestore
+            await updateDoc(doc(db, "servicios", state.editingServicioDocId), newServicio);
+
+            // Registrar modificación detallada
+            const origServicio = state.servicios.find(s => s.docId === state.editingServicioDocId);
+            let changeDetail = "";
+            if (origServicio) {
+              const fields = {
+                servicio: "Nombre del Servicio",
+                descripcion: "Descripción"
+              };
+              const diffs = [];
+              for (const [key, label] of Object.entries(fields)) {
+                const origVal = origServicio[key] !== undefined ? String(origServicio[key]).trim() : "";
+                const newVal = newServicio[key] !== undefined ? String(newServicio[key]).trim() : "";
+                if (origVal !== newVal) {
+                  diffs.push(`${label}: "${origVal}" → "${newVal}"`);
+                }
+              }
+              changeDetail = diffs.length > 0 ? `Modificó servicio "${newServicio.servicio}". Cambios: ${diffs.join(", ")}` : `Modificó servicio "${newServicio.servicio}" sin cambios en campos`;
+            } else {
+              changeDetail = `Modificó servicio "${newServicio.servicio}"`;
+            }
+            await logModification("Servicios", "Modificación", changeDetail);
+
+            // 2. Sincronizar actualización en Google Sheets (CORS-friendly)
+            if (isSheetsConfigured) {
+              try {
+                const syncPayload = {
+                  originalServicio: state.editingServicioOriginalName,
+                  servicio: newServicio.servicio,
+                  descripcion: newServicio.descripcion
+                };
+                const sheetsResult = await syncWithGoogleSheets("updateServicio", syncPayload);
+                if (sheetsResult) {
+                  showToast(`¡Servicio actualizado con éxito en Firestore y Google Sheets!`, "success");
+                } else {
+                  showToast(`Actualizado en Firebase. Sincronización en Sheets pendiente.`, "warning");
+                }
+              } catch (e) {
+                showToast(`Actualizado en Firebase. Sheets pendiente de sincronización.`, "warning");
+              }
+            } else {
+              showToast(`¡Servicio actualizado con éxito en Firebase!`, "success");
+            }
+          } else {
+            // 1. Guardar nuevo en Firebase Firestore
+            await addDoc(collection(db, "servicios"), newServicio);
+
+            // Registrar creación
+            await logModification("Servicios", "Creación", `Se registró el servicio: ${newServicio.servicio}`);
+
+            // 2. Sincronizar en Google Sheets (CORS-friendly)
+            if (isSheetsConfigured) {
+              try {
+                await syncWithGoogleSheets("addServicio", newServicio);
+                showToast("Servicio registrado en Firebase y Sheets con éxito.", "success");
+              } catch (e) {
+                showToast("Servicio guardado en Firebase. Sheets pendiente de sincronización.", "warning");
+              }
+            } else {
+              showToast("¡Servicio guardado en Firebase! (Completa la constante 'SHEETS_WEB_APP_URL' en el código HTML para sincronizar)", "warning");
+            }
+          }
+
+          resetForm("form-servicio");
+
+        } catch (err) {
+          console.error("Error al procesar servicio:", err);
+          showToast("Error al guardar en base de datos.", "error");
+        } finally {
+          const isEditing = state.editingServicioDocId !== null;
+          const restoredText = isEditing ? "<span>Actualizar Servicio</span>" : "<span>Guardar Servicio</span>";
+          setButtonLoading(btn, false, restoredText);
+        }
+      };
+
+      // Iniciar edición de Servicio
+      window.startEditServicio = function (docId) {
+        const s = state.servicios.find(item => item.docId === docId);
+        if (!s) return;
+
+        state.editingServicioDocId = docId;
+        state.editingServicioOriginalName = s.servicio; // Nombre original para Sheets
+
+        document.getElementById("servicio-nombre").value = s.servicio;
+        document.getElementById("servicio-descripcion").value = s.descripcion;
+
+        // Cambiar texto de los botones
+        document.getElementById("btn-save-servicio").querySelector("span").textContent = "Actualizar Servicio";
+        const clearBtn = document.querySelector("#form-servicio .btn-secondary");
+        if (clearBtn) clearBtn.textContent = "Cancelar";
+
+        showToast("Editando servicio: " + s.servicio, "info");
+        document.getElementById("form-servicio").scrollIntoView({ behavior: 'smooth' });
+      };
+
+      // Eliminar Servicio
+      window.handleDeleteServicio = async function (docId, servicioNombre) {
+        if (!confirm(`¿Está seguro de que desea eliminar permanentemente el servicio "${servicioNombre}"? Esta acción no se puede deshacer y se sincronizará con Google Sheets.`)) {
+          return;
+        }
+
+        try {
+          // 1. Eliminar de Firebase Firestore
+          await deleteDoc(doc(db, "servicios", docId));
+
+          // Registrar eliminación
+          await logModification("Servicios", "Eliminación", `Se eliminó el servicio: ${servicioNombre}`);
+
+          // 2. Sincronizar eliminación en Google Sheets
+          const isSheetsConfigured = state.sheetsUrl && state.sheetsUrl.includes("/macros/s/");
+          if (isSheetsConfigured) {
+            try {
+              await syncWithGoogleSheets("deleteServicio", { servicio: servicioNombre });
+              showToast("Servicio eliminado de Firestore y Google Sheets con éxito.", "success");
+            } catch (e) {
+              showToast("Servicio eliminado de Firestore. Sincronización en Sheets pendiente.", "warning");
+            }
+          } else {
+            showToast("Servicio eliminado de Firestore con éxito.", "success");
+          }
+
+          // Si se estaba editando el servicio eliminado, restablecer el formulario
+          if (state.editingServicioDocId === docId) {
+            resetForm("form-servicio");
+          }
+
+        } catch (err) {
+          console.error("Error al eliminar servicio:", err);
+          showToast("Error al eliminar de la base de datos.", "error");
+        }
+      };
+
+      // Renderizar Tabla de Servicios con columna Acciones
+      function renderServiciosTable() {
+        const tbody = document.getElementById("tbody-servicios");
+        if (!tbody) return;
+
+        if (state.servicios.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="3" class="empty-state">No hay servicios registrados en Firestore.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = "";
+        state.servicios.forEach(s => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+          <td data-label="Servicio">
+            <div class="cell-content" style="font-weight: 600; color: var(--color-primary);">
+              <div>${escapeHtml(s.servicio)}</div>
+            </div>
+          </td>
+          <td data-label="Descripción">
+            <div class="cell-content" style="max-width: 400px; line-height: 1.4; color: var(--text-secondary);">
+              <div>${escapeHtml(s.descripcion)}</div>
+            </div>
+          </td>
+          <td data-label="Acciones" class="nowrap-column">
+            <div class="actions-cell">
+              <button class="btn-action edit" onclick="startEditServicio('${s.docId}')" title="Editar Servicio">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+              </button>
+              <button class="btn-action delete" onclick="handleDeleteServicio('${s.docId}', '${escapeHtml(s.servicio)}')" title="Eliminar Servicio">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </div>
+          </td>
+        `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // ==========================================================================
+      // MÓDULO 3: QUÍMICOS
+      // ==========================================================================
+
+      // Generar Código Químico en Tiempo Real
+      window.generateDynamicChemicalCode = function (chemicalName) {
+        const codeInput = document.getElementById("quimico-codigo");
+        if (!codeInput) return;
+
+        if (!chemicalName || chemicalName.trim().length === 0) {
+          codeInput.value = "QUI-000";
+          return;
+        }
+
+        const sanitized = chemicalName.trim().replace(/[^a-zA-Z]/g, '');
+        let prefix = "QUI";
+        if (sanitized.length > 0) {
+          prefix = sanitized.substring(0, Math.min(3, sanitized.length)).toUpperCase();
+          while (prefix.length < 3) {
+            prefix += "X";
+          }
+        }
+
+        // Si estamos editando y el prefijo del nuevo nombre coincide con el prefijo del código original, mantener el código original
+        if (state.editingQuimicoDocId) {
+          const origQ = state.quimicos.find(item => item.docId === state.editingQuimicoDocId);
+          if (origQ && origQ.codigo && origQ.codigo.startsWith(prefix + "-")) {
+            codeInput.value = origQ.codigo;
+            return;
+          }
+        }
+
+        let maxNum = 0;
+        state.quimicos.forEach(q => {
+          if (state.editingQuimicoDocId && q.docId === state.editingQuimicoDocId) {
+            return;
+          }
+          if (q.codigo && q.codigo.startsWith(prefix + "-")) {
+            const parts = q.codigo.split("-");
+            if (parts.length === 2) {
+              const num = parseInt(parts[1], 10);
+              if (!isNaN(num) && num > maxNum) {
+                maxNum = num;
+              }
+            }
+          }
+        });
+
+        const nextNum = maxNum + 1;
+        const paddedNum = String(nextNum).padStart(3, "0");
+        codeInput.value = `${prefix}-${paddedNum}`;
+      };
+
+      // Guardar Químico (Soporta Agregar y Editar) (Firestore + Google Sheets)
+      window.handleSaveQuimico = async function (event) {
+        event.preventDefault();
+
+        const btn = document.getElementById("btn-save-quimico");
+        const originalText = btn.innerHTML;
+        setButtonLoading(btn, true);
+
+        const codigo = document.getElementById("quimico-codigo").value;
+        const quimico = document.getElementById("quimico-nombre").value.trim();
+        const ingrediente_activo = document.getElementById("quimico-activo").value.trim();
+        const unidad_medida = document.getElementById("quimico-unidad").value.trim();
+        const plaga_tratar = document.getElementById("quimico-plaga").value.trim();
+        const categoria = document.getElementById("quimico-categoria").value.trim();
+
+        if (!codigo || !quimico || !ingrediente_activo || !unidad_medida || !plaga_tratar || !categoria) {
+          showToast("Todos los campos obligatorios del químico son requeridos.", "error");
+          setButtonLoading(btn, false, originalText);
+          return;
+        }
+
+        const newQuimico = {
+          codigo,
+          quimico,
+          ingrediente_activo,
+          unidad_medida,
+          plaga_tratar,
+          categoria
+        };
+
+        try {
+          const isSheetsConfigured = state.sheetsUrl && state.sheetsUrl.includes("/macros/s/");
+          if (state.editingQuimicoDocId) {
+            // 1. Actualizar en Firebase Firestore
+            await updateDoc(doc(db, "quimicos", state.editingQuimicoDocId), newQuimico);
+
+            // Registrar modificación detallada
+            const origQuimico = state.quimicos.find(q => q.docId === state.editingQuimicoDocId);
+            let changeDetail = "";
+            if (origQuimico) {
+              const fields = {
+                codigo: "Código",
+                quimico: "Nombre Comercial",
+                ingrediente_activo: "Ingrediente Activo",
+                unidad_medida: "Unidad",
+                plaga_tratar: "Plaga",
+                categoria: "Categoría"
+              };
+              const diffs = [];
+              for (const [key, label] of Object.entries(fields)) {
+                const origVal = origQuimico[key] !== undefined ? String(origQuimico[key]).trim() : "";
+                const newVal = newQuimico[key] !== undefined ? String(newQuimico[key]).trim() : "";
+                if (origVal !== newVal) {
+                  diffs.push(`${label}: "${origVal}" → "${newVal}"`);
+                }
+              }
+              changeDetail = diffs.length > 0 ? `Modificó químico [${newQuimico.codigo}] ${newQuimico.quimico}. Cambios: ${diffs.join(", ")}` : `Modificó químico [${newQuimico.codigo}] ${newQuimico.quimico} sin cambios en campos`;
+            } else {
+              changeDetail = `Modificó químico [${newQuimico.codigo}] ${newQuimico.quimico}`;
+            }
+            await logModification("Químicos", "Modificación", changeDetail);
+
+            // 2. Sincronizar actualización en Google Sheets (CORS-friendly)
+            if (isSheetsConfigured) {
+              try {
+                const syncPayload = {
+                  originalCodigo: state.editingQuimicoOriginalCode,
+                  codigo: newQuimico.codigo,
+                  quimico: newQuimico.quimico,
+                  ingrediente_activo: newQuimico.ingrediente_activo,
+                  unidad_medida: newQuimico.unidad_medida,
+                  plaga_tratar: newQuimico.plaga_tratar,
+                  categoria: newQuimico.categoria
+                };
+                const sheetsResult = await syncWithGoogleSheets("updateQuimico", syncPayload);
+                if (sheetsResult) {
+                  showToast(`¡Químico actualizado con éxito en Firestore y Google Sheets!`, "success");
+                } else {
+                  showToast(`Actualizado en Firebase. Sincronización en Sheets pendiente.`, "warning");
+                }
+              } catch (e) {
+                showToast(`Actualizado en Firebase. Sheets pendiente de sincronización.`, "warning");
+              }
+            } else {
+              showToast(`¡Químico actualizado con éxito en Firebase!`, "success");
+            }
+          } else {
+            // 1. Guardar nuevo en Firebase Firestore
+            await addDoc(collection(db, "quimicos"), newQuimico);
+
+            // Registrar creación
+            await logModification("Químicos", "Creación", `Se registró el químico [${newQuimico.codigo}] ${newQuimico.quimico}`);
+
+            // 2. Sincronizar en Google Sheets (CORS-friendly)
+            if (isSheetsConfigured) {
+              try {
+                await syncWithGoogleSheets("addQuimico", newQuimico);
+                showToast("Químico registrado en Firebase y Sheets con éxito.", "success");
+              } catch (e) {
+                showToast("Químico guardado en Firebase. Sheets pendiente de sincronización.", "warning");
+              }
+            } else {
+              showToast("¡Químico guardado en Firebase! (Completa la constante 'SHEETS_WEB_APP_URL' en el código HTML para sincronizar)", "warning");
+            }
+          }
+
+          resetForm("form-quimico");
+
+        } catch (err) {
+          console.error("Error al registrar químico:", err);
+          showToast("Error al guardar en el inventario químico.", "error");
+        } finally {
+          const isEditing = state.editingQuimicoDocId !== null;
+          const restoredText = isEditing ? "<span>Actualizar Químico</span>" : "<span>Guardar Químico</span>";
+          setButtonLoading(btn, false, restoredText);
+        }
+      };
+
+      // Iniciar edición de Químico
+      window.startEditQuimico = function (docId) {
+        const q = state.quimicos.find(item => item.docId === docId);
+        if (!q) return;
+
+        state.editingQuimicoDocId = docId;
+        state.editingQuimicoOriginalCode = q.codigo; // Guardar código original para Sheets
+
+        document.getElementById("quimico-codigo").value = q.codigo;
+        document.getElementById("quimico-nombre").value = q.quimico;
+        document.getElementById("quimico-activo").value = q.ingrediente_activo;
+        document.getElementById("quimico-unidad").value = q.unidad_medida;
+        document.getElementById("quimico-plaga").value = q.plaga_tratar;
+        document.getElementById("quimico-categoria").value = q.categoria;
+
+        // Cambiar texto de los botones
+        document.getElementById("btn-save-quimico").querySelector("span").textContent = "Actualizar Químico";
+        const clearBtn = document.querySelector("#form-quimico .btn-secondary");
+        if (clearBtn) clearBtn.textContent = "Cancelar";
+
+        showToast("Editando químico: " + q.quimico, "info");
+        document.getElementById("form-quimico").scrollIntoView({ behavior: 'smooth' });
+      };
+
+      // Eliminar Químico
+      window.handleDeleteQuimico = async function (docId, codigo) {
+        if (!confirm(`¿Está seguro de que desea eliminar permanentemente el químico con código "${codigo}"? Esta acción no se puede deshacer y se sincronizará con Google Sheets.`)) {
+          return;
+        }
+
+        try {
+          // 1. Eliminar de Firebase Firestore
+          const quimObj = state.quimicos.find(item => item.docId === docId);
+          const nameStr = quimObj ? ` - ${quimObj.quimico}` : "";
+
+          await deleteDoc(doc(db, "quimicos", docId));
+
+          // Registrar eliminación
+          await logModification("Químicos", "Eliminación", `Se eliminó el químico con código: ${codigo}${nameStr}`);
+
+          // 2. Sincronizar eliminación en Google Sheets
+          const isSheetsConfigured = state.sheetsUrl && state.sheetsUrl.includes("/macros/s/");
+          if (isSheetsConfigured) {
+            try {
+              await syncWithGoogleSheets("deleteQuimico", { codigo: codigo });
+              showToast("Químico eliminado de Firestore y Google Sheets con éxito.", "success");
+            } catch (e) {
+              showToast("Químico eliminado de Firestore. Sincronización en Sheets pendiente.", "warning");
+            }
+          } else {
+            showToast("Químico eliminado de Firestore con éxito.", "success");
+          }
+
+          // Si se estaba editando el químico eliminado, restablecer el formulario
+          if (state.editingQuimicoDocId === docId) {
+            resetForm("form-quimico");
+          }
+
+        } catch (err) {
+          console.error("Error al eliminar químico:", err);
+          showToast("Error al eliminar de la base de datos.", "error");
+        }
+      };
+
+      // Renderizar Tabla de Químicos
+      function renderQuimicosTable() {
+        const tbody = document.getElementById("tbody-quimicos");
+        if (!tbody) return;
+
+        if (state.quimicos.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No hay químicos registrados en Firestore.</td></tr>`;
+          return;
+        }
+
+        const quimicosOrdenados = [...state.quimicos].sort((a, b) => {
+          if (a.codigo < b.codigo) return -1;
+          if (a.codigo > b.codigo) return 1;
+          return 0;
+        });
+
+        tbody.innerHTML = "";
+        quimicosOrdenados.forEach(q => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+          <td data-label="Código" class="nowrap-column">
+            <div class="cell-content">
+              <strong style="color: var(--color-accent);">${escapeHtml(q.codigo)}</strong>
+            </div>
+          </td>
+          <td data-label="Químico">
+            <div class="cell-content" style="font-weight: 600; color: var(--color-primary);">
+              <div>${escapeHtml(q.quimico)}</div>
+            </div>
+          </td>
+          <td data-label="Ingrediente Activo">
+            <div class="cell-content">
+              <div>${escapeHtml(q.ingrediente_activo)}</div>
+            </div>
+          </td>
+          <td data-label="U. Medida">
+            <div class="cell-content">
+              <span class="badge badge-primary">${escapeHtml(q.unidad_medida)}</span>
+            </div>
+          </td>
+          <td data-label="Plaga">
+            <div class="cell-content">
+              <div>${escapeHtml(q.plaga_tratar)}</div>
+            </div>
+          </td>
+          <td data-label="Categoría">
+            <div class="cell-content">
+              <span class="badge badge-accent" style="font-size: 0.75rem;">${escapeHtml(q.categoria.split(" - ")[0])}</span>
+            </div>
+          </td>
+          <td data-label="Acciones" class="nowrap-column">
+            <div class="actions-cell">
+              <button class="btn-action edit" onclick="startEditQuimico('${q.docId}')" title="Editar Químico">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+              </button>
+              <button class="btn-action delete" onclick="handleDeleteQuimico('${q.docId}', '${escapeHtml(q.codigo)}')" title="Eliminar Químico">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </div>
+          </td>
+        `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // ==========================================================================
+      // 10. SINCRONIZACIÓN GOOGLE SHEETS
+      // ==========================================================================
+
+      // Enviar fila por POST
+      async function syncWithGoogleSheets(actionName, recordData) {
+        let sheetsUrl = state.sheetsUrl;
+        if (sheetsUrl && sheetsUrl.includes("/macros/s/") && !sheetsUrl.endsWith("/exec")) {
+          sheetsUrl = sheetsUrl.endsWith("/") ? sheetsUrl + "exec" : sheetsUrl + "/exec";
+          state.sheetsUrl = sheetsUrl;
+        }
+
+        if (!sheetsUrl) return false;
+        try {
+          await fetch(sheetsUrl, {
+            method: "POST",
+            mode: "no-cors",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              action: actionName,
+              data: recordData
+            })
+          });
+          return true;
+        } catch (error) {
+          console.error("Error al sincronizar con Sheets:", error);
+          return false;
+        }
+      }
+
+      // Consulta los consecutivos iniciales
+      async function checkAllDataSheetsStatus() {
+        let sheetsUrl = state.sheetsUrl;
+        if (sheetsUrl && sheetsUrl.includes("/macros/s/") && !sheetsUrl.endsWith("/exec")) {
+          sheetsUrl = sheetsUrl.endsWith("/") ? sheetsUrl + "exec" : sheetsUrl + "/exec";
+          state.sheetsUrl = sheetsUrl;
+        }
+
+        if (!sheetsUrl || !sheetsUrl.includes("/macros/s/")) {
+          updateSheetsStatusIndicator("warning", "Sheets: Falta URL");
+          return;
+        }
+
+        updateSheetsStatusIndicator("warning", "Sheets: Conectando...");
+
+        try {
+          const response = await fetch(`${sheetsUrl}?action=ping`);
+          const result = await response.json();
+
+          if (result && result.status === "success") {
+            state.sheetsLastClientId = result.nextClientId - 1;
+            state.sheetsLastQuimicoNum = result.nextQuimicoNum - 1;
+            updateNextClientId();
+
+            const nameVal = document.getElementById("quimico-nombre").value;
+            generateDynamicChemicalCode(nameVal);
+
+            updateSheetsStatusIndicator("success", "Base de datos 2: Conectado");
+          } else {
+            updateSheetsStatusIndicator("danger", "Sheets: Error");
+          }
+        } catch (err) {
+          console.error("Error al conectar con Sheets Web App:", err);
+          updateSheetsStatusIndicator("danger", "Sheets: Sin Conexión");
+        }
+      }
+
+      // ==========================================================================
+      // 10.1 FUNCIONES DE IMPORTACIÓN MASIVA DESDE GOOGLE SHEETS A FIREBASE
+      // ==========================================================================
+
+      // Importar Clientes de Sheets a Firebase sin duplicados
+      window.handleImportClientesFromSheets = async function () {
+        const btn = document.getElementById("btn-import-clientes");
+        const originalText = btn.innerHTML;
+
+        let sheetsUrl = state.sheetsUrl;
+        if (sheetsUrl && sheetsUrl.includes("/macros/s/") && !sheetsUrl.endsWith("/exec")) {
+          sheetsUrl = sheetsUrl.endsWith("/") ? sheetsUrl + "exec" : sheetsUrl + "/exec";
+          state.sheetsUrl = sheetsUrl;
+        }
+
+        if (!sheetsUrl || !sheetsUrl.includes("/macros/s/")) {
+          showToast("Google Sheets no está configurado correctamente.", "error");
+          return;
+        }
+
+        if (!confirm("¿Desea importar y sincronizar los clientes de Google Sheets a Firebase? Se agregarán únicamente los clientes que falten en Firestore.")) {
+          return;
+        }
+
+        setButtonLoading(btn, true, originalText);
+
+        try {
+          const response = await fetch(`${sheetsUrl}?action=getClientes`);
+          const result = await response.json();
+
+          if (result && result.status === "success" && Array.isArray(result.data)) {
+            const sheetsClientes = result.data;
+            let importados = 0;
+            let duplicados = 0;
+
+            // Haremos un array de promesas de agregado para hacerlo en paralelo de forma eficiente
+            const promises = sheetsClientes.map(async (c) => {
+              // Comprobar si ya existe en state.clientes por ID o RUC
+              const existe = state.clientes.some(fc =>
+                parseInt(fc.id) === parseInt(c.id) ||
+                (fc.ruc && fc.ruc.trim().toLowerCase() === c.ruc.trim().toLowerCase())
+              );
+
+              if (!existe) {
+                await addDoc(collection(db, "clientes"), {
+                  id: parseInt(c.id),
+                  nombre: c.nombre,
+                  sector: c.sector,
+                  actividad: c.actividad,
+                  gerente: c.gerente,
+                  direccion: c.direccion,
+                  telefono: c.telefono,
+                  email: c.email,
+                  ruc: c.ruc,
+                  fecha: c.fecha
+                });
+                importados++;
+              } else {
+                duplicados++;
+              }
+            });
+
+            await Promise.all(promises);
+
+            if (importados > 0) {
+              await logModification("Clientes", "Importación", `Se importaron exitosamente ${importados} clientes desde Google Sheets`);
+              showToast(`¡Importación exitosa! Se agregaron ${importados} clientes a Firebase. (${duplicados} ya existían)`, "success");
+            } else {
+              showToast(`Todos los clientes (${duplicados}) ya existen en Firebase. No se requirió importar.`, "info");
+            }
+          } else {
+            showToast("No se pudo obtener datos de Sheets. Compruebe su Apps Script.", "error");
+          }
+        } catch (err) {
+          console.error("Error al importar clientes:", err);
+          showToast("Error al conectar con la Web App de Sheets.", "error");
+        } finally {
+          setButtonLoading(btn, false, originalText);
+        }
+      };
+
+      // Importar Servicios de Sheets a Firebase sin duplicados
+      window.handleImportServiciosFromSheets = async function () {
+        const btn = document.getElementById("btn-import-servicios");
+        const originalText = btn.innerHTML;
+
+        let sheetsUrl = state.sheetsUrl;
+        if (sheetsUrl && sheetsUrl.includes("/macros/s/") && !sheetsUrl.endsWith("/exec")) {
+          sheetsUrl = sheetsUrl.endsWith("/") ? sheetsUrl + "exec" : sheetsUrl + "/exec";
+          state.sheetsUrl = sheetsUrl;
+        }
+
+        if (!sheetsUrl || !sheetsUrl.includes("/macros/s/")) {
+          showToast("Google Sheets no está configurado correctamente.", "error");
+          return;
+        }
+
+        if (!confirm("¿Desea importar y sincronizar los servicios de Google Sheets a Firebase? Se agregarán únicamente los servicios que falten.")) {
+          return;
+        }
+
+        setButtonLoading(btn, true, originalText);
+
+        try {
+          const response = await fetch(`${sheetsUrl}?action=getServicios`);
+          const result = await response.json();
+
+          if (result && result.status === "success" && Array.isArray(result.data)) {
+            const sheetsServicios = result.data;
+            let importados = 0;
+            let duplicados = 0;
+
+            const promises = sheetsServicios.map(async (s) => {
+              const existe = state.servicios.some(fs =>
+                fs.servicio.trim().toLowerCase() === s.servicio.trim().toLowerCase()
+              );
+
+              if (!existe) {
+                await addDoc(collection(db, "servicios"), {
+                  servicio: s.servicio,
+                  descripcion: s.descripcion
+                });
+                importados++;
+              } else {
+                duplicados++;
+              }
+            });
+
+            await Promise.all(promises);
+
+            if (importados > 0) {
+              await logModification("Servicios", "Importación", `Se importaron exitosamente ${importados} servicios desde Google Sheets`);
+              showToast(`¡Importación exitosa! Se agregaron ${importados} servicios a Firebase. (${duplicados} ya existían)`, "success");
+            } else {
+              showToast(`Todos los servicios (${duplicados}) ya existen en Firebase. No se requirió importar.`, "info");
+            }
+          } else {
+            showToast("No se pudo obtener datos de Sheets. Compruebe su Apps Script.", "error");
+          }
+        } catch (err) {
+          console.error("Error al importar servicios:", err);
+          showToast("Error al conectar con la Web App de Sheets.", "error");
+        } finally {
+          setButtonLoading(btn, false, originalText);
+        }
+      };
+
+      // Importar Químicos de Sheets a Firebase sin duplicados
+      window.handleImportQuimicosFromSheets = async function () {
+        const btn = document.getElementById("btn-import-quimicos");
+        const originalText = btn.innerHTML;
+
+        let sheetsUrl = state.sheetsUrl;
+        if (sheetsUrl && sheetsUrl.includes("/macros/s/") && !sheetsUrl.endsWith("/exec")) {
+          sheetsUrl = sheetsUrl.endsWith("/") ? sheetsUrl + "exec" : sheetsUrl + "/exec";
+          state.sheetsUrl = sheetsUrl;
+        }
+
+        if (!sheetsUrl || !sheetsUrl.includes("/macros/s/")) {
+          showToast("Google Sheets no está configurado correctamente.", "error");
+          return;
+        }
+
+        if (!confirm("¿Desea importar y sincronizar los químicos de Google Sheets a Firebase? Se agregarán únicamente los químicos que falten.")) {
+          return;
+        }
+
+        setButtonLoading(btn, true, originalText);
+
+        try {
+          const response = await fetch(`${sheetsUrl}?action=getQuimicos`);
+          const result = await response.json();
+
+          if (result && result.status === "success" && Array.isArray(result.data)) {
+            const sheetsQuimicos = result.data;
+            let importados = 0;
+            let duplicados = 0;
+
+            const promises = sheetsQuimicos.map(async (q) => {
+              const existe = state.quimicos.some(fq =>
+                fq.codigo.trim().toLowerCase() === q.codigo.trim().toLowerCase() ||
+                fq.quimico.trim().toLowerCase() === q.quimico.trim().toLowerCase()
+              );
+
+              if (!existe) {
+                await addDoc(collection(db, "quimicos"), {
+                  codigo: q.codigo,
+                  quimico: q.quimico,
+                  ingrediente_activo: q.ingrediente_activo,
+                  unidad_medida: q.unidad_medida,
+                  plaga_tratar: q.plaga_tratar,
+                  categoria: q.categoria
+                });
+                importados++;
+              } else {
+                duplicados++;
+              }
+            });
+
+            await Promise.all(promises);
+
+            if (importados > 0) {
+              await logModification("Químicos", "Importación", `Se importaron exitosamente ${importados} químicos desde Google Sheets`);
+              showToast(`¡Importación exitosa! Se agregaron ${importados} químicos a Firebase. (${duplicados} ya existían)`, "success");
+            } else {
+              showToast(`Todos los químicos (${duplicados}) ya existen en Firebase. No se requirió importar.`, "info");
+            }
+          } else {
+            showToast("No se pudo obtener datos de Sheets. Compruebe su Apps Script.", "error");
+          }
+        } catch (err) {
+          console.error("Error al importar químicos:", err);
+          showToast("Error al conectar con la Web App de Sheets.", "error");
+        } finally {
+          setButtonLoading(btn, false, originalText);
+        }
+      };
+
+      // ==========================================================================
+      // 11. CONTROLES DEL DOM Y ADAPTABILIDAD EN MÓVILES
+      // ==========================================================================
+
+      // Abrir/Cerrar Menú de Hamburguesa
+      window.toggleMobileMenu = function () {
+        const drawer = document.getElementById("mobile-menu-drawer");
+        if (drawer) drawer.classList.toggle("active");
+      };
+
+      // Cambiar de Tema (Claro / Oscuro)
+      window.toggleTheme = function () {
+        const isDark = document.body.classList.toggle("dark-theme");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+        showToast(isDark ? "Modo oscuro activado" : "Modo claro activado", "info");
+      };
+
+      // Navegar en celular
+      window.handleMobileNav = function (tabName) {
+        switchTab(tabName);
+        toggleMobileMenu();
+      };
+
+      // Cambiar de Pestaña activa
+      window.switchTab = function (tabName) {
+        document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+        document.querySelectorAll(".mobile-menu-btn").forEach(btn => btn.classList.remove("active"));
+        document.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active"));
+
+        const pcBtn = Array.from(document.querySelectorAll(".tab-btn")).find(btn =>
+          btn.getAttribute("onclick").includes(`'${tabName}'`)
+        );
+        if (pcBtn) pcBtn.classList.add("active");
+
+        const mobBtn = Array.from(document.querySelectorAll(".mobile-menu-btn")).find(btn =>
+          btn.getAttribute("onclick").includes(`'${tabName}'`)
+        );
+        if (mobBtn) mobBtn.classList.add("active");
+
+        const activeContent = document.getElementById(`tab-${tabName}`);
+        if (activeContent) activeContent.classList.add("active");
+      };
+
+      // Limpiar Formulario
+      window.resetForm = function (formId) {
+        const form = document.getElementById(formId);
+        if (form) {
+          form.reset();
+          if (formId === 'form-cliente') {
+            state.editingClienteDocId = null;
+            const saveBtn = document.getElementById("btn-save-cliente");
+            if (saveBtn) {
+              const span = saveBtn.querySelector("span");
+              if (span) span.textContent = "Guardar Cliente";
+            }
+            const clearBtn = document.querySelector("#form-cliente .btn-secondary");
+            if (clearBtn) clearBtn.textContent = "Limpiar";
+            setTimeout(updateNextClientId, 50);
+          }
+          if (formId === 'form-servicio') {
+            state.editingServicioDocId = null;
+            state.editingServicioOriginalName = null;
+            const saveBtn = document.getElementById("btn-save-servicio");
+            if (saveBtn) {
+              const span = saveBtn.querySelector("span");
+              if (span) span.textContent = "Guardar Servicio";
+            }
+            const clearBtn = document.querySelector("#form-servicio .btn-secondary");
+            if (clearBtn) clearBtn.textContent = "Limpiar";
+          }
+          if (formId === 'form-quimico') {
+            state.editingQuimicoDocId = null;
+            state.editingQuimicoOriginalCode = null;
+            const saveBtn = document.getElementById("btn-save-quimico");
+            if (saveBtn) {
+              const span = saveBtn.querySelector("span");
+              if (span) span.textContent = "Guardar Químico";
+            }
+            const clearBtn = document.querySelector("#form-quimico .btn-secondary");
+            if (clearBtn) clearBtn.textContent = "Limpiar";
+            document.getElementById("quimico-codigo").value = "QUI-000";
+          }
+          showToast("Formulario restablecido.", "info");
+        }
+      };
+
+      // Buscador
+      window.filterTable = function (module) {
+        const searchInput = document.getElementById(`search-${module}`);
+        const filter = searchInput.value.toLowerCase();
+        const tbody = document.getElementById(`tbody-${module}`);
+        const rows = tbody.getElementsByTagName("tr");
+
+        for (let i = 0; i < rows.length; i++) {
+          if (rows[i].cells.length === 1 && rows[i].cells[0].classList.contains("empty-state")) {
+            continue;
+          }
+
+          let textMatch = false;
+          const cells = rows[i].getElementsByTagName("td");
+
+          for (let j = 0; j < cells.length; j++) {
+            if (cells[j]) {
+              const txtValue = cells[j].textContent || cells[j].innerText;
+              if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                textMatch = true;
+                break;
+              }
+            }
+          }
+
+          if (textMatch) {
+            rows[i].style.display = "";
+          } else {
+            rows[i].style.display = "none";
+          }
+        }
+      };
+
+      // Notificaciones Toast
+      window.showToast = function (message, type = "success") {
+        const container = document.getElementById("toast-container");
+        if (!container) return;
+
+        const toast = document.createElement("div");
+        toast.className = `toast ${type}`;
+
+        let iconSvg = "";
+        if (type === "success") {
+          iconSvg = `<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+        } else if (type === "warning") {
+          iconSvg = `<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`;
+        } else if (type === "error") {
+          iconSvg = `<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+        } else {
+          iconSvg = `<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+        }
+
+        const title = type.charAt(0).toUpperCase() + type.slice(1);
+
+        toast.innerHTML = `
+        <div class="toast-icon">${iconSvg}</div>
+        <div class="toast-content">
+          <div class="toast-title">${title}</div>
+          <div class="toast-message">${message}</div>
+        </div>
+      `;
+
+        container.appendChild(toast);
+
+        setTimeout(() => {
+          toast.classList.add("show");
+        }, 50);
+
+        setTimeout(() => {
+          toast.classList.remove("show");
+          setTimeout(() => {
+            toast.remove();
+          }, 400);
+        }, 4500);
+      };
+
+      function updateDbStatusIndicator(type, text) {
+        console.log(`[Base de Datos] ${text}`);
+        const dot = document.getElementById("db-status-dot");
+        const label = document.getElementById("db-status-text");
+        if (dot && label) {
+          dot.className = `status-dot ${type}`;
+          label.textContent = text;
+        }
+      }
+
+      function updateSheetsStatusIndicator(type, text) {
+        console.log(`[Google Sheets] ${text}`);
+        const dot = document.getElementById("sheets-status-dot");
+        const label = document.getElementById("sheets-status-text");
+        if (dot && label) {
+          dot.className = `status-dot ${type}`;
+          label.textContent = text;
+        }
+      }
+
+      function escapeHtml(string) {
+        const str = String(string);
+        const map = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+        };
+        return str.replace(/[&<>"']/g, function (m) { return map[m]; });
+      }
+
+      function setButtonLoading(button, isLoading, originalHtmlText = "") {
+        if (isLoading) {
+          button.disabled = true;
+          button.innerHTML = `
+          <svg class="spinner" viewBox="0 0 50 50">
+            <circle class="path" cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5"></circle>
+          </svg>
+          Procesando...
+        `;
+        } else {
+          button.disabled = false;
+          button.innerHTML = originalHtmlText;
+        }
+      }
+
+      // ==========================================================================
+      // 12. LOGO, SEGURIDAD Y GENERACIÓN DE REPORTES PDF PROFESIONALES
+      // ==========================================================================
+
+      // Convertir Logo local a Base64 para jsPDF
+      function getLogoBase64() {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.src = 'LOGO FC_Mesa de trabajo 1.png';
+          img.onload = function () {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth || img.width;
+            canvas.height = img.naturalHeight || img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            try {
+              resolve(canvas.toDataURL('image/png'));
+            } catch (e) {
+              console.error("Error al generar Base64 para el logo:", e);
+              resolve(null);
+            }
+          };
+          img.onerror = function () {
+            console.error("No se pudo cargar el logo de la empresa.");
+            resolve(null);
+          };
+        });
+      }
+
+      // --- LÓGICA DE CONTROL DEL MODAL DE SEGURIDAD ---
+      window.openPasswordModal = function () {
+        const modal = document.getElementById("password-modal");
+        const input = document.getElementById("pdf-password");
+        const errorDiv = document.getElementById("password-error");
+        if (modal) modal.classList.add("active");
+        if (input) {
+          input.value = "";
+          setTimeout(() => input.focus(), 150);
+        }
+        if (errorDiv) errorDiv.style.display = "none";
+
+        // Cerrar menú móvil si está abierto
+        const drawer = document.getElementById("mobile-menu-drawer");
+        if (drawer) drawer.classList.remove("active");
+      };
+
+      window.closePasswordModal = function () {
+        const modal = document.getElementById("password-modal");
+        if (modal) modal.classList.remove("active");
+      };
+
+      window.verifyPasswordAndExport = function () {
+        const input = document.getElementById("pdf-password");
+        const errorDiv = document.getElementById("password-error");
+        if (!input) return;
+
+        const password = input.value;
+        if (password === "FC@2022") {
+          closePasswordModal();
+          generateDetailedPdfReport();
+        } else {
+          if (errorDiv) errorDiv.style.display = "block";
+          input.focus();
+          input.select();
+          showToast("Contraseña de administrador incorrecta.", "error");
+        }
+      };
+
+      // --- GENERACIÓN DEL REPORTE PDF DE AUDITORÍA Y MODIFICACIONES ---
+      window.generateDetailedPdfReport = async function () {
+        showToast("Generando reporte de auditoría PDF...", "info");
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        const logoBase64 = await getLogoBase64();
+
+        let currentY = 15;
+
+        // Función para agregar cabecera corporativa consistente
+        function addPageHeader(pdfDoc) {
+          // Franja decorativa roja en la parte superior
+          pdfDoc.setFillColor(220, 38, 38); // #dc2626
+          pdfDoc.rect(0, 0, 210, 4, 'F');
+
+          // Agregar Logo Corporativo
+          if (logoBase64) {
+            try {
+              pdfDoc.addImage(logoBase64, 'PNG', 15, 8, 25, 25);
+            } catch (e) {
+              console.error("Error al incrustar logo en PDF:", e);
+            }
+          }
+
+          // Títulos de Cabecera
+          pdfDoc.setFont("Helvetica", "bold");
+          pdfDoc.setFontSize(15);
+          pdfDoc.setTextColor(28, 28, 28); // Negro
+          pdfDoc.text("FAST CONTROL - AUDITORÍA Y CONTROL", 45, 16);
+
+          pdfDoc.setFont("Helvetica", "normal");
+          pdfDoc.setFontSize(9);
+          pdfDoc.setTextColor(86, 86, 86); // Gris oscuro
+          pdfDoc.text("Historial de Cambios, Modificaciones y Auditoría del Sistema", 45, 21);
+
+          const dateStr = new Date().toLocaleString('es-CR', {
+            year: 'numeric', month: 'long', day: 'numeric',
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+          });
+          pdfDoc.setFontSize(8);
+          pdfDoc.text(`Fecha y Hora de Emisión: ${dateStr}`, 45, 26);
+
+          // Línea divisoria
+          pdfDoc.setDrawColor(200, 200, 200); // Gris
+          pdfDoc.setLineWidth(0.5);
+          pdfDoc.line(15, 36, 195, 36);
+        }
+
+        const totalPagesPlaceholder = "{total_pages_count}";
+        const pageFooterCallback = function (pageNum) {
+          doc.setFont("Helvetica", "normal");
+          doc.setFontSize(8);
+          doc.setTextColor(100, 100, 100); // Gris oscuro
+
+          // Línea divisoria inferior
+          doc.setDrawColor(200, 200, 200);
+          doc.setLineWidth(0.3);
+          doc.line(15, 276, 195, 276);
+
+          doc.text("Documento Oficial y Confidencial - FAST CONTROL © 2026", 15, 282);
+          doc.text(`Página ${pageNum} de ${totalPagesPlaceholder}`, 195, 282, { align: "right" });
+        };
+
+        // Primera Página
+        addPageHeader(doc);
+        currentY = 44;
+
+        // ==========================================
+        // SECCIÓN HISTORIAL DE CAMBIOS Y MODIFICACIONES
+        // ==========================================
+        doc.setFont("Helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(28, 28, 28);
+        doc.text("HISTORIAL DE CAMBIOS Y MODIFICACIONES EN EL SISTEMA", 15, currentY);
+        currentY += 5;
+
+        let auditoriaRows = [];
+        if (state.auditoria && state.auditoria.length > 0) {
+          // Ordenar auditoría por fecha descendente
+          const auditoriaOrdenada = [...state.auditoria].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+          // Filtrar para mostrar únicamente modificaciones y eliminaciones de acuerdo con la solicitud del usuario
+          const auditoriaFiltrada = auditoriaOrdenada.filter(log =>
+            log.accion === 'Modificación' || log.accion === 'Eliminación'
+          );
+
+          if (auditoriaFiltrada.length > 0) {
+            auditoriaRows = auditoriaFiltrada.map(log => [
+              log.timestamp ? new Date(log.timestamp).toLocaleString('es-CR') : '',
+              log.modulo || '',
+              log.accion || '',
+              log.detalle || ''
+            ]);
+          } else {
+            auditoriaRows = [["-", "-", "Sin registros", "No se han detectado modificaciones o eliminaciones en el sistema."]];
+          }
+        } else {
+          auditoriaRows = [["-", "-", "Sin registros", "No se han detectado modificaciones registradas en el sistema."]];
+        }
+
+        const auditoriaHeaders = [["Fecha y Hora", "Módulo", "Acción", "Detalle del Cambio"]];
+
+        doc.autoTable({
+          startY: currentY,
+          head: auditoriaHeaders,
+          body: auditoriaRows,
+          theme: 'striped',
+          headStyles: {
+            fillColor: [239, 68, 68], // #ef4444 Red (accentuating modification/auditing)
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            fontSize: 8
+          },
+          bodyStyles: {
+            fontSize: 8,
+            textColor: [15, 23, 42],
+            valign: 'middle'
+          },
+          columnStyles: {
+            0: { cellWidth: 35, fontStyle: 'bold' },
+            1: { cellWidth: 25 },
+            2: { cellWidth: 25 },
+            3: { cellWidth: 95 }
+          },
+          margin: { left: 15, right: 15 },
+          styles: { overflow: 'linebreak', font: 'helvetica' },
+          didDrawPage: function (data) {
+            if (doc.internal.getNumberOfPages() > 1) {
+              addPageHeader(doc);
+            }
+          }
+        });
+
+        // Rellenar marcador de páginas e insertar pie de página en cada hoja
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+          doc.setPage(i);
+          pageFooterCallback(i);
+        }
+
+        if (typeof doc.putTotalPages === 'function') {
+          doc.putTotalPages(totalPagesPlaceholder);
+        }
+
+        // Descargar el archivo PDF
+        doc.save(`FC_Reporte_Auditoria_${new Date().toISOString().split('T')[0]}.pdf`);
+        showToast("Reporte de auditoría exportado con éxito.", "success");
+      };
+    </script>
+  </body>
+
+</html>

@@ -1,0 +1,2287 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kardex de Inventario - FC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg-body: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-input: #f1f5f9;
+      --border-color: rgba(15, 23, 42, 0.08);
+      --text-primary: #0f172a;
+      --text-secondary: #64748b;
+      --bg-header: rgba(255, 255, 255, 0.85);
+      --bg-nav-tabs: rgba(241, 245, 249, 0.8);
+      --bg-pill: rgba(241, 245, 249, 0.8);
+      --bg-drawer: rgba(255, 255, 255, 0.98);
+      --bg-btn-secondary: rgba(15, 23, 42, 0.05);
+      --bg-btn-secondary-hover: rgba(15, 23, 42, 0.08);
+      --bg-th: rgba(15, 23, 42, 0.02);
+      --bg-tr-hover: rgba(15, 23, 42, 0.015);
+      --bg-toast: rgba(255, 255, 255, 0.98);
+      --color-primary: #dc2626;
+      --color-primary-hover: #b91c1c;
+      --color-success: #10b981;
+      --color-danger: #ef4444;
+      --color-warning: #f59e0b;
+      --color-accent: #4b5563;
+      --shadow-premium: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
+      --font-title: 'Plus Jakarta Sans', sans-serif;
+      --font-body: 'Outfit', sans-serif;
+      --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body.dark-theme {
+      --bg-body: #0b0f19;
+      --bg-card: #151d30;
+      --bg-input: #1e293b;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --bg-header: rgba(21, 29, 48, 0.85);
+      --bg-nav-tabs: rgba(30, 41, 59, 0.6);
+      --bg-pill: rgba(30, 41, 59, 0.6);
+      --bg-drawer: rgba(15, 23, 42, 0.98);
+      --bg-btn-secondary: rgba(255, 255, 255, 0.05);
+      --bg-btn-secondary-hover: rgba(255, 255, 255, 0.1);
+      --bg-th: rgba(255, 255, 255, 0.02);
+      --bg-tr-hover: rgba(255, 255, 255, 0.01);
+      --bg-toast: rgba(21, 29, 48, 0.95);
+      --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      overflow-x: hidden;
+      width: 100%;
+    }
+
+    body {
+      background: var(--bg-body);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background-color .3s, color .3s;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--bg-header);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      padding: 14px 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, .05);
+      transition: var(--transition-smooth);
+    }
+
+    body.dark-theme header {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, .3);
+    }
+
+    .nav-container {
+      max-width: 1500px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1rem;
+      color: #fff;
+      box-shadow: 0 0 15px rgba(220, 38, 38, .4);
+    }
+
+    .brand-text h1 {
+      font-family: var(--font-title);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -.02em;
+    }
+
+    .brand-text span {
+      font-size: .72rem;
+      color: var(--color-primary);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      display: block;
+    }
+
+    .nav-tabs {
+      display: flex;
+      background: var(--bg-nav-tabs);
+      padding: 5px;
+      border-radius: 30px;
+      border: 1px solid var(--border-color);
+      gap: 3px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-family: var(--font-title);
+      font-size: .82rem;
+      font-weight: 600;
+      padding: 7px 14px;
+      border-radius: 25px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition-smooth);
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+      background: var(--bg-btn-secondary);
+    }
+
+    .tab-btn.active {
+      color: #fff;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+      box-shadow: 0 4px 10px rgba(220, 38, 38, .25);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-pill {
+      background: var(--bg-pill);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 5px 11px;
+      font-size: .72rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--color-warning);
+      box-shadow: 0 0 6px var(--color-warning);
+      transition: var(--transition-smooth);
+    }
+
+    .status-dot.success {
+      background: var(--color-success);
+      box-shadow: 0 0 6px var(--color-success);
+    }
+
+    .status-dot.danger {
+      background: var(--color-danger);
+      box-shadow: 0 0 6px var(--color-danger);
+    }
+
+    .theme-btn {
+      background: var(--bg-btn-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      width: 36px;
+      height: 36px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      transition: var(--transition-smooth);
+    }
+
+    .theme-btn:hover {
+      background: var(--bg-btn-secondary-hover);
+      color: var(--text-primary);
+    }
+
+    /* ── MAIN ── */
+    main {
+      flex: 1;
+      max-width: 1500px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 28px 24px;
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn .35s ease;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: var(--shadow-premium);
+      transition: background-color .3s, border-color .3s;
+    }
+
+    .card:hover {
+      border-color: rgba(220, 38, 38, .15);
+    }
+
+    .card-title {
+      font-family: var(--font-title);
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-title svg {
+      color: var(--color-primary);
+    }
+
+    /* ── SUMMARY GRID ── */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .sum-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px 18px;
+      box-shadow: var(--shadow-premium);
+      transition: var(--transition-smooth);
+      cursor: default;
+    }
+
+    .sum-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(220, 38, 38, .2);
+    }
+
+    .sum-label {
+      font-size: .68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .sum-value {
+      font-family: var(--font-title);
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .sum-sub {
+      font-size: .68rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .sum-card.red .sum-value {
+      color: var(--color-primary);
+    }
+
+    .sum-card.green .sum-value {
+      color: var(--color-success);
+    }
+
+    .sum-card.amber .sum-value {
+      color: var(--color-warning);
+    }
+
+    /* ── FILTERS ── */
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-size: .78rem;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+
+    .form-control {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      padding: 8px 12px;
+      font-family: var(--font-body);
+      font-size: .88rem;
+      transition: var(--transition-smooth);
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, .12);
+      background: var(--bg-card);
+    }
+
+    select.form-control {
+      cursor: pointer;
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 9px 16px;
+      border-radius: 8px;
+      font-family: var(--font-title);
+      font-size: .85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      border: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, .2);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(220, 38, 38, .3);
+    }
+
+    .btn-secondary {
+      background: var(--bg-btn-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-btn-secondary-hover);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+    }
+
+    .btn-success:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: .78rem;
+    }
+
+    .btn-group-inline {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow-premium);
+      background: var(--bg-card);
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background: var(--bg-th);
+      color: var(--text-secondary);
+      font-family: var(--font-title);
+      font-weight: 600;
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 12px;
+      font-size: .85rem;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-primary);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: var(--bg-tr-hover);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-secondary);
+      font-size: .9rem;
+    }
+
+    /* ── BADGES ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-size: .7rem;
+      font-weight: 700;
+    }
+
+    .badge-entrada {
+      background: rgba(16, 185, 129, .1);
+      color: #10b981;
+    }
+
+    .badge-salida {
+      background: rgba(220, 38, 38, .1);
+      color: #dc2626;
+    }
+
+    .badge-ajuste {
+      background: rgba(245, 158, 11, .1);
+      color: #f59e0b;
+    }
+
+    .badge-devolucion {
+      background: rgba(99, 102, 241, .1);
+      color: #6366f1;
+    }
+
+    .badge-danger {
+      background: rgba(239, 68, 68, .1);
+      color: var(--color-danger);
+    }
+
+    .badge-warning {
+      background: rgba(245, 158, 11, .1);
+      color: var(--color-warning);
+    }
+
+    .badge-success {
+      background: rgba(16, 185, 129, .1);
+      color: var(--color-success);
+    }
+
+    .badge-primary {
+      background: rgba(220, 38, 38, .1);
+      color: var(--color-primary);
+    }
+
+    .badge-neutral {
+      background: var(--bg-input);
+      color: var(--text-secondary);
+    }
+
+    /* ── ANOMALY ROW ── */
+    tr.anomaly td {
+      background: rgba(245, 158, 11, .05) !important;
+    }
+
+    tr.loss td {
+      background: rgba(239, 68, 68, .05) !important;
+    }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .5);
+      backdrop-filter: blur(4px);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 28px;
+      max-width: 680px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .2);
+      transform: scale(.95);
+      transition: transform .3s;
+    }
+
+    .modal-overlay.open .modal {
+      transform: scale(1);
+    }
+
+    .modal-title {
+      font-family: var(--font-title);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--color-primary);
+    }
+
+    .modal-close {
+      margin-left: auto;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .detail-item {
+      background: var(--bg-input);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .detail-label {
+      font-size: .7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text-secondary);
+      margin-bottom: 3px;
+    }
+
+    .detail-value {
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* ── CHARTS ── */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .chart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: var(--shadow-premium);
+    }
+
+    .chart-card canvas {
+      max-height: 240px;
+    }
+
+    /* ── TOAST ── */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1010;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 360px;
+      width: calc(100% - 48px);
+    }
+
+    .toast {
+      background: var(--bg-toast);
+      border-left: 4px solid var(--color-primary);
+      border: 1px solid var(--border-color);
+      border-left-width: 4px;
+      color: var(--text-primary);
+      padding: 12px 14px;
+      border-radius: 8px;
+      box-shadow: var(--shadow-premium);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      transform: translateX(120%);
+      transition: transform .4s cubic-bezier(.175, .885, .32, 1.275);
+      backdrop-filter: blur(10px);
+    }
+
+    .toast.show {
+      transform: translateX(0);
+    }
+
+    .toast.success {
+      border-left-color: var(--color-success);
+    }
+
+    .toast.warning {
+      border-left-color: var(--color-warning);
+    }
+
+    .toast.error {
+      border-left-color: var(--color-danger);
+    }
+
+    .toast-title {
+      font-family: var(--font-title);
+      font-weight: 700;
+      font-size: .85rem;
+    }
+
+    .toast-msg {
+      font-size: .75rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    /* ── SPLASH ── */
+    #splash {
+      position: fixed;
+      inset: 0;
+      background: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 99999;
+      transition: opacity .6s, visibility .6s;
+      opacity: 1;
+      visibility: visible;
+    }
+
+    #splash.out {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .spl-title {
+      font-family: var(--font-title);
+      font-size: 2rem;
+      font-weight: 800;
+      color: #dc2626;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .spl-bar {
+      width: 200px;
+      height: 4px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 16px;
+    }
+
+    .spl-prog {
+      width: 0;
+      height: 100%;
+      background: #dc2626;
+      border-radius: 4px;
+      animation: prog 1.6s cubic-bezier(.1, .8, .1, 1) forwards;
+    }
+
+    .spl-sub {
+      font-family: var(--font-title);
+      font-size: .75rem;
+      font-weight: 700;
+      color: #1e293b;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      margin-top: 10px;
+      opacity: .7;
+    }
+
+    @keyframes prog {
+      to {
+        width: 100%;
+      }
+    }
+
+    /* ── MISC ── */
+    .section-sep {
+      height: 1px;
+      background: var(--border-color);
+      margin: 20px 0;
+    }
+
+    .table-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .alert-banner {
+      background: rgba(245, 158, 11, .08);
+      border: 1px solid rgba(245, 158, 11, .3);
+      border-left: 4px solid var(--color-warning);
+      border-radius: 10px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .alert-banner.red {
+      background: rgba(220, 38, 38, .07);
+      border-color: rgba(220, 38, 38, .25);
+      border-left-color: var(--color-primary);
+    }
+
+    .spinner {
+      animation: spin 1s linear infinite;
+      width: 16px;
+      height: 16px;
+    }
+
+    .spinner .path {
+      stroke: currentColor;
+      stroke-linecap: round;
+      animation: dash 1.5s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes dash {
+      0% {
+        stroke-dasharray: 1, 150;
+        stroke-dashoffset: 0;
+      }
+
+      50% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -35;
+      }
+
+      100% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -124;
+      }
+    }
+
+    footer {
+      border-top: 1px solid var(--border-color);
+      background: var(--bg-card);
+      padding: 14px 24px;
+      text-align: center;
+      font-size: .75rem;
+      color: var(--text-secondary);
+    }
+
+    /* Estilos para el botón de menú tipo hamburguesa */
+    .menu-toggle {
+      display: none;
+      background: var(--bg-btn-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      width: 36px;
+      height: 36px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      transition: var(--transition-smooth);
+    }
+
+    .menu-toggle:hover {
+      background: var(--bg-btn-secondary-hover);
+      color: var(--text-primary);
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media(max-width:768px) {
+      .menu-toggle {
+        display: flex;
+      }
+
+      .status-pill span:not(.status-dot) {
+        display: none;
+      }
+
+      .status-pill {
+        padding: 5px;
+        border-radius: 50%;
+        width: 26px;
+        height: 26px;
+        justify-content: center;
+      }
+
+      .nav-tabs {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 20px;
+        right: 20px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        z-index: 999;
+        gap: 6px;
+      }
+
+      .nav-tabs.open {
+        display: flex !important;
+        animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      }
+
+      .tab-btn {
+        width: 100%;
+        justify-content: flex-start;
+        border-radius: 8px;
+        padding: 10px 16px;
+      }
+
+      main {
+        padding: 16px;
+      }
+
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ── SUGGESTIONS DROPDOWN ── */
+    .sug-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      color: var(--text-primary);
+      transition: background-color 0.2s;
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sug-item:last-child {
+      border-bottom: none;
+    }
+    .sug-item:hover {
+      background: var(--bg-btn-secondary-hover);
+    }
+  </style>
+</head>
+
+<body>
+
+  <script>(function () { if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-theme'); })();</script>
+
+  <!-- SPLASH -->
+  <div id="splash">
+    <div style="text-align:center;">
+      <div class="spl-title">FAST CONTROL</div>
+      <div class="spl-bar">
+        <div class="spl-prog"></div>
+      </div>
+      <div class="spl-sub">Cargando Kardex de Inventario</div>
+    </div>
+  </div>
+  <script>document.addEventListener('DOMContentLoaded', () => { setTimeout(() => { const s = document.getElementById('splash'); s.classList.add('out'); setTimeout(() => s.remove(), 600); }, 1400); });</script>
+
+  <!-- HEADER -->
+  <header>
+    <div class="nav-container">
+      <a href="#" class="brand">
+        <div class="brand-logo">FC</div>
+        <div class="brand-text">
+          <h1>Fast Control</h1><span>Kardex de Inventario</span>
+        </div>
+      </a>
+      <nav class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('dashboard',this)">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+          </svg>
+          Dashboard
+        </button>
+        <button class="tab-btn" onclick="switchTab('kardex',this)">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          Kardex
+        </button>
+        <button class="tab-btn" onclick="switchTab('stock',this)">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" />
+          </svg>
+          Stock
+        </button>
+        <button class="tab-btn" onclick="switchTab('tecnicos',this)">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0" />
+          </svg>
+          Técnicos
+        </button>
+        <button class="tab-btn" onclick="switchTab('graficas',this)">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          Gráficas
+        </button>
+        <button class="tab-btn" onclick="switchTab('anomalias',this)">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+          </svg>
+          Anomalías
+        </button>
+      </nav>
+      <div class="header-actions">
+        <div class="status-pill"><span class="status-dot" id="sdot"></span><span id="stxt">Conectando...</span></div>
+        <button class="theme-btn" onclick="toggleTheme()">
+          <svg id="theme-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+          </svg>
+        </button>
+        <button class="menu-toggle" onclick="toggleMenu()" title="Menú">
+          <svg id="menu-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div id="toast-container"></div>
+
+  <main>
+
+    <!-- ══════════ DASHBOARD ══════════ -->
+    <section id="tab-dashboard" class="tab-content active">
+      <div class="summary-grid" id="sum-grid">
+        <div class="sum-card">
+          <div class="sum-label">Total Entradas</div>
+          <div class="sum-value green" id="sum-entradas">—</div>
+          <div class="sum-sub">movimientos</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-label">Total Salidas</div>
+          <div class="sum-value red" id="sum-salidas">—</div>
+          <div class="sum-sub">movimientos</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-label">Productos en Stock</div>
+          <div class="sum-value" id="sum-productos">—</div>
+          <div class="sum-sub">distintos</div>
+        </div>
+        <div class="sum-card amber">
+          <div class="sum-label">Stock Bajo</div>
+          <div class="sum-value" id="sum-bajo">—</div>
+          <div class="sum-sub">≤ 5 unidades</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-label">Anomalías</div>
+          <div class="sum-value red" id="sum-anomalias">—</div>
+          <div class="sum-sub">detectadas</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-label">Últimos 30 días</div>
+          <div class="sum-value" id="sum-30d">—</div>
+          <div class="sum-sub">movimientos</div>
+        </div>
+      </div>
+
+      <!-- Alertas stock bajo -->
+      <div id="alertas-stock"></div>
+
+      <!-- Últimos movimientos -->
+      <div class="card">
+        <div class="card-title">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Últimos 20 Movimientos
+        </div>
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Tipo</th>
+                  <th>Químico</th>
+                  <th>Cantidad</th>
+                  <th>Unidad</th>
+                  <th>Origen</th>
+                  <th>Referencia</th>
+                  <th>Técnico</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="dash-tbody">
+                <tr>
+                  <td colspan="9" class="empty-state">Cargando...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ KARDEX ══════════ -->
+    <section id="tab-kardex" class="tab-content">
+      <!-- Filtros -->
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-title">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4-2A1 1 0 018 17v-3.586L3.293 6.707A1 1 0 013 6V4z" />
+          </svg>
+          Filtros Avanzados
+        </div>
+        <div class="filters-grid">
+          <div><label>Desde</label><input type="date" id="f-desde" class="form-control"></div>
+          <div><label>Hasta</label><input type="date" id="f-hasta" class="form-control"></div>
+          <div style="position:relative;">
+            <label>Químico</label>
+            <input type="text" id="f-quimico" class="form-control" placeholder="Nombre o código..."
+              oninput="mostrarSugerenciasQuimico()" onblur="ocultarSugerenciasQuimico()">
+            <div id="sugerencias-quimico"
+              style="position:absolute;top:100%;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-color);border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:10;display:none;">
+            </div>
+          </div>
+          <div><label>Categoría</label><select id="f-categoria" class="form-control">
+              <option value="">Todas</option>
+            </select></div>
+          <div><label>Tipo</label><select id="f-tipo" class="form-control">
+              <option value="">Todos</option>
+              <option value="entrada">Entrada</option>
+              <option value="salida">Salida</option>
+              <option value="ajuste">Ajuste</option>
+              <option value="devolucion">Devolución</option>
+            </select></div>
+          <div style="position:relative;">
+            <label>Técnico</label>
+            <input type="text" id="f-tecnico" class="form-control" placeholder="Nombre del técnico..."
+              oninput="mostrarSugerenciasTecnico()" onblur="ocultarSugerenciasTecnico()">
+            <div id="sugerencias-tecnico"
+              style="position:absolute;top:100%;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-color);border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:10;display:none;">
+            </div>
+          </div>
+          <div style="position:relative;">
+            <label>Orden de Trabajo</label>
+            <input type="text" id="f-ot" class="form-control" placeholder="N° OT..." oninput="mostrarSugerenciasOT()"
+              onblur="ocultarSugerenciasOT()">
+            <div id="sugerencias-ot"
+              style="position:absolute;top:100%;left:0;right:0;background:var(--bg-card);border:1px solid var(--border-color);border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:10;display:none;">
+            </div>
+          </div>
+        </div>
+        <div class="btn-group-inline" style="margin-top:14px;">
+          <button class="btn btn-primary btn-sm" onclick="aplicarFiltros()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8" />
+              <path stroke-linecap="round" d="m21 21-4.35-4.35" />
+            </svg>
+            Filtrar
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="limpiarFiltros()">Limpiar</button>
+          <button class="btn btn-secondary btn-sm" onclick="exportarExcel()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+            </svg>
+            Excel
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="exportarPDF()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabla Kardex -->
+      <div class="card">
+        <div class="table-toolbar">
+          <span class="card-title" style="margin:0;padding:0;border:none;font-size:.95rem;">Historial de
+            Movimientos</span>
+          <span class="badge badge-primary" id="kardex-count">0 registros</span>
+        </div>
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Tipo</th>
+                  <th>Código</th>
+                  <th>Químico</th>
+                  <th>Cantidad</th>
+                  <th>Unidad</th>
+                  <th>Categoría</th>
+                  <th>Origen</th>
+                  <th>Referencia</th>
+                  <th>OT</th>
+                  <th>Técnico</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="kardex-tbody">
+                <tr>
+                  <td colspan="12" class="empty-state">Cargando...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ STOCK ══════════ -->
+    <section id="tab-stock" class="tab-content">
+      <div class="card">
+        <div class="table-toolbar">
+          <span class="card-title" style="margin:0;padding:0;border:none;">Stock Actual por Producto</span>
+          <div class="btn-group-inline">
+            <input type="text" id="stock-search" class="form-control" placeholder="Buscar..."
+              style="width:200px;font-size:.82rem;" oninput="filtrarStock()">
+            <button class="btn btn-secondary btn-sm" onclick="cargarStock()">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Actualizar
+            </button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Código</th>
+                  <th>Categoría</th>
+                  <th>Unidad</th>
+                  <th>Stock Actual</th>
+                  <th>Estado</th>
+                  <th>Kardex</th>
+                </tr>
+              </thead>
+              <tbody id="stock-tbody">
+                <tr>
+                  <td colspan="7" class="empty-state">Cargando...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ TÉCNICOS ══════════ -->
+    <section id="tab-tecnicos" class="tab-content">
+      <div class="card">
+        <div class="table-toolbar">
+          <span class="card-title" style="margin:0;padding:0;border:none;">Control por Técnico</span>
+          <button class="btn btn-secondary btn-sm" onclick="cargarTecnicos()">Actualizar</button>
+        </div>
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Técnico</th>
+                  <th>Químico</th>
+                  <th>Unidad</th>
+                  <th>Total Entregado</th>
+                  <th>Total Devuelto</th>
+                  <th>Consumo Real</th>
+                  <th>Servicios</th>
+                  <th>Detalle</th>
+                </tr>
+              </thead>
+              <tbody id="tec-tbody">
+                <tr>
+                  <td colspan="8" class="empty-state">Cargando...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ GRÁFICAS ══════════ -->
+    <section id="tab-graficas" class="tab-content">
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="card-title"
+            style="margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border-color);">Consumo por Mes
+            (Salidas)</div>
+          <canvas id="chart-mes"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="card-title"
+            style="margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border-color);">Consumo por
+            Técnico</div>
+          <canvas id="chart-tec"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="card-title"
+            style="margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border-color);">Top 10 Químicos
+            Más Usados</div>
+          <canvas id="chart-top"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="card-title"
+            style="margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border-color);">Entradas vs
+            Salidas</div>
+          <canvas id="chart-balance"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ ANOMALÍAS ══════════ -->
+    <section id="tab-anomalias" class="tab-content">
+      <div id="anomaly-banner" class="alert-banner" style="display:none;">
+        <svg width="20" height="20" fill="none" stroke="var(--color-warning)" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+        </svg>
+        <span id="anomaly-banner-txt">Calculando anomalías...</span>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+          </svg>
+          Detección de Anomalías de Consumo
+        </div>
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Técnico</th>
+                  <th>Químico</th>
+                  <th>Promedio Normal</th>
+                  <th>Consumo Actual</th>
+                  <th>Diferencia</th>
+                  <th>Nivel</th>
+                  <th>OT</th>
+                </tr>
+              </thead>
+              <tbody id="anom-tbody">
+                <tr>
+                  <td colspan="7" class="empty-state">Cargando análisis...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL DETALLE -->
+  <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+    <div class="modal" id="modal-box">
+      <div class="modal-title">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        Detalle del Movimiento
+        <button class="modal-close"
+          onclick="document.getElementById('modal-overlay').classList.remove('open')">✕</button>
+      </div>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; FAST CONTROL 2026 — Kardex de Inventario ·
+  </footer>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore, collection, getDocs,
+      query, orderBy, limit, where
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBWu-ewWbQb9z3f2gS9zQFrArZr-KUb-ok",
+      authDomain: "pos-vbd.firebaseapp.com", projectId: "pos-vbd",
+      storageBucket: "pos-vbd.firebasestorage.app",
+      messagingSenderId: "491489024859",
+      appId: "1:491489024859:web:4c2448b8882c0099b6587e",
+      measurementId: "G-0NB1C3TJT7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ── Estado global ──
+    let allMovimientos = [];
+    let filteredMovimientos = [];
+    let allInventario = [];
+    let allOrdenes = [];
+    let allReportes = [];
+    let charts = {};
+
+    // ── INIT ──
+    async function init() {
+      try {
+        await Promise.all([cargarMovimientos(), cargarInventario(), cargarOrdenes(), cargarReportes()]);
+        
+        // Hidratar movimientos
+        allMovimientos = allMovimientos.map(m => hidratarMovimiento(m));
+        
+        setStatus('success', 'Firebase OK');
+        buildFiltroOptions();
+        renderDashboard();
+        renderKardex(allMovimientos);
+        cargarStock();
+        cargarTecnicos();
+        renderGraficas();
+        detectarAnomalias();
+      } catch (e) {
+        setStatus('danger', 'Sin conexión');
+        console.error(e);
+        showToast('Error de conexión: ' + e.message, 'error');
+      }
+    }
+
+    function setStatus(t, txt) {
+      document.getElementById('sdot').className = `status-dot ${t}`;
+      document.getElementById('stxt').textContent = txt;
+    }
+
+    // ── CARGAR DATOS ──
+    async function cargarMovimientos() {
+      const snap = await getDocs(query(collection(db, 'movimientos_inventario'), orderBy('fecha', 'desc')));
+      allMovimientos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    }
+
+    async function cargarInventario() {
+      const snap = await getDocs(collection(db, 'inventario'));
+      allInventario = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    }
+
+    async function cargarOrdenes() {
+      const snap = await getDocs(collection(db, 'ordenes'));
+      allOrdenes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    }
+
+    async function cargarReportes() {
+      const snap = await getDocs(collection(db, 'reportes_servicio'));
+      allReportes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    }
+
+    // ── HIDRATAR MOVIMIENTO ──
+    function hidratarMovimiento(m) {
+      // 1. Hidratar datos del producto si faltan
+      const prod = allInventario.find(i => i.id === m.producto_id || (m.quimico && (i.quimico === m.quimico || i.nombre === m.quimico)));
+      if (prod) {
+        if (!m.codigo || m.codigo === '—') m.codigo = prod.codigo || '—';
+        if (!m.unidad_medida || m.unidad_medida === '—') m.unidad_medida = prod.unidad_medida || '—';
+        if (!m.categoria || m.categoria === '—') m.categoria = prod.categoria || '—';
+      }
+
+      // 2. Hidratar técnico si falta o si es 'Sin asignar' o '—'
+      if (!m.tecnico || m.tecnico === '—' || m.tecnico === 'Sin asignar' || m.tecnico.trim() === '') {
+        const otVal = (m.orden_trabajo || m.numero_ot || '').trim();
+        const refVal = (m.referencia || m.numero_requisa || '').trim();
+
+        let tecEncontrado = null;
+        if (refVal) {
+          const rep = allReportes.find(r => r.numero_requisa === refVal || r.factura === refVal);
+          if (rep && rep.tecnico) {
+            tecEncontrado = rep.tecnico;
+          }
+        }
+        if (!tecEncontrado && otVal) {
+          const rep = allReportes.find(r => r.numero_ot === otVal);
+          if (rep && rep.tecnico) {
+            tecEncontrado = rep.tecnico;
+          }
+        }
+
+        if (!tecEncontrado && otVal) {
+          const ord = allOrdenes.find(o => o.numero_ot === otVal || o.numero_factura === otVal);
+          if (ord && ord.tecnico) {
+            tecEncontrado = ord.tecnico;
+          }
+        }
+        if (!tecEncontrado && refVal) {
+          const ord = allOrdenes.find(o => o.numero_factura === refVal);
+          if (ord && ord.tecnico) {
+            tecEncontrado = ord.tecnico;
+          }
+        }
+
+        m.tecnico = tecEncontrado || 'Sin asignar';
+      }
+      return m;
+    }
+
+    // ── BUILD FILTER OPTIONS ──
+    function buildFiltroOptions() {
+      const cats = [...new Set(allMovimientos.map(m => m.categoria).filter(Boolean))].sort();
+      const catSel = document.getElementById('f-categoria');
+      catSel.innerHTML = '<option value="">Todas</option>';
+      cats.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; catSel.appendChild(o); });
+    }
+
+    // ── SUGERENCIAS AUTOCOMPLETE ──
+    window.mostrarSugerenciasQuimico = function() {
+      const input = document.getElementById('f-quimico');
+      const div = document.getElementById('sugerencias-quimico');
+      const val = input.value.trim().toLowerCase();
+      
+      const items = [];
+      const seen = new Set();
+      
+      allInventario.forEach(i => {
+        const name = i.quimico || i.nombre || '';
+        const code = i.codigo || '';
+        const display = code ? `${code} - ${name}` : name;
+        const key = name.toLowerCase();
+        if (name && !seen.has(key)) {
+          seen.add(key);
+          items.push({ name, code, display });
+        }
+      });
+      
+      allMovimientos.forEach(m => {
+        const name = m.quimico || '';
+        const code = m.codigo || '';
+        const display = code ? `${code} - ${name}` : name;
+        const key = name.toLowerCase();
+        if (name && !seen.has(key)) {
+          seen.add(key);
+          items.push({ name, code, display });
+        }
+      });
+      
+      const matched = items.filter(item => 
+        item.name.toLowerCase().includes(val) || 
+        item.code.toLowerCase().includes(val)
+      );
+      
+      if (matched.length > 0 && val.length > 0) {
+        div.innerHTML = matched.map(item => `
+          <div class="sug-item" onclick="seleccionarQuimico('${item.name.replace(/'/g, "\\'")}')">${item.display}</div>
+        `).join('');
+        div.style.display = 'block';
+      } else {
+        div.style.display = 'none';
+      }
+    };
+    
+    window.ocultarSugerenciasQuimico = function() {
+      setTimeout(() => {
+        document.getElementById('sugerencias-quimico').style.display = 'none';
+      }, 250);
+    };
+    
+    window.seleccionarQuimico = function(val) {
+      document.getElementById('f-quimico').value = val;
+      document.getElementById('sugerencias-quimico').style.display = 'none';
+      aplicarFiltros();
+    };
+
+    window.mostrarSugerenciasTecnico = function() {
+      const input = document.getElementById('f-tecnico');
+      const div = document.getElementById('sugerencias-tecnico');
+      const val = input.value.trim().toLowerCase();
+      
+      const tecs = [...new Set(allMovimientos.map(m => m.tecnico).filter(Boolean))].sort();
+      const matched = tecs.filter(t => t.toLowerCase().includes(val));
+      
+      if (matched.length > 0 && val.length > 0) {
+        div.innerHTML = matched.map(t => `
+          <div class="sug-item" onclick="seleccionarTecnico('${t.replace(/'/g, "\\'")}')">${t}</div>
+        `).join('');
+        div.style.display = 'block';
+      } else {
+        div.style.display = 'none';
+      }
+    };
+    
+    window.ocultarSugerenciasTecnico = function() {
+      setTimeout(() => {
+        document.getElementById('sugerencias-tecnico').style.display = 'none';
+      }, 250);
+    };
+    
+    window.seleccionarTecnico = function(val) {
+      document.getElementById('f-tecnico').value = val;
+      document.getElementById('sugerencias-tecnico').style.display = 'none';
+      aplicarFiltros();
+    };
+
+    window.mostrarSugerenciasOT = function() {
+      const input = document.getElementById('f-ot');
+      const div = document.getElementById('sugerencias-ot');
+      const val = input.value.trim().toLowerCase();
+      
+      const ots = [];
+      const seen = new Set();
+      
+      allMovimientos.forEach(m => {
+        const ot = m.orden_trabajo || m.numero_ot || '';
+        const key = ot.toLowerCase();
+        if (ot && !seen.has(key)) {
+          seen.add(key);
+          ots.push(ot);
+        }
+      });
+      
+      allOrdenes.forEach(o => {
+        const ot = o.numero_ot || o.numero_factura || '';
+        const key = ot.toLowerCase();
+        if (ot && !seen.has(key)) {
+          seen.add(key);
+          ots.push(ot);
+        }
+      });
+      
+      const matched = ots.filter(o => o.toLowerCase().includes(val));
+      
+      if (matched.length > 0 && val.length > 0) {
+        div.innerHTML = matched.map(o => `
+          <div class="sug-item" onclick="seleccionarOT('${o.replace(/'/g, "\\'")}')">${o}</div>
+        `).join('');
+        div.style.display = 'block';
+      } else {
+        div.style.display = 'none';
+      }
+    };
+    
+    window.ocultarSugerenciasOT = function() {
+      setTimeout(() => {
+        document.getElementById('sugerencias-ot').style.display = 'none';
+      }, 250);
+    };
+    
+    window.seleccionarOT = function(val) {
+      document.getElementById('f-ot').value = val;
+      document.getElementById('sugerencias-ot').style.display = 'none';
+      aplicarFiltros();
+    };
+
+    // ── FECHA HELPER ──
+    function toDate(val) {
+      if (!val) return null;
+      if (val.toDate) return val.toDate();
+      if (val instanceof Date) return val;
+      return new Date(val);
+    }
+    function fmtDate(val) {
+      const d = toDate(val);
+      if (!d) return '—';
+      return d.toLocaleDateString('es-NI', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+    function fmtDateShort(val) {
+      const d = toDate(val);
+      if (!d) return '—';
+      return d.toLocaleDateString('es-NI', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+
+    // ── TIPO BADGE ──
+    function tipoBadge(tipo) {
+      const t = (tipo || '').toLowerCase();
+      const map = {
+        entrada: '<span class="badge badge-entrada">▲ Entrada</span>',
+        salida: '<span class="badge badge-salida">▼ Salida</span>',
+        ajuste: '<span class="badge badge-ajuste">⚙ Ajuste</span>',
+        devolucion: '<span class="badge badge-devolucion">↩ Devolución</span>'
+      };
+      return map[t] || `<span class="badge badge-neutral">${tipo || '—'}</span>`;
+    }
+
+    // ── ROW HTML ──
+    function movRow(m, cols = 'dash') {
+      const fecha = fmtDate(m.fecha);
+      const verBtn = `<button class="btn btn-secondary btn-sm" onclick="verDetalle('${m.id}')">Ver</button>`;
+      if (cols === 'dash') {
+        return `<tr>
+      <td style="font-size:.78rem;white-space:nowrap;">${fecha}</td>
+      <td>${tipoBadge(m.tipo_movimiento || m.tipo)}</td>
+      <td style="font-weight:600;">${m.quimico || '—'}</td>
+      <td style="font-family:var(--font-title);font-weight:700;">${m.cantidad ?? '—'}</td>
+      <td style="color:var(--text-secondary);">${m.unidad_medida || '—'}</td>
+      <td><span class="badge badge-neutral">${m.modulo || m.origen || '—'}</span></td>
+      <td style="font-size:.78rem;">${m.referencia || m.numero_requisa || '—'}</td>
+      <td style="font-size:.78rem;">${m.tecnico || '—'}</td>
+      <td>${verBtn}</td>
+    </tr>`;
+      }
+      return `<tr>
+    <td style="font-size:.75rem;white-space:nowrap;">${fecha}</td>
+    <td>${tipoBadge(m.tipo_movimiento || m.tipo)}</td>
+    <td style="font-family:monospace;font-size:.78rem;">${m.codigo || '—'}</td>
+    <td style="font-weight:600;font-size:.82rem;">${m.quimico || '—'}</td>
+    <td style="font-family:var(--font-title);font-weight:700;">${m.cantidad ?? '—'}</td>
+    <td style="color:var(--text-secondary);">${m.unidad_medida || '—'}</td>
+    <td><span class="badge badge-neutral" style="font-size:.65rem;">${m.categoria || '—'}</span></td>
+    <td><span class="badge badge-neutral" style="font-size:.65rem;">${m.modulo || m.origen || '—'}</span></td>
+    <td style="font-size:.75rem;">${m.referencia || m.numero_requisa || '—'}</td>
+    <td style="font-size:.75rem;font-family:monospace;">${m.orden_trabajo || m.numero_ot || '—'}</td>
+    <td style="font-size:.75rem;">${m.tecnico || '—'}</td>
+    <td>${verBtn}</td>
+  </tr>`;
+    }
+
+    // ── DASHBOARD ──
+    function renderDashboard() {
+      const entradas = allMovimientos.filter(m => (m.tipo_movimiento || m.tipo) === 'entrada').length;
+      const salidas = allMovimientos.filter(m => (m.tipo_movimiento || m.tipo) === 'salida').length;
+      const bajo = allInventario.filter(i => (i.stock_actual ?? 0) <= 5).length;
+      const hace30 = new Date(); hace30.setDate(hace30.getDate() - 30);
+      const ultimos30 = allMovimientos.filter(m => { const d = toDate(m.fecha); return d && d >= hace30; }).length;
+
+      document.getElementById('sum-entradas').textContent = entradas;
+      document.getElementById('sum-salidas').textContent = salidas;
+      document.getElementById('sum-productos').textContent = allInventario.length;
+      document.getElementById('sum-bajo').textContent = bajo;
+      document.getElementById('sum-30d').textContent = ultimos30;
+
+      // Alertas stock bajo
+      const alertasEl = document.getElementById('alertas-stock');
+      const bajos = allInventario.filter(i => (i.stock_actual ?? 0) <= 5);
+      if (bajos.length > 0) {
+        alertasEl.innerHTML = `<div class="alert-banner red" style="margin-bottom:16px;">
+      <svg width="18" height="18" fill="none" stroke="var(--color-primary)" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+      <div><strong>Stock bajo detectado:</strong> ${bajos.map(b => `${b.quimico || b.nombre || b.id} (${b.stock_actual ?? 0})`).join(' · ')}</div>
+    </div>`;
+      }
+
+      const tbody = document.getElementById('dash-tbody');
+      const recent = allMovimientos.slice(0, 20);
+      tbody.innerHTML = recent.length ? recent.map(m => movRow(m, 'dash')).join('') : `<tr><td colspan="9" class="empty-state">Sin movimientos registrados.</td></tr>`;
+    }
+
+    // ── KARDEX ──
+    window.aplicarFiltros = function () {
+      const desde = document.getElementById('f-desde').value;
+      const hasta = document.getElementById('f-hasta').value;
+      const quimico = document.getElementById('f-quimico').value.toLowerCase();
+      const categoria = document.getElementById('f-categoria').value;
+      const tipo = document.getElementById('f-tipo').value;
+      const tecnico = document.getElementById('f-tecnico').value.toLowerCase();
+      const ot = document.getElementById('f-ot').value.toLowerCase();
+
+      filteredMovimientos = allMovimientos.filter(m => {
+        const fecha = toDate(m.fecha);
+        if (desde && fecha && fecha < new Date(desde)) return false;
+        if (hasta && fecha && fecha > new Date(hasta + 'T23:59:59')) return false;
+        if (quimico && !(m.quimico || '').toLowerCase().includes(quimico) && !(m.codigo || '').toLowerCase().includes(quimico)) return false;
+        if (categoria && m.categoria !== categoria) return false;
+        if (tipo && (m.tipo_movimiento || m.tipo) !== tipo) return false;
+        if (tecnico && !(m.tecnico || '').toLowerCase().includes(tecnico)) return false;
+        if (ot && !(m.orden_trabajo || m.numero_ot || '').toLowerCase().includes(ot)) return false;
+        return true;
+      });
+
+      renderKardex(filteredMovimientos);
+    };
+
+    window.limpiarFiltros = function () {
+      ['f-desde', 'f-hasta', 'f-quimico', 'f-ot', 'f-tecnico'].forEach(id => document.getElementById(id).value = '');
+      ['f-categoria', 'f-tipo'].forEach(id => document.getElementById(id).value = '');
+      filteredMovimientos = allMovimientos;
+      renderKardex(allMovimientos);
+    };
+
+    function renderKardex(data) {
+      document.getElementById('kardex-count').textContent = `${data.length} registros`;
+      const tbody = document.getElementById('kardex-tbody');
+      tbody.innerHTML = data.length
+        ? data.map(m => movRow(m, 'kardex')).join('')
+        : `<tr><td colspan="12" class="empty-state">Sin resultados.</td></tr>`;
+    }
+
+    // ── STOCK ──
+    let stockCache = [];
+    window.cargarStock = async function () {
+      stockCache = [...allInventario];
+      renderStock(stockCache);
+    };
+
+    function renderStock(data) {
+      const tbody = document.getElementById('stock-tbody');
+      if (!data.length) { tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Sin datos.</td></tr>`; return; }
+      tbody.innerHTML = data.map(item => {
+        const stock = item.stock_actual ?? 0;
+        let estadoBadge = '<span class="badge badge-success">OK</span>';
+        if (stock <= 0) estadoBadge = '<span class="badge badge-danger">Sin stock</span>';
+        else if (stock <= 5) estadoBadge = '<span class="badge badge-warning">Bajo</span>';
+        return `<tr>
+      <td style="font-weight:600;">${item.quimico || item.nombre || item.id}</td>
+      <td style="font-family:monospace;font-size:.8rem;">${item.codigo || '—'}</td>
+      <td><span class="badge badge-neutral">${item.categoria || '—'}</span></td>
+      <td>${item.unidad_medida || '—'}</td>
+      <td style="font-family:var(--font-title);font-weight:700;font-size:1rem;color:${stock <= 5 ? 'var(--color-danger)' : 'var(--text-primary)'};">${stock}</td>
+      <td>${estadoBadge}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick="verKardexProducto('${item.id}','${(item.quimico || item.nombre || item.id).replace(/'/g, "\\'")}')">Kardex</button></td>
+    </tr>`;
+      }).join('');
+    }
+
+    window.filtrarStock = function () {
+      const q = document.getElementById('stock-search').value.toLowerCase();
+      renderStock(stockCache.filter(i => (i.quimico || i.nombre || '').toLowerCase().includes(q) || (i.codigo || '').toLowerCase().includes(q)));
+    };
+
+    // ── KARDEX POR PRODUCTO ──
+    window.verKardexProducto = function (id, nombre) {
+      const movs = allMovimientos.filter(m => m.producto_id === id || m.quimico === nombre);
+      let saldo = 0;
+      const rows = [...movs].reverse().map(m => {
+        const tipo = (m.tipo_movimiento || m.tipo || '').toLowerCase();
+        const cant = m.cantidad ?? 0;
+        if (tipo === 'entrada' || tipo === 'devolucion') saldo += cant;
+        else saldo -= cant;
+        const ent = (tipo === 'entrada' || tipo === 'devolucion') ? cant : '';
+        const sal = (tipo === 'salida' || tipo === 'ajuste') ? cant : '';
+        return `<tr>
+      <td style="font-size:.75rem;">${fmtDateShort(m.fecha)}</td>
+      <td>${tipoBadge(tipo)}</td>
+      <td style="color:var(--color-success);font-weight:600;">${ent || ''}</td>
+      <td style="color:var(--color-danger);font-weight:600;">${sal || ''}</td>
+      <td style="font-family:var(--font-title);font-weight:700;">${saldo}</td>
+      <td style="font-size:.75rem;">${m.referencia || m.numero_requisa || '—'}</td>
+    </tr>`;
+      }).reverse();
+
+      document.getElementById('modal-body').innerHTML = `
+    <p style="font-family:var(--font-title);font-weight:700;font-size:1rem;margin-bottom:14px;">${nombre}</p>
+    <div class="table-wrap"><div class="table-scroll">
+    <table><thead><tr><th>Fecha</th><th>Movimiento</th><th>Entrada</th><th>Salida</th><th>Saldo</th><th>Referencia</th></tr></thead>
+    <tbody>${rows.join('') || '<tr><td colspan="6" class="empty-state">Sin movimientos.</td></tr>'}</tbody>
+    </table></div></div>`;
+      document.getElementById('modal-overlay').classList.add('open');
+    };
+
+    // ── TÉCNICOS ──
+    window.cargarTecnicos = function () {
+      const mapa = {};
+      allMovimientos.forEach(m => {
+        const tec = m.tecnico || 'Sin asignar';
+        const quimico = m.quimico || '—';
+        const unidad = m.unidad_medida || '—';
+        const tipo = (m.tipo_movimiento || m.tipo || '').toLowerCase();
+        const cant = m.cantidad ?? 0;
+        const key = `${tec}__${quimico}`;
+
+        if (!mapa[key]) {
+          mapa[key] = {
+            tec,
+            quimico,
+            unidad,
+            entregado: 0,
+            devuelto: 0,
+            servicios: new Set()
+          };
+        }
+        if (tipo === 'salida') mapa[key].entregado += cant;
+        if (tipo === 'entrada' || tipo === 'devolucion') mapa[key].devuelto += cant;
+        if (m.orden_trabajo || m.numero_ot) mapa[key].servicios.add(m.orden_trabajo || m.numero_ot);
+      });
+
+      const rows = Object.values(mapa).map(d => {
+        const consumo = Math.max(0, d.entregado - d.devuelto);
+        if (d.entregado === 0 && d.devuelto === 0) return '';
+
+        return `<tr>
+      <td style="font-weight:600;">${d.tec}</td>
+      <td style="font-weight:500;color:var(--text-primary);">${d.quimico}</td>
+      <td style="color:var(--text-secondary);">${d.unidad}</td>
+      <td style="color:var(--color-danger);font-weight:700;">${d.entregado.toFixed(2)}</td>
+      <td style="color:var(--color-success);font-weight:700;">${d.devuelto.toFixed(2)}</td>
+      <td style="font-family:var(--font-title);font-weight:700;">${consumo.toFixed(2)}</td>
+      <td><span class="badge badge-primary">${d.servicios.size}</span></td>
+      <td><button class="btn btn-secondary btn-sm" onclick="verDetalleTecnicoProducto('${d.tec.replace(/'/g, "\\'")}', '${d.quimico.replace(/'/g, "\\'")}')">Detalle</button></td>
+    </tr>`;
+      }).filter(Boolean);
+
+      const tbody = document.getElementById('tec-tbody');
+      tbody.innerHTML = rows.length ? rows.join('') : `<tr><td colspan="8" class="empty-state">Sin datos.</td></tr>`;
+    };
+
+    window.verDetalleTecnicoProducto = function (tec, quimico) {
+      const movs = allMovimientos.filter(m => (m.tecnico || 'Sin asignar') === tec && (m.quimico || '—') === quimico);
+      const rows = movs.slice(0, 50).map(m => movRow(m, 'kardex')).join('');
+      document.getElementById('modal-body').innerHTML = `
+    <p style="font-family:var(--font-title);font-weight:700;font-size:1rem;margin-bottom:4px;">Técnico: ${tec}</p>
+    <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:14px;">Químico: ${quimico} — últimos ${Math.min(movs.length, 50)} movimientos</p>
+    <div class="table-wrap"><div class="table-scroll">
+    <table><thead><tr><th>Fecha</th><th>Tipo</th><th>Código</th><th>Químico</th><th>Cantidad</th><th>Unidad</th><th>Cat.</th><th>Origen</th><th>Ref.</th><th>OT</th><th>Técnico</th><th></th></tr></thead>
+    <tbody>${rows || '<tr><td colspan="12" class="empty-state">Sin movimientos.</td></tr>'}</tbody>
+    </table></div></div>`;
+      document.getElementById('modal-overlay').classList.add('open');
+    };
+
+    // ── DETALLE MOVIMIENTO ──
+    window.verDetalle = function (id) {
+      const m = allMovimientos.find(x => x.id === id);
+      if (!m) return;
+      document.getElementById('modal-body').innerHTML = `
+    <div class="detail-grid">
+      <div class="detail-item"><div class="detail-label">Fecha</div><div class="detail-value">${fmtDate(m.fecha)}</div></div>
+      <div class="detail-item"><div class="detail-label">Tipo</div><div class="detail-value">${tipoBadge(m.tipo_movimiento || m.tipo)}</div></div>
+      <div class="detail-item"><div class="detail-label">Químico</div><div class="detail-value">${m.quimico || '—'}</div></div>
+      <div class="detail-item"><div class="detail-label">Código</div><div class="detail-value" style="font-family:monospace;">${m.codigo || '—'}</div></div>
+      <div class="detail-item"><div class="detail-label">Cantidad</div><div class="detail-value" style="font-size:1.2rem;color:var(--color-primary);">${m.cantidad ?? '—'} ${m.unidad_medida || ''}</div></div>
+      <div class="detail-item"><div class="detail-label">Categoría</div><div class="detail-value">${m.categoria || '—'}</div></div>
+      <div class="detail-item"><div class="detail-label">Origen / Módulo</div><div class="detail-value">${m.modulo || m.origen || '—'}</div></div>
+      <div class="detail-item"><div class="detail-label">Referencia</div><div class="detail-value">${m.referencia || m.numero_requisa || '—'}</div></div>
+      <div class="detail-item"><div class="detail-label">Orden de Trabajo</div><div class="detail-value" style="font-family:monospace;">${m.orden_trabajo || m.numero_ot || '—'}</div></div>
+      <div class="detail-item"><div class="detail-label">Técnico</div><div class="detail-value">${m.tecnico || '—'}</div></div>
+    </div>`;
+      document.getElementById('modal-overlay').classList.add('open');
+    };
+
+    window.closeModal = function (e) {
+      if (e.target === document.getElementById('modal-overlay'))
+        document.getElementById('modal-overlay').classList.remove('open');
+    };
+
+    // ── GRÁFICAS ──
+    function renderGraficas() {
+      const salidas = allMovimientos.filter(m => (m.tipo_movimiento || m.tipo) === 'salida');
+
+      // 1. Consumo por mes
+      const mesMapa = {};
+      salidas.forEach(m => {
+        const d = toDate(m.fecha); if (!d) return;
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        mesMapa[key] = (mesMapa[key] || 0) + (m.cantidad ?? 0);
+      });
+      const mesKeys = Object.keys(mesMapa).sort().slice(-12);
+      buildChart('chart-mes', 'bar', mesKeys, mesKeys.map(k => mesMapa[k]), {
+        color: 'rgba(220,38,38,0.7)', borderColor: '#dc2626', label: 'Salidas por mes'
+      });
+
+      // 2. Por técnico
+      const tecMapa = {};
+      salidas.forEach(m => {
+        const t = m.tecnico || 'Sin asignar';
+        tecMapa[t] = (tecMapa[t] || 0) + (m.cantidad ?? 0);
+      });
+      const tecEntries = Object.entries(tecMapa).sort((a, b) => b[1] - a[1]).slice(0, 10);
+      buildChart('chart-tec', 'bar', tecEntries.map(e => e[0]), tecEntries.map(e => e[1]), {
+        color: 'rgba(75,85,99,0.7)', borderColor: '#4b5563', label: 'Consumo total', horizontal: true
+      });
+
+      // 3. Top productos
+      const prodMapa = {};
+      salidas.forEach(m => {
+        const p = m.quimico || '—';
+        prodMapa[p] = (prodMapa[p] || 0) + (m.cantidad ?? 0);
+      });
+      const topProd = Object.entries(prodMapa).sort((a, b) => b[1] - a[1]).slice(0, 10);
+      buildChart('chart-top', 'doughnut', topProd.map(e => e[0]), topProd.map(e => e[1]), { label: 'Cantidad usada' });
+
+      // 4. Entradas vs Salidas por mes
+      const entMapa = {};
+      allMovimientos.filter(m => (m.tipo_movimiento || m.tipo) === 'entrada').forEach(m => {
+        const d = toDate(m.fecha); if (!d) return;
+        const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        entMapa[k] = (entMapa[k] || 0) + (m.cantidad ?? 0);
+      });
+      const allKeys = [...new Set([...Object.keys(mesMapa), ...Object.keys(entMapa)])].sort().slice(-12);
+      buildChartBalance('chart-balance', allKeys,
+        allKeys.map(k => entMapa[k] || 0),
+        allKeys.map(k => mesMapa[k] || 0)
+      );
+    }
+
+    function buildChart(id, type, labels, data, opts = {}) {
+      const ctx = document.getElementById(id);
+      if (!ctx) return;
+      if (charts[id]) charts[id].destroy();
+      const isDark = document.body.classList.contains('dark-theme');
+      const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
+      const textColor = isDark ? '#94a3b8' : '#64748b';
+
+      const palette = ['#dc2626', '#4b5563', '#10b981', '#f59e0b', '#6366f1', '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#8b5cf6'];
+
+      charts[id] = new Chart(ctx, {
+        type,
+        data: {
+          labels,
+          datasets: [{
+            label: opts.label || 'Datos',
+            data,
+            backgroundColor: type === 'doughnut' ? palette : (opts.color || 'rgba(220,38,38,0.7)'),
+            borderColor: type === 'doughnut' ? palette : (opts.borderColor || '#dc2626'),
+            borderWidth: 1,
+            borderRadius: type === 'bar' ? 4 : 0
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: true,
+          indexAxis: opts.horizontal ? 'y' : 'x',
+          plugins: { legend: { labels: { color: textColor, font: { size: 11 } } }, tooltip: { titleFont: { size: 11 }, bodyFont: { size: 11 } } },
+          scales: type !== 'doughnut' ? {
+            x: { ticks: { color: textColor, font: { size: 10 } }, grid: { color: gridColor } },
+            y: { ticks: { color: textColor, font: { size: 10 } }, grid: { color: gridColor } }
+          } : {}
+        }
+      });
+    }
+
+    function buildChartBalance(id, labels, entradas, salidas) {
+      const ctx = document.getElementById(id);
+      if (!ctx) return;
+      if (charts[id]) charts[id].destroy();
+      const isDark = document.body.classList.contains('dark-theme');
+      const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
+      const textColor = isDark ? '#94a3b8' : '#64748b';
+      charts[id] = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Entradas', data: entradas, backgroundColor: 'rgba(16,185,129,0.6)', borderColor: '#10b981', borderWidth: 1, borderRadius: 4 },
+            { label: 'Salidas', data: salidas, backgroundColor: 'rgba(220,38,38,0.6)', borderColor: '#dc2626', borderWidth: 1, borderRadius: 4 }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: true,
+          plugins: { legend: { labels: { color: textColor, font: { size: 11 } } } },
+          scales: {
+            x: { ticks: { color: textColor, font: { size: 10 } }, grid: { color: gridColor } },
+            y: { ticks: { color: textColor, font: { size: 10 } }, grid: { color: gridColor } }
+          }
+        }
+      });
+    }
+
+    // ── DETECCIÓN DE ANOMALÍAS ──
+    function detectarAnomalias() {
+      // Calcular promedio consumo por técnico+químico
+      const mapa = {}; // key: `${tecnico}__${quimico}`
+      const salidaPorServicio = {};
+
+      allMovimientos.filter(m => (m.tipo_movimiento || m.tipo) === 'salida').forEach(m => {
+        const key = `${m.tecnico || '?'}__${m.quimico || '?'}`;
+        if (!mapa[key]) mapa[key] = { total: 0, count: 0, tec: m.tecnico, q: m.quimico, movs: [] };
+        mapa[key].total += (m.cantidad ?? 0);
+        mapa[key].count++;
+        mapa[key].movs.push(m);
+      });
+
+      const anomalias = [];
+      let totalAnom = 0;
+
+      Object.entries(mapa).forEach(([key, d]) => {
+        const promedio = d.count > 1 ? d.total / d.count : 0;
+        d.movs.forEach(m => {
+          const cant = m.cantidad ?? 0;
+          if (promedio > 0 && cant > promedio * 1.5) {
+            anomalias.push({
+              tec: d.tec || '—',
+              quimico: d.q || '—',
+              promedio: promedio.toFixed(2),
+              actual: cant,
+              diff: (cant - promedio).toFixed(2),
+              nivel: cant > promedio * 2 ? 'ALTO' : 'MEDIO',
+              ot: m.orden_trabajo || m.numero_ot || '—'
+            });
+            totalAnom++;
+          }
+        });
+      });
+
+      document.getElementById('sum-anomalias').textContent = totalAnom;
+
+      const banner = document.getElementById('anomaly-banner');
+      if (anomalias.length > 0) {
+        banner.style.display = 'flex';
+        document.getElementById('anomaly-banner-txt').textContent =
+          `⚠ Se detectaron ${anomalias.length} consumos inusuales. Revise la tabla para más detalles.`;
+      }
+
+      const tbody = document.getElementById('anom-tbody');
+      tbody.innerHTML = anomalias.length
+        ? anomalias.map(a => `<tr class="${a.nivel === 'ALTO' ? 'loss' : 'anomaly'}">
+        <td style="font-weight:600;">${a.tec}</td>
+        <td>${a.quimico}</td>
+        <td style="color:var(--color-success);">${a.promedio}</td>
+        <td style="color:var(--color-danger);font-weight:700;">${a.actual}</td>
+        <td style="color:var(--color-warning);font-weight:700;">+${a.diff}</td>
+        <td><span class="badge ${a.nivel === 'ALTO' ? 'badge-danger' : 'badge-warning'}">${a.nivel}</span></td>
+        <td style="font-family:monospace;font-size:.78rem;">${a.ot}</td>
+      </tr>`).join('')
+        : `<tr><td colspan="7" class="empty-state">✓ No se detectaron anomalías de consumo.</td></tr>`;
+    }
+
+    // ── EXPORTAR EXCEL ──
+    window.exportarExcel = function () {
+      const data = (filteredMovimientos.length ? filteredMovimientos : allMovimientos);
+      const rows = data.map(m => ({
+        Fecha: fmtDate(m.fecha),
+        Tipo: m.tipo_movimiento || m.tipo || '',
+        Código: m.codigo || '',
+        Químico: m.quimico || '',
+        Cantidad: m.cantidad ?? 0,
+        Unidad: m.unidad_medida || '',
+        Categoría: m.categoria || '',
+        Origen: m.modulo || m.origen || '',
+        Referencia: m.referencia || m.numero_requisa || '',
+        OT: m.orden_trabajo || m.numero_ot || '',
+        Técnico: m.tecnico || ''
+      }));
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Kardex');
+      XLSX.writeFile(wb, `Kardex_FC_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      showToast('Excel generado correctamente.', 'success');
+    };
+
+    // ── EXPORTAR PDF ──
+    window.exportarPDF = function () {
+      if (!window.jspdf?.jsPDF) { showToast('Librería PDF no disponible.', 'error'); return; }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'letter' });
+
+      const data = (filteredMovimientos.length ? filteredMovimientos : allMovimientos).slice(0, 200);
+
+      doc.setFillColor(220, 38, 38); doc.rect(0, 0, 280, 10, 'F');
+      doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+      doc.text('FAST CONTROL — KARDEX DE INVENTARIO', 14, 7);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
+      doc.text(`Exportado: ${new Date().toLocaleString('es-NI')}  ·  ${data.length} registros`, 200, 7);
+
+      doc.autoTable({
+        startY: 14,
+        head: [['Fecha', 'Tipo', 'Código', 'Químico', 'Cant.', 'Unidad', 'Cat.', 'Origen', 'Ref.', 'OT', 'Técnico']],
+        body: data.map(m => [
+          fmtDate(m.fecha),
+          (m.tipo_movimiento || m.tipo || '').toUpperCase(),
+          m.codigo || '—',
+          m.quimico || '—',
+          m.cantidad ?? '—',
+          m.unidad_medida || '—',
+          m.categoria || '—',
+          m.modulo || m.origen || '—',
+          m.referencia || m.numero_requisa || '—',
+          m.orden_trabajo || m.numero_ot || '—',
+          m.tecnico || '—'
+        ]),
+        theme: 'grid',
+        styles: { font: 'helvetica', fontSize: 6.5, cellPadding: 2, lineColor: [226, 232, 240], lineWidth: .2 },
+        headStyles: { fillColor: [55, 65, 81], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 7 },
+        alternateRowStyles: { fillColor: [249, 250, 251] },
+        didParseCell: (d) => {
+          if (d.section === 'body' && d.column.index === 1) {
+            const v = (d.cell.text[0] || '').toLowerCase();
+            if (v === 'entrada') d.cell.styles.textColor = [16, 185, 129];
+            else if (v === 'salida') d.cell.styles.textColor = [220, 38, 38];
+          }
+        }
+      });
+
+      doc.save(`Kardex_FC_${new Date().toISOString().slice(0, 10)}.pdf`);
+      showToast('PDF exportado correctamente.', 'success');
+    };
+
+    // ── UI ──
+    window.switchTab = function (id, btn) {
+      document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(`tab-${id}`).classList.add('active');
+      btn.classList.add('active');
+      if (id === 'graficas') setTimeout(renderGraficas, 100);
+
+      const navTabs = document.querySelector('.nav-tabs');
+      if (navTabs && navTabs.classList.contains('open')) {
+        window.toggleMenu();
+      }
+    };
+
+    window.toggleMenu = function () {
+      const navTabs = document.querySelector('.nav-tabs');
+      const menuIcon = document.getElementById('menu-icon');
+      if (!navTabs) return;
+
+      navTabs.classList.toggle('open');
+      const isOpen = navTabs.classList.contains('open');
+
+      if (isOpen) {
+        menuIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />`;
+      } else {
+        menuIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />`;
+      }
+    };
+
+    window.toggleTheme = function () {
+      const dark = document.body.classList.toggle('dark-theme');
+      localStorage.setItem('theme', dark ? 'dark' : 'light');
+      const icon = document.getElementById('theme-icon');
+      icon.innerHTML = dark
+        ? `<circle cx="12" cy="12" r="5"/><path stroke-linecap="round" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>`
+        : `<path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>`;
+      // Redibujar gráficas con nuevo tema
+      Object.keys(charts).forEach(k => { if (charts[k]) charts[k].destroy(); delete charts[k]; });
+      setTimeout(renderGraficas, 200);
+    };
+
+    window.showToast = function (msg, type = 'info') {
+      const icons = {
+        success: `<svg width="18" height="18" fill="none" stroke="var(--color-success)" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+        warning: `<svg width="18" height="18" fill="none" stroke="var(--color-warning)" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>`,
+        error: `<svg width="18" height="18" fill="none" stroke="var(--color-danger)" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+        info: `<svg width="18" height="18" fill="none" stroke="var(--color-primary)" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`
+      };
+      const titles = { success: 'Éxito', warning: 'Atención', error: 'Error', info: 'Info' };
+      const cont = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      t.className = `toast ${type}`;
+      t.innerHTML = `<div>${icons[type] || icons.info}</div><div><div class="toast-title">${titles[type]}</div><div class="toast-msg">${msg}</div></div>`;
+      cont.appendChild(t);
+      requestAnimationFrame(() => t.classList.add('show'));
+      setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 450); }, 4500);
+    };
+
+    init();
+  </script>
+</body>
+
+</html>
