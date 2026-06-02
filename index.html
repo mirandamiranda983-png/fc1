@@ -216,6 +216,35 @@
         </div>
     </div>
 
+    <!-- MODAL EDITAR USUARIO -->
+    <div id="edit-user-modal" class="fixed inset-0 z-[110] bg-black/80 flex items-center justify-center hidden">
+        <div class="bg-brand-dark w-full max-w-sm p-6 rounded-2xl border border-brand-border shadow-2xl">
+            <h3 class="text-xl font-bold mb-4 text-white">Editar Usuario</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Email</label>
+                    <input type="email" id="edit-user-email" placeholder="correo@empresa.com" disabled
+                        class="w-full bg-brand-black border border-brand-border rounded-lg px-4 py-2.5 text-gray-500 focus:outline-none transition-all cursor-not-allowed opacity-60">
+                    <p class="text-[10px] text-gray-500 mt-1">El email no puede ser modificado.</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Rol</label>
+                    <select id="edit-user-role"
+                        class="w-full bg-brand-black border border-brand-border rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand-red transition-all">
+                        <option value="tecnico">Técnico (Acceso limitado)</option>
+                        <option value="admin">Administrador (Acceso total)</option>
+                    </select>
+                </div>
+                <button onclick="saveUserChanges()"
+                    class="w-full bg-brand-red hover:bg-red-700 py-3 rounded-lg font-bold text-white transition-all shadow-lg shadow-brand-red/20 mt-2">
+                    Guardar Cambios
+                </button>
+                <button onclick="toggleEditUserModal()"
+                    class="w-full text-gray-400 hover:text-white text-sm transition-all py-1">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL CONFIRMACION PERSONALIZADO (Reemplaza a confirm) -->
     <div id="confirm-modal" class="fixed inset-0 z-[120] bg-black/80 flex items-center justify-center hidden">
         <div class="bg-brand-dark w-full max-w-sm p-6 rounded-2xl border border-brand-border text-center shadow-2xl">
@@ -465,6 +494,9 @@
                             <td class="p-4 text-white font-medium">${data.email}</td>
                             <td class="p-4 uppercase text-xs font-bold ${data.role === 'admin' ? 'text-brand-red' : 'text-blue-400'}">${data.role}</td>
                             <td class="p-4 text-right space-x-2">
+                                <button onclick="window.openEditUserModal('${doc.id}', '${data.email}', '${data.role}')" class="text-gray-400 hover:text-white inline-flex p-1.5 rounded hover:bg-white/5 transition-all" title="Editar Usuario">
+                                    <i data-lucide="edit-2" class="w-4 h-4"></i>
+                                </button>
                                 <button onclick="window.updateUserRole('${doc.id}', '${data.role}')" class="text-gray-400 hover:text-white inline-flex p-1.5 rounded hover:bg-white/5 transition-all" title="Alternar Rol">
                                     <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                                 </button>
@@ -624,9 +656,45 @@
             if (id !== 'Auditoria.html') {
                 window.logAudit('NAVEGACION', title, `Accedió al módulo: ${title}`);
             }
+
+            // Cerrar sidebar en dispositivos móviles
+            document.getElementById('sidebar').classList.add('-translate-x-full');
         };
 
         window.toggleUserModal = () => document.getElementById('user-modal').classList.toggle('hidden');
+
+        // ABRIR MODAL EDITAR USUARIO
+        window.openEditUserModal = (userId, email, role) => {
+            document.getElementById('edit-user-email').value = email;
+            document.getElementById('edit-user-role').value = role;
+            window.currentEditUserId = userId;
+            document.getElementById('edit-user-modal').classList.remove('hidden');
+        };
+
+        // CERRAR MODAL EDITAR USUARIO
+        window.toggleEditUserModal = () => document.getElementById('edit-user-modal').classList.toggle('hidden');
+
+        // GUARDAR CAMBIOS DE USUARIO
+        window.saveUserChanges = async () => {
+            const userId = window.currentEditUserId;
+            const newRole = document.getElementById('edit-user-role').value;
+            const email = document.getElementById('edit-user-email').value;
+
+            if (!userId || !newRole) {
+                window.showNotification("Error: Datos incompletos", true);
+                return;
+            }
+
+            try {
+                await updateDoc(doc(db, "users", userId), { role: newRole });
+                await window.logAudit('EDITAR_USUARIO', 'Gestión de Usuarios', `Se editó el usuario: ${email} - Rol actualizado a: ${newRole}`);
+                window.showNotification("Usuario actualizado exitosamente");
+                window.toggleEditUserModal();
+                window.loadUsersTable();
+            } catch (e) {
+                window.showNotification("Error: " + e.message, true);
+            }
+        };
 
     </script>
 </body>
