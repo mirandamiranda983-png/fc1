@@ -2068,7 +2068,10 @@
 
       // Eliminar Cliente
       window.handleDeleteCliente = async function (docId, id) {
-        if (!confirm(`¿Está seguro de que desea eliminar permanentemente al cliente #${id}? Esta acción no se puede deshacer y se sincronizará con Google Sheets.`)) {
+        const password = prompt("Ingrese la contraseña de seguridad para validar y confirmar la eliminación:");
+        if (password === null) return;
+        if (password !== "FC@2022") {
+          showToast("Contraseña incorrecta. Eliminación cancelada.", "error");
           return;
         }
 
@@ -2299,7 +2302,10 @@
 
       // Eliminar Servicio
       window.handleDeleteServicio = async function (docId, servicioNombre) {
-        if (!confirm(`¿Está seguro de que desea eliminar permanentemente el servicio "${servicioNombre}"? Esta acción no se puede deshacer y se sincronizará con Google Sheets.`)) {
+        const password = prompt("Ingrese la contraseña de seguridad para validar y confirmar la eliminación:");
+        if (password === null) return;
+        if (password !== "FC@2022") {
+          showToast("Contraseña incorrecta. Eliminación cancelada.", "error");
           return;
         }
 
@@ -2570,7 +2576,10 @@
 
       // Eliminar Químico
       window.handleDeleteQuimico = async function (docId, codigo) {
-        if (!confirm(`¿Está seguro de que desea eliminar permanentemente el químico con código "${codigo}"? Esta acción no se puede deshacer y se sincronizará con Google Sheets.`)) {
+        const password = prompt("Ingrese la contraseña de seguridad para validar y confirmar la eliminación:");
+        if (password === null) return;
+        if (password !== "FC@2022") {
+          showToast("Contraseña incorrecta. Eliminación cancelada.", "error");
           return;
         }
 
