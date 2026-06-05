@@ -742,62 +742,6 @@
       margin-top: 2px;
     }
 
-    /* ── SPLASH ── */
-    #splash {
-      position: fixed;
-      inset: 0;
-      background: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 99999;
-      transition: opacity .6s, visibility .6s;
-      opacity: 1;
-      visibility: visible;
-    }
-
-    #splash.out {
-      opacity: 0;
-      visibility: hidden;
-    }
-
-    .spl-title {
-      font-family: var(--font-title);
-      font-size: 2rem;
-      font-weight: 800;
-      color: #dc2626;
-      text-transform: uppercase;
-      letter-spacing: .05em;
-    }
-
-    .spl-bar {
-      width: 200px;
-      height: 4px;
-      background: #e2e8f0;
-      border-radius: 4px;
-      overflow: hidden;
-      margin-top: 16px;
-    }
-
-    .spl-prog {
-      width: 0;
-      height: 100%;
-      background: #dc2626;
-      border-radius: 4px;
-      animation: prog 1.6s cubic-bezier(.1, .8, .1, 1) forwards;
-    }
-
-    .spl-sub {
-      font-family: var(--font-title);
-      font-size: .75rem;
-      font-weight: 700;
-      color: #1e293b;
-      letter-spacing: .15em;
-      text-transform: uppercase;
-      margin-top: 10px;
-      opacity: .7;
-    }
-
     @keyframes prog {
       to {
         width: 100%;
@@ -992,17 +936,7 @@
 
   <script>(function () { if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-theme'); })();</script>
 
-  <!-- SPLASH -->
-  <div id="splash">
-    <div style="text-align:center;">
-      <div class="spl-title">FAST CONTROL</div>
-      <div class="spl-bar">
-        <div class="spl-prog"></div>
-      </div>
-      <div class="spl-sub">Cargando Kardex de Inventario</div>
-    </div>
-  </div>
-  <script>document.addEventListener('DOMContentLoaded', () => { setTimeout(() => { const s = document.getElementById('splash'); s.classList.add('out'); setTimeout(() => s.remove(), 600); }, 1400); });</script>
+
 
   <!-- HEADER -->
   <header>
