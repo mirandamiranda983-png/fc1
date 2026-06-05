@@ -937,133 +937,7 @@
       }
     }
 
-    /* ==========================================================================
-       ESTILOS PARA PANTALLA DE INICIO (SPLASH SCREEN)
-       ========================================================================== */
-    #splash-screen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background-color: #ffffff !important;
-      /* Pantalla blanca */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 99999;
-      transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s ease;
-      opacity: 1;
-      visibility: visible;
-    }
 
-    #splash-screen.fade-out {
-      opacity: 0;
-      visibility: hidden;
-    }
-
-    .splash-content {
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-      padding: 20px;
-    }
-
-    .splash-title {
-      font-family: var(--font-title);
-      font-size: 2.2rem;
-      font-weight: 800;
-      color: #0b1a30 !important;
-      /* Letras azul oscuro */
-      letter-spacing: 0.05em;
-      margin-bottom: 12px;
-      text-transform: uppercase;
-      animation: pulseTitle 2.5s infinite ease-in-out;
-      text-shadow: 0 4px 12px rgba(11, 26, 48, 0.1);
-    }
-
-    .splash-loader {
-      width: 240px;
-      height: 6px;
-      background: #e2e8f0 !important;
-      /* Track gris suave */
-      border-radius: 10px;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .splash-progress {
-      width: 0;
-      height: 100%;
-      background: #ef4444 !important;
-      /* Barra de progreso en rojo brillante */
-      border-radius: 10px;
-      animation: loadProgress 1.8s cubic-bezier(0.1, 0.8, 0.1, 1) forwards;
-    }
-
-    .splash-text {
-      font-family: var(--font-title);
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: #1e293b !important;
-      /* Letras azul oscuro secundario */
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      margin-top: 8px;
-      animation: pulseText 1.5s infinite ease-in-out;
-    }
-
-    @keyframes pulseTitle {
-
-      0%,
-      100% {
-        transform: scale(1);
-        filter: brightness(1);
-      }
-
-      50% {
-        transform: scale(1.02);
-        filter: brightness(1.2);
-      }
-    }
-
-    @keyframes loadProgress {
-      0% {
-        width: 0%;
-      }
-
-      20% {
-        width: 15%;
-      }
-
-      50% {
-        width: 60%;
-      }
-
-      80% {
-        width: 90%;
-      }
-
-      100% {
-        width: 100%;
-      }
-    }
-
-    @keyframes pulseText {
-
-      0%,
-      100% {
-        opacity: 0.6;
-      }
-
-      50% {
-        opacity: 1;
-      }
-    }
-
-    /* ==========================================================================
        ESTILOS DE LA HOJA FISICA DE LA FACTURA (TAMAÑO CARTA)
        ========================================================================== */
     .invoice-paper {
@@ -1247,6 +1121,37 @@
         color: black !important;
       }
     }
+
+    /* Autocomplete de Clientes */
+    .ot-ac-wrap {
+      position: relative;
+      width: 100%;
+    }
+    .ot-ac-list {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+    }
+    .ot-ac-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: var(--text-primary);
+      transition: background-color 0.2s;
+    }
+    .ot-ac-item:hover {
+      background-color: var(--bg-btn-secondary-hover);
+      color: var(--color-primary);
+    }
   </style>
 
   <!-- PDF Generation Dependencies -->
@@ -1267,30 +1172,6 @@
     })();
   </script>
 
-  <!-- Pantalla de Inicio (Splash Screen) -->
-  <div id="splash-screen">
-    <div class="splash-content">
-      <h1 class="splash-title">FAST CONTROL</h1>
-      <div class="splash-loader">
-        <div class="splash-progress"></div>
-      </div>
-      <div class="splash-text">Cargando Sistema de Órdenes</div>
-    </div>
-  </div>
-
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      setTimeout(() => {
-        const splash = document.getElementById("splash-screen");
-        if (splash) {
-          splash.classList.add("fade-out");
-          setTimeout(() => {
-            splash.remove();
-          }, 600);
-        }
-      }, 1000); // Carga rápida (1s)
-    });
-  </script>
 
   <!-- ==========================================================================
        CABECERA Y BARRA DE NAVEGACIÓN
@@ -1424,19 +1305,23 @@
               <input type="datetime-local" id="fecha_hora" required class="form-control">
             </div>
 
-            <!-- Selección de Cliente -->
+            <!-- Selección de Cliente (Autocomplete Dinámico) -->
             <div class="form-group">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                <label for="cliente_select" style="margin-bottom: 0;">Cliente <span
+                <label for="cliente_input" style="margin-bottom: 0;">Cliente <span
                     style="color: var(--color-danger);">*</span></label>
                 <button type="button" onclick="promptQuickClient()"
                   style="background: none; border: none; color: var(--color-primary); font-family: var(--font-title); font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 2px; transition: var(--transition-smooth);">
                   <span style="font-size: 0.9rem;">+</span> Añadir temporal
                 </button>
               </div>
-              <select id="cliente_select" required class="form-control">
-                <option value="">Conectando a Firebase...</option>
-              </select>
+              <div class="ot-ac-wrap" style="position: relative;">
+                <input type="text" id="cliente_input" autocomplete="off" class="form-control"
+                  placeholder="Escriba el nombre del cliente..."
+                  oninput="otClienteInput()" onblur="otClienteBlur()" onkeydown="otClienteKey(event)">
+                <input type="hidden" id="cliente_id_hidden">
+                <div id="ot-cliente-list" class="ot-ac-list"></div>
+              </div>
             </div>
 
             <!-- Selección de Servicio -->
@@ -1912,6 +1797,88 @@
       setNextOrderNumber();
     }
 
+    // Autocomplete de Clientes Logic
+    window.otClienteInput = function() {
+      const input = document.getElementById('cliente_input');
+      const list = document.getElementById('ot-cliente-list');
+      const val = input.value.toLowerCase().trim();
+      
+      list.innerHTML = "";
+      if (!val) {
+        list.style.display = "none";
+        document.getElementById('cliente_id_hidden').value = "";
+        triggerClienteChange();
+        return;
+      }
+      
+      const filtered = cacheClientes.filter(c => 
+        resolveClientName(c).toLowerCase().includes(val)
+      );
+      
+      if (filtered.length === 0) {
+        list.style.display = "none";
+        return;
+      }
+      
+      filtered.forEach(cli => {
+        const item = document.createElement('div');
+        item.className = "ot-ac-item";
+        item.textContent = resolveClientName(cli);
+        item.onmousedown = function(e) {
+          e.preventDefault();
+          selectClientAutocomplete(cli);
+        };
+        list.appendChild(item);
+      });
+      
+      list.style.display = "block";
+    };
+
+    window.selectClientAutocomplete = function(cli) {
+      const input = document.getElementById('cliente_input');
+      const hidden = document.getElementById('cliente_id_hidden');
+      const list = document.getElementById('ot-cliente-list');
+      
+      input.value = resolveClientName(cli);
+      hidden.value = cli.id;
+      list.style.display = "none";
+      
+      triggerClienteChange();
+    };
+
+    window.otClienteBlur = function() {
+      const list = document.getElementById('ot-cliente-list');
+      if (list) list.style.display = "none";
+      
+      const input = document.getElementById('cliente_input');
+      const hidden = document.getElementById('cliente_id_hidden');
+      const val = input.value.trim();
+      
+      if (val) {
+        const match = cacheClientes.find(c => resolveClientName(c).toLowerCase() === val.toLowerCase());
+        if (match) {
+          hidden.value = match.id;
+          triggerClienteChange();
+        } else {
+          triggerClienteChange();
+        }
+      } else {
+        hidden.value = "";
+        triggerClienteChange();
+      }
+    };
+
+    window.otClienteKey = function(e) {
+      if (e.key === "Enter") {
+        const list = document.getElementById('ot-cliente-list');
+        const firstItem = list.querySelector('.ot-ac-item');
+        if (firstItem && list.style.display !== "none") {
+          e.preventDefault();
+          firstItem.click();
+        }
+      }
+    };
+
     // Añadir temporales
     window.promptQuickClient = function () {
       const nombre = prompt("Nombre del cliente nuevo o temporal:");
@@ -1927,9 +1894,7 @@
       };
 
       cacheClientes.push(nuevoCli);
-      updateClientesUI();
-      selectCliente.value = nuevoCli.id;
-      triggerClienteChange();
+      selectClientAutocomplete(nuevoCli);
       showToast("Cliente temporal agregado", "success");
     };
 
@@ -1953,23 +1918,8 @@
     };
 
     function updateClientesUI() {
-      const select = document.getElementById('cliente_select');
-      const currentVal = select.value;
-      select.innerHTML = '<option value="">-- Seleccione un Cliente --</option>';
-
-      if (cacheClientes.length === 0) {
-        select.innerHTML = '<option value="">Cargando clientes... Use "+ Añadir" para ingresar temporal</option>';
-        return;
-      }
-
-      cacheClientes.forEach(cli => {
-        const option = document.createElement('option');
-        option.value = cli.id;
-        option.textContent = resolveClientName(cli);
-        select.appendChild(option);
-      });
-
-      if (currentVal) select.value = currentVal;
+      // No select list to update anymore, clients are searched dynamically
+      console.log("Clientes sincronizados con autocomplete");
     }
 
     function updateServiciosUI() {
@@ -1996,7 +1946,7 @@
     const numFacturaInput = document.getElementById('numero_factura');
     const fechaHoraInput = document.getElementById('fecha_hora');
     const tecnicoInput = document.getElementById('tecnico');
-    const selectCliente = document.getElementById('cliente_select');
+    const selectCliente = document.getElementById('cliente_id_hidden');
     const selectServicio = document.getElementById('servicio_select');
     const descServicioTextarea = document.getElementById('descripcion_servicio_display');
     const observacionInput = document.getElementById('observacion');
@@ -2074,13 +2024,17 @@
 
     function triggerClienteChange() {
       const id = selectCliente.value;
-      // Corregida búsqueda robusta con conversión de tipo a String para evitar fallas
       const clienteEncontrado = cacheClientes.find(c => String(c.id) === String(id));
       if (clienteEncontrado) {
         document.getElementById('preview-cliente-nombre').innerText = resolveClientName(clienteEncontrado);
         applyClientDataToForm(clienteEncontrado);
       } else {
-        document.getElementById('preview-cliente-nombre').innerText = 'Seleccione un cliente...';
+        const textVal = document.getElementById('cliente_input').value.trim();
+        if (textVal) {
+          document.getElementById('preview-cliente-nombre').innerText = textVal;
+        } else {
+          document.getElementById('preview-cliente-nombre').innerText = 'Seleccione un cliente...';
+        }
         applyClientDataToForm(null);
       }
       if (typeof updatePreviewLayoutSnugness === 'function') updatePreviewLayoutSnugness();
@@ -2105,27 +2059,40 @@
       if (typeof updatePreviewLayoutSnugness === 'function') updatePreviewLayoutSnugness();
     }
 
-    selectCliente.addEventListener('change', triggerClienteChange);
     selectServicio.addEventListener('change', triggerServicioChange);
 
     document.getElementById('order-form').addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const clienteId = selectCliente.value;
+      let clienteId = selectCliente.value;
+      const clienteInputVal = document.getElementById('cliente_input').value.trim();
       const servicioId = selectServicio.value;
 
-      // Búsqueda de clientes y servicios robusta
-      const clienteObj = cacheClientes.find(c => String(c.id) === String(clienteId));
+      if (!clienteInputVal || !servicioId) {
+        showToast("Por favor, seleccione un cliente y un servicio válidos.", "error");
+        return;
+      }
+
+      let clienteObj = cacheClientes.find(c => String(c.id) === String(clienteId));
+      if (!clienteObj && clienteInputVal) {
+        clienteObj = cacheClientes.find(c => resolveClientName(c).toLowerCase() === clienteInputVal.toLowerCase());
+        if (clienteObj) {
+          clienteId = clienteObj.id;
+          selectCliente.value = clienteId;
+        }
+      }
+
+      const finalClienteId = clienteId || ("cli-temp-" + Date.now());
       const servicioObj = cacheServicios.find(s => String(s.id) === String(servicioId));
 
-      if (!clienteId || !servicioId) {
-        showToast("Por favor, seleccione un cliente y un servicio válidos.", "error");
+      if (!servicioId) {
+        showToast("Por favor, seleccione un servicio válido.", "error");
         return;
       }
 
       applyClientDataToForm(clienteObj);
 
-      const cliente_nombre = clienteObj ? resolveClientName(clienteObj) : "Cliente Desconocido";
+      const cliente_nombre = clienteObj ? resolveClientName(clienteObj) : clienteInputVal;
       const cliente_telefono = clienteObj ? resolveClientPhone(clienteObj) : "--------";
       const cliente_correo = clienteObj ? resolveClientEmail(clienteObj) : "--------";
 
@@ -2137,7 +2104,7 @@
         numero_ot: numOtInput.value,
         numero_factura: numFacturaInput.value,
         fecha_hora: fechaHoraInput.value,
-        cliente_id: clienteId,
+        cliente_id: finalClienteId,
         cliente_nombre: cliente_nombre,
         cliente_telefono: cliente_telefono,
         cliente_correo: cliente_correo,
@@ -2291,6 +2258,7 @@
         sectorInput.value = encontrada.sector || '';
         applyTipoServicioSelection(encontrada.tipo_servicio);
 
+        document.getElementById('cliente_input').value = encontrada.cliente_nombre || '';
         selectCliente.value = String(clienteId);
         selectServicio.value = String(servicioId);
         descServicioTextarea.value = encontrada.servicio_descripcion || '';
