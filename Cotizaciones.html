@@ -1044,6 +1044,7 @@
       width: 100%;
       border-collapse: collapse;
       text-align: left;
+      table-layout: fixed;
     }
 
     .invoice-table th {
@@ -1063,6 +1064,8 @@
       border-bottom: none;
       color: #334155 !important;
       background: #ffffff !important;
+      word-break: break-word;
+      overflow-wrap: break-word;
     }
 
     .invoice-observaciones-block {
@@ -2587,16 +2590,54 @@
           doc.text(doc.splitTextToSize(value, 50).slice(0, 1)[0] || '', 142, y);
         });
 
-        // Tabla del Servicio
+        // --- Calcular espacio disponible para la descripción del servicio ---
+        // Bloques posteriores a la tabla: precio(20) + obsTitle+gap(11) + obs + legal(43) + margen(10)
+        const obsList2 = cot.observaciones || [];
+        let dynObsLines = 0;
+        obsList2.forEach(obs => {
+          if (obs.trim()) {
+            dynObsLines += doc.splitTextToSize(`- ${obs.trim()}`, 172).length;
+          }
+        });
+        const dynObsHeight = dynObsLines > 0 ? dynObsLines * 4.0 + 6 : 10;
+
+        const RESERVED_HEIGHT = 84 + dynObsHeight;
+        const PAGE_HEIGHT = 279;
+        const TABLE_START_Y = 88;
+        const MAX_TABLE_HEIGHT = PAGE_HEIGHT - TABLE_START_Y - RESERVED_HEIGHT;
+
+        // Fórmula exacta de jsPDF: fontSize_pt × 1.15 × (25.4/72) mm por línea
+        function lineHeightMm(fs) { return fs * 1.15 * 25.4 / 72; }
+
+        // Alto estimado de tabla: cabecera (10pt) + padding (7mm) + nLines × lineH
+        function estimateTableH(nLines, fs) {
+          return lineHeightMm(10) + 7 + nLines * lineHeightMm(fs);
+        }
+
+        const TEXT_AREA_W = 128; // 135mm columna − 7mm padding (3.5×2)
+        const descText = cot.servicio_descripcion || '';
+
+        // Elegir el font size más grande que quepa; autoTable wrapeará nativamente
+        let tableFontSize = 7.5; // fallback mínimo
+        for (const fs of [9.5, 8.5, 7.5]) {
+          doc.setFontSize(fs);
+          const nLines = doc.splitTextToSize(descText, TEXT_AREA_W).length;
+          if (estimateTableH(nLines, fs) <= MAX_TABLE_HEIGHT) {
+            tableFontSize = fs;
+            break;
+          }
+        }
+
+        // Tabla del Servicio — texto original para que autoTable llene el ancho completo
         doc.autoTable({
-          startY: 88,
+          startY: TABLE_START_Y,
           margin: { left: 15, right: 15 },
           theme: 'grid',
           head: [["Servicio Cotizado", "Descripción técnica detallada"]],
-          body: [[cot.servicio_nombre, cot.servicio_descripcion]],
+          body: [[cot.servicio_nombre, descText]],
           styles: {
             font: 'helvetica',
-            fontSize: 9.5,
+            fontSize: tableFontSize,
             cellPadding: 3.5,
             valign: 'top',
             lineColor: line,
@@ -2617,6 +2658,7 @@
         });
 
         // Bloque del Precio
+
         let priceY = doc.lastAutoTable.finalY + 6;
 
         doc.setDrawColor(...line);
