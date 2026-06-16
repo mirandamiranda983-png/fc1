@@ -1289,13 +1289,13 @@
               </div>
             </div>
 
-            <!-- Número de Factura -->
+            <!-- Número de Factura (opcional) -->
             <div class="form-group">
-              <label for="numero_factura">Número de Factura <span style="color: var(--color-danger);">*</span></label>
+              <label for="numero_factura">Número de Factura <span style="color: var(--text-secondary); font-size: 0.75rem; font-weight: 400;">(Opcional)</span></label>
               <div class="input-prefix-wrapper">
                 <span class="input-prefix">N°</span>
-                <input type="text" id="numero_factura" required class="form-control input-with-prefix"
-                  placeholder="Digite el número de factura">
+                <input type="text" id="numero_factura" class="form-control input-with-prefix"
+                  placeholder="Digite el número de factura (opcional)">
               </div>
             </div>
 
@@ -1366,31 +1366,60 @@
               </div>
             </div>
 
-            <!-- Técnico Asignado -->
+            <!-- Técnico(s) Asignado(s) - Múltiples, autocomplete dinámico con Firebase -->
             <div class="form-group">
-              <label for="tecnico">Técnico Responsable <span style="color: var(--color-danger);">*</span></label>
-              <input type="text" id="tecnico" required class="form-control" placeholder="Nombre completo del técnico">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label style="margin-bottom: 0;">Técnico(s) Responsable(s) <span style="color: var(--color-danger);">*</span></label>
+                <button type="button" onclick="agregarCampoTecnico()"
+                  style="background: none; border: none; color: var(--color-primary); font-family: var(--font-title); font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 2px; transition: var(--transition-smooth);">
+                  <span style="font-size: 0.9rem;">+</span> Añadir técnico
+                </button>
+              </div>
+              <div id="tecnicos-container">
+                <div class="tecnico-row" style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
+                  <div class="ot-ac-wrap" style="flex: 1; position: relative;">
+                    <input type="text" class="form-control tecnico-input" required autocomplete="off"
+                      placeholder="Nombre del técnico responsable..."
+                      oninput="otTecnicoRowInput(this)" onblur="otTecnicoRowBlur(this)" onkeydown="otTecnicoRowKey(event, this)">
+                    <div class="ot-ac-list tecnico-ac-list"></div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <!-- Tipo de Servicio -->
+            <!-- Tipo de Servicio (Dinámico, se pueden agregar más opciones) -->
             <div class="form-group">
               <label>Tipo de Servicio</label>
-              <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 4px;">
-                <label
-                  style="display:flex; align-items:center; gap:6px; font-size:0.9rem; color:var(--text-primary); font-weight:500; cursor:pointer; margin-bottom:0;">
-                  <input type="checkbox" id="tipo_inicial"
-                    style="width:16px;height:16px;accent-color:var(--color-primary);cursor:pointer;"> Inicial
+              <div id="tipo-servicio-container" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px;">
+                <label style="display:flex; align-items:center; gap:6px; font-size:0.88rem; color:var(--text-primary); font-weight:500; cursor:pointer; margin-bottom:0;">
+                  <input type="checkbox" id="tipo_inicial" style="width:15px;height:15px;accent-color:var(--color-primary);cursor:pointer;"> Inicial
                 </label>
-                <label
-                  style="display:flex; align-items:center; gap:6px; font-size:0.9rem; color:var(--text-primary); font-weight:500; cursor:pointer; margin-bottom:0;">
-                  <input type="checkbox" id="tipo_regular"
-                    style="width:16px;height:16px;accent-color:var(--color-primary);cursor:pointer;"> Regular
+                <label style="display:flex; align-items:center; gap:6px; font-size:0.88rem; color:var(--text-primary); font-weight:500; cursor:pointer; margin-bottom:0;">
+                  <input type="checkbox" id="tipo_regular" style="width:15px;height:15px;accent-color:var(--color-primary);cursor:pointer;"> Regular
                 </label>
-                <label
-                  style="display:flex; align-items:center; gap:6px; font-size:0.9rem; color:var(--text-primary); font-weight:500; cursor:pointer; margin-bottom:0;">
-                  <input type="checkbox" id="tipo_ciclo"
-                    style="width:16px;height:16px;accent-color:var(--color-primary);cursor:pointer;"> Ciclo de Control
+                <label style="display:flex; align-items:center; gap:6px; font-size:0.88rem; color:var(--text-primary); font-weight:500; cursor:pointer; margin-bottom:0;">
+                  <input type="checkbox" id="tipo_ciclo" style="width:15px;height:15px;accent-color:var(--color-primary);cursor:pointer;"> Ciclo de Control
                 </label>
+                <label style="display:flex; align-items:center; gap:6px; font-size:0.88rem; color:var(--text-primary); font-weight:500; cursor:pointer; margin-bottom:0;">
+                  <input type="checkbox" id="tipo_primero" style="width:15px;height:15px;accent-color:var(--color-primary);cursor:pointer;"> 1er Servicio
+                </label>
+                <label style="display:flex; align-items:center; gap:6px; font-size:0.88rem; color:var(--text-primary); font-weight:500; cursor:pointer; margin-bottom:0;">
+                  <input type="checkbox" id="tipo_segundo" style="width:15px;height:15px;accent-color:var(--color-primary);cursor:pointer;"> 2do Servicio
+                </label>
+                <label style="display:flex; align-items:center; gap:6px; font-size:0.88rem; color:var(--text-primary); font-weight:500; cursor:pointer; margin-bottom:0;">
+                  <input type="checkbox" id="tipo_tercero" style="width:15px;height:15px;accent-color:var(--color-primary);cursor:pointer;"> 3er Servicio
+                </label>
+              </div>
+              <!-- Agregar tipo personalizado -->
+              <div style="display: flex; gap: 8px; margin-top: 10px; align-items: center; flex-wrap: wrap;">
+                <input type="text" id="tipo-nuevo-input" class="form-control"
+                  placeholder="Otro tipo (ej: 4to Servicio)..."
+                  style="max-width: 230px; height: 34px; font-size: 0.85rem; padding: 6px 10px;"
+                  onkeydown="if(event.key==='Enter'){event.preventDefault();agregarTipoServicio();}">
+                <button type="button" onclick="agregarTipoServicio()"
+                  style="background: var(--color-primary); color: white; border: none; padding: 6px 14px; border-radius: 8px; font-family: var(--font-title); font-size: 0.8rem; font-weight: 700; cursor: pointer; height: 34px; white-space: nowrap; transition: var(--transition-smooth);">
+                  + Agregar tipo
+                </button>
               </div>
             </div>
 
@@ -1640,6 +1669,7 @@
     let cacheClientes = [];
     let cacheServicios = [];
     let cacheOrdenes = [];
+    let cacheTecnicos = [];
 
     // Buscadores dinámicos de campos para tolerancia a esquemas variables
     function resolveClientName(cli) {
@@ -1763,6 +1793,17 @@
       }, (error) => {
         console.error("Falla al escuchar órdenes:", error);
       });
+
+      // Técnicos (autocomplete dinámico cross-dispositivo)
+      onSnapshot(collection(db, "tecnicos"), (snapshot) => {
+        cacheTecnicos = [];
+        snapshot.forEach((docSnap) => {
+          cacheTecnicos.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        console.log("Técnicos sincronizados:", cacheTecnicos);
+      }, (error) => {
+        console.error("Falla al escuchar técnicos:", error);
+      });
     }
 
     function enableLocalSimulation() {
@@ -1791,6 +1832,10 @@
         }
       ];
 
+      cacheTecnicos = [
+        { id: 'tec-demo1', nombre: 'JOSUE MIRANDA' },
+        { id: 'tec-demo2', nombre: 'Carlos Gómez' }
+      ];
       updateClientesUI();
       updateServiciosUI();
       updateOrdenesTabla(cacheOrdenes);
@@ -1917,6 +1962,135 @@
       showToast("Servicio temporal agregado", "success");
     };
 
+    // =====================================================================
+    // TÉCNICOS MÚLTIPLES — Autocomplete dinámico con Firebase
+    // =====================================================================
+
+    function getSelectedTecnicos() {
+      const container = document.getElementById('tecnicos-container');
+      if (!container) return [];
+      return Array.from(container.querySelectorAll('.tecnico-input'))
+        .map(inp => inp.value.trim())
+        .filter(Boolean);
+    }
+
+    function updateTecnicosPreview() {
+      const techs = getSelectedTecnicos();
+      const displayText = techs.length > 0 ? techs.join(' / ') : '--------';
+      document.getElementById('preview-tecnico').innerText = displayText;
+      document.getElementById('preview-firma-tecnico').innerText = displayText;
+    }
+
+    window.agregarCampoTecnico = function() {
+      const container = document.getElementById('tecnicos-container');
+      const row = document.createElement('div');
+      row.className = 'tecnico-row';
+      row.style.cssText = 'display: flex; gap: 8px; align-items: center; margin-bottom: 6px;';
+      row.innerHTML = `
+        <div class="ot-ac-wrap" style="flex: 1; position: relative;">
+          <input type="text" class="form-control tecnico-input" autocomplete="off"
+            placeholder="Nombre del técnico..."
+            oninput="otTecnicoRowInput(this)" onblur="otTecnicoRowBlur(this)" onkeydown="otTecnicoRowKey(event, this)">
+          <div class="ot-ac-list tecnico-ac-list"></div>
+        </div>
+        <button type="button" onclick="this.closest('.tecnico-row').remove(); updateTecnicosPreview();"
+          style="background: none; border: none; color: var(--color-danger); cursor: pointer; font-size: 1rem; font-weight: 700; padding: 4px 8px; flex-shrink: 0; line-height: 1;" title="Eliminar técnico">
+          ✕
+        </button>
+      `;
+      container.appendChild(row);
+    };
+
+    function loadTecnicosIntoContainer(value) {
+      const container = document.getElementById('tecnicos-container');
+      if (!container) return;
+      // Resetear a una sola fila vacía
+      container.innerHTML = `
+        <div class="tecnico-row" style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
+          <div class="ot-ac-wrap" style="flex: 1; position: relative;">
+            <input type="text" class="form-control tecnico-input" required autocomplete="off"
+              placeholder="Nombre del técnico responsable..."
+              oninput="otTecnicoRowInput(this)" onblur="otTecnicoRowBlur(this)" onkeydown="otTecnicoRowKey(event, this)">
+            <div class="ot-ac-list tecnico-ac-list"></div>
+          </div>
+        </div>
+      `;
+      const tecnicos = Array.isArray(value)
+        ? value
+        : String(value || '').split(/[,\/]/).map(t => t.trim()).filter(Boolean);
+      if (tecnicos.length === 0) { updateTecnicosPreview(); return; }
+      const firstInput = container.querySelector('.tecnico-input');
+      if (firstInput) firstInput.value = tecnicos[0];
+      for (let i = 1; i < tecnicos.length; i++) {
+        agregarCampoTecnico();
+        const inputs = container.querySelectorAll('.tecnico-input');
+        if (inputs[i]) inputs[i].value = tecnicos[i];
+      }
+      updateTecnicosPreview();
+    }
+
+    window.otTecnicoRowInput = function(inputEl) {
+      const wrap = inputEl.closest('.ot-ac-wrap');
+      const list = wrap ? wrap.querySelector('.tecnico-ac-list') : null;
+      if (!list) return;
+      const val = inputEl.value.trim();
+      updateTecnicosPreview();
+      list.innerHTML = '';
+      if (!val) { list.style.display = 'none'; return; }
+      const filtered = cacheTecnicos.filter(t =>
+        t.nombre && t.nombre.toLowerCase().includes(val.toLowerCase())
+      );
+      if (filtered.length === 0) { list.style.display = 'none'; return; }
+      filtered.forEach(tec => {
+        const item = document.createElement('div');
+        item.className = 'ot-ac-item';
+        item.textContent = tec.nombre;
+        item.onmousedown = function(e) {
+          e.preventDefault();
+          inputEl.value = tec.nombre;
+          list.style.display = 'none';
+          updateTecnicosPreview();
+        };
+        list.appendChild(item);
+      });
+      list.style.display = 'block';
+    };
+
+    window.otTecnicoRowBlur = function(inputEl) {
+      const wrap = inputEl.closest('.ot-ac-wrap');
+      const list = wrap ? wrap.querySelector('.tecnico-ac-list') : null;
+      if (list) setTimeout(() => { list.style.display = 'none'; }, 160);
+    };
+
+    window.otTecnicoRowKey = function(e, inputEl) {
+      if (e.key === 'Enter') {
+        const wrap = inputEl.closest('.ot-ac-wrap');
+        const list = wrap ? wrap.querySelector('.tecnico-ac-list') : null;
+        if (!list) return;
+        const firstItem = list.querySelector('.ot-ac-item');
+        if (firstItem && list.style.display !== 'none') {
+          e.preventDefault();
+          firstItem.onmousedown({ preventDefault: () => {} });
+        }
+      }
+    };
+
+    // Guardar técnico nuevo en Firebase (solo si no existe ya)
+    async function saveTecnicoToFirebase(nombre) {
+      if (!nombre || !isConnected || !db) return;
+      const nombreNorm = nombre.trim();
+      if (!nombreNorm) return;
+      const existe = cacheTecnicos.some(t => t.nombre && t.nombre.toLowerCase() === nombreNorm.toLowerCase());
+      if (!existe) {
+        try {
+          await addDoc(collection(db, 'tecnicos'), { nombre: nombreNorm });
+          console.log('Técnico guardado en Firebase:', nombreNorm);
+        } catch(e) {
+          console.warn('No se pudo guardar el técnico:', e);
+        }
+      }
+    }
+
     function updateClientesUI() {
       // No select list to update anymore, clients are searched dynamically
       console.log("Clientes sincronizados con autocomplete");
@@ -1945,7 +2119,7 @@
     const numOtInput = document.getElementById('numero_ot');
     const numFacturaInput = document.getElementById('numero_factura');
     const fechaHoraInput = document.getElementById('fecha_hora');
-    const tecnicoInput = document.getElementById('tecnico');
+    // tecnicoInput eliminado — ahora se usan múltiples filas en #tecnicos-container
     const selectCliente = document.getElementById('cliente_id_hidden');
     const selectServicio = document.getElementById('servicio_select');
     const descServicioTextarea = document.getElementById('descripcion_servicio_display');
@@ -1953,11 +2127,8 @@
     const direccionInput = document.getElementById('direccion');
     const contactoInput = document.getElementById('contacto');
     const sectorInput = document.getElementById('sector');
-    const tipoServicioInputs = [
-      { input: document.getElementById('tipo_inicial'), label: 'Inicial' },
-      { input: document.getElementById('tipo_regular'), label: 'Regular' },
-      { input: document.getElementById('tipo_ciclo'), label: 'Ciclo de Control' }
-    ];
+    // Tipo de servicio: delegated listener en el contenedor (soporta checkboxes estáticos y dinámicos)
+    document.getElementById('tipo-servicio-container').addEventListener('change', updatePreviewTipoServicio);
 
     numOtInput.addEventListener('input', () => {
       document.getElementById('preview-factura').innerText = numOtInput.value || '--------';
@@ -1996,13 +2167,10 @@
       document.getElementById('preview-fecha').innerText = formatDateTime12H(fechaHoraInput.value);
     });
 
-    tecnicoInput.addEventListener('input', () => {
-      document.getElementById('preview-tecnico').innerText = tecnicoInput.value || '--------';
-      document.getElementById('preview-firma-tecnico').innerText = tecnicoInput.value || '--------';
-    });
+    // Preview de técnicos manejado por updateTecnicosPreview() vía otTecnicoRowInput()
 
     observacionInput.addEventListener('input', () => {
-      document.getElementById('preview-observaciones').innerText = observacionInput.value || 'Sin observaciones registradas por el momento.';
+      document.getElementById('preview-observaciones').innerText = observacionInput.value || '-';
       if (typeof updatePreviewLayoutSnugness === 'function') updatePreviewLayoutSnugness();
     });
 
@@ -2018,9 +2186,7 @@
       document.getElementById('preview-sector').innerText = sectorInput.value || '--------';
     });
 
-    tipoServicioInputs.forEach(({ input }) => {
-      input.addEventListener('change', updatePreviewTipoServicio);
-    });
+    // Tipo de servicio: events manejados por delegated listener en #tipo-servicio-container
 
     function triggerClienteChange() {
       const id = selectCliente.value;
@@ -2115,7 +2281,7 @@
         servicio_id: servicioId,
         servicio_nombre: servicio_nombre,
         servicio_descripcion: servicio_descripcion,
-        tecnico: tecnicoInput.value,
+        tecnico: getSelectedTecnicos().join(', '),
         observacion: observacionInput.value,
         fecha_creacion: new Date().toISOString()
       };
@@ -2135,13 +2301,16 @@
 
           await addDoc(collection(db, "ordenes"), nuevaOrden);
           reserveNextOrderNumber(nuevaOrden.numero_ot);
-          // Auditor\u00eda
+          // Guardar cada técnico nuevo en Firebase
+          getSelectedTecnicos().forEach(t => saveTecnicoToFirebase(t));
+          // Auditoría
           if (window.parent && typeof window.parent.logAudit === 'function') {
             window.parent.logAudit('CREAR_REGISTRO', 'Orden de Trabajo',
-              `OT ${nuevaOrden.numero_ot || '—'} | Cliente: ${nuevaOrden.cliente_nombre} | Servicio: ${nuevaOrden.servicio_nombre} | T\u00e9cnico: ${nuevaOrden.tecnico || '—'} | Tipo: ${(nuevaOrden.tipo_servicio||[]).join(', ')}`
+              `OT ${nuevaOrden.numero_ot || '—'} | Cliente: ${nuevaOrden.cliente_nombre} | Servicio: ${nuevaOrden.servicio_nombre} | Técnico: ${nuevaOrden.tecnico || '—'} | Tipo: ${(nuevaOrden.tipo_servicio||[]).join(', ')}`
             );
           }
-          showToast("Orden de trabajo guardada con \u00e9xito", "success");
+          showToast("Orden de trabajo guardada con éxito", "success");
+          printInvoice();
           clearForm();
         } catch (err) {
           console.error("Error al registrar en Firestore:", err);
@@ -2160,6 +2329,7 @@
         updateOrdenesTabla(cacheOrdenes);
         reserveNextOrderNumber(nuevaOrden.numero_ot);
         showToast("Guardado local exitoso (Modo Simulación)", "success");
+        printInvoice();
         clearForm();
       }
     });
@@ -2167,6 +2337,7 @@
     window.clearForm = function () {
       document.getElementById('order-form').reset();
       descServicioTextarea.value = '';
+      loadTecnicosIntoContainer('');
 
       document.getElementById('preview-numero-factura').innerText = '--------';
       document.getElementById('preview-fecha').innerText = '--/--/---- --:--';
@@ -2178,7 +2349,7 @@
       document.getElementById('preview-sector').innerText = '--------';
       document.getElementById('preview-servicio-nombre').innerText = 'Seleccione un servicio...';
       document.getElementById('preview-servicio-desc').innerText = 'La descripción registrada en Firebase aparecerá aquí automáticamente...';
-      document.getElementById('preview-observaciones').innerText = 'Sin observaciones registradas por el momento.';
+      document.getElementById('preview-observaciones').innerText = '-';
       document.getElementById('preview-tipo-servicio').innerText = '--------';
 
       setDefaultDateTime();
@@ -2251,7 +2422,7 @@
         numOtInput.value = getOrderIdentifier(encontrada);
         numFacturaInput.value = getInvoiceNumber(encontrada);
         fechaHoraInput.value = encontrada.fecha_hora || encontrada.fecha || '';
-        tecnicoInput.value = encontrada.tecnico || '';
+        loadTecnicosIntoContainer(encontrada.tecnico || '');
         observacionInput.value = encontrada.observacion || '';
         direccionInput.value = encontrada.direccion || '';
         contactoInput.value = encontrada.atencion_de || encontrada.contacto || '';
@@ -2266,8 +2437,8 @@
         document.getElementById('preview-factura').innerText = getOrderIdentifier(encontrada) || '--------';
         document.getElementById('preview-numero-factura').innerText = getInvoiceNumber(encontrada) || '--------';
         document.getElementById('preview-fecha').innerText = formatDateTime12H(encontrada.fecha_hora || encontrada.fecha || '');
-        document.getElementById('preview-tecnico').innerText = encontrada.tecnico || '--------';
-        document.getElementById('preview-firma-tecnico').innerText = encontrada.tecnico || '--------';
+        document.getElementById('preview-tecnico').innerText = getSelectedTecnicos().join(' / ') || '--------';
+        document.getElementById('preview-firma-tecnico').innerText = getSelectedTecnicos().join(' / ') || '--------';
 
         document.getElementById('preview-cliente-nombre').innerText = encontrada.cliente_nombre || 'Seleccionado';
         document.getElementById('preview-direccion').innerText = encontrada.direccion || '--------';
@@ -2329,8 +2500,8 @@
         return;
       }
 
-      if (!numOtInput.value || !numFacturaInput.value || !selectCliente.value || !selectServicio.value) {
-        showToast("Por favor, complete la OT, factura, cliente y servicio antes de descargar el PDF.", "warning");
+      if (!numOtInput.value || !selectServicio.value) {
+        showToast("Por favor, complete la OT y seleccione un servicio antes de descargar el PDF.", "warning");
         return;
       }
 
@@ -2338,7 +2509,7 @@
         const numOt = numOtInput.value || '--------';
         const numFactura = numFacturaInput.value || '--------';
         const fechaHoraVal = fechaHoraInput.value ? fechaHoraInput.value.replace('T', ' ') : '--/--/---- --:--';
-        const tecnicoVal = tecnicoInput.value || '--------';
+        const tecnicoVal = getSelectedTecnicos().join(' / ') || '--------';
         const clienteObj = cacheClientes.find(c => String(c.id) === String(selectCliente.value));
         const servicioObj = cacheServicios.find(s => String(s.id) === String(selectServicio.value));
         applyClientDataToForm(clienteObj);
@@ -2348,7 +2519,7 @@
 
         // Dynamic fits for PDF
         const hasObservaciones = observacionInput.value.trim().length > 0;
-        const rawObsValue = hasObservaciones ? observacionInput.value : 'Sin observaciones registradas por el momento.';
+        const rawObsValue = hasObservaciones ? observacionInput.value : '-';
 
         const servicioDesc = servicioObj ? resolveServiceDesc(servicioObj) : '';
         const observacionVal = rawObsValue;
@@ -2664,10 +2835,33 @@
     }
 
     function getSelectedTipoServicio() {
-      return tipoServicioInputs
-        .filter(({ input }) => input.checked)
-        .map(({ label }) => label);
+      const container = document.getElementById('tipo-servicio-container');
+      if (!container) return [];
+      return Array.from(container.querySelectorAll('input[type="checkbox"]:checked'))
+        .map(cb => {
+          const parent = cb.closest('label');
+          return parent ? parent.textContent.trim() : '';
+        })
+        .filter(Boolean);
     }
+
+    window.agregarTipoServicio = function() {
+      const inp = document.getElementById('tipo-nuevo-input');
+      const val = inp ? inp.value.trim() : '';
+      if (!val) { showToast('Escriba un tipo de servicio para agregar.', 'warning'); return; }
+      const container = document.getElementById('tipo-servicio-container');
+      // Evitar duplicados
+      const existe = Array.from(container.querySelectorAll('label')).some(l => l.textContent.trim().toLowerCase() === val.toLowerCase());
+      if (existe) { showToast('Ese tipo ya está en la lista.', 'warning'); return; }
+      const id = 'tipo_custom_' + Date.now();
+      const lbl = document.createElement('label');
+      lbl.style.cssText = 'display:flex; align-items:center; gap:6px; font-size:0.88rem; color:var(--text-primary); font-weight:500; cursor:pointer; margin-bottom:0;';
+      lbl.innerHTML = `<input type="checkbox" id="${id}" style="width:15px;height:15px;accent-color:var(--color-primary);cursor:pointer;" checked> ${val}`;
+      container.appendChild(lbl);
+      if (inp) inp.value = '';
+      updatePreviewTipoServicio();
+      showToast(`"${val}" agregado`, 'success');
+    };
 
     function updatePreviewTipoServicio() {
       const selected = getSelectedTipoServicio();
@@ -2676,9 +2870,32 @@
 
     function applyTipoServicioSelection(value) {
       const selected = Array.isArray(value) ? value : String(value || '').split(',').map(item => item.trim()).filter(Boolean);
-      tipoServicioInputs.forEach(({ input, label }) => {
-        input.checked = selected.includes(label);
+      const container = document.getElementById('tipo-servicio-container');
+      if (!container) return;
+
+      // Desmarcar todos los existentes
+      container.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+
+      selected.forEach(val => {
+        if (!val) return;
+        let found = false;
+        container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+          const parent = cb.closest('label');
+          if (parent && parent.textContent.trim().toLowerCase() === val.toLowerCase()) {
+            cb.checked = true;
+            found = true;
+          }
+        });
+        // Si no existe, crearlo dinámicamente
+        if (!found) {
+          const id = 'tipo_restored_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+          const lbl = document.createElement('label');
+          lbl.style.cssText = 'display:flex; align-items:center; gap:6px; font-size:0.88rem; color:var(--text-primary); font-weight:500; cursor:pointer; margin-bottom:0;';
+          lbl.innerHTML = `<input type="checkbox" id="${id}" style="width:15px;height:15px;accent-color:var(--color-primary);cursor:pointer;" checked> ${val}`;
+          container.appendChild(lbl);
+        }
       });
+
       updatePreviewTipoServicio();
     }
 
