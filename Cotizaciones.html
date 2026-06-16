@@ -1262,28 +1262,38 @@
               <input type="text" id="contacto" class="form-control" placeholder="Se autocompleta desde cliente">
             </div>
 
-            <!-- Selección de Servicio -->
-            <div class="form-group">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                <label for="servicio_select" style="margin-bottom: 0;">Servicio Solicitado <span
-                    style="color: var(--color-danger);">*</span></label>
-                <button type="button" onclick="promptQuickService()"
-                  style="background: none; border: none; color: var(--color-primary); font-family: var(--font-title); font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 2px; transition: var(--transition-smooth);">
-                  <span style="font-size: 0.9rem;">+</span> Añadir temporal
-                </button>
+            <!-- Servicios Dinámicos Container -->
+            <div id="servicios-dinamicos-container">
+              <div class="servicio-bloque" data-index="0">
+                <div class="form-group" style="margin-bottom: 8px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label style="margin-bottom: 0; font-weight: 600;">Servicio Solicitado 1 <span style="color: var(--color-danger);">*</span></label>
+                    <button type="button" onclick="promptQuickService(0)"
+                      style="background: none; border: none; color: var(--color-primary); font-family: var(--font-title); font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 2px; transition: var(--transition-smooth);">
+                      <span style="font-size: 0.9rem;">+</span> Añadir temporal
+                    </button>
+                  </div>
+                  <select id="servicio_select" class="form-control service-select" required>
+                    <option value="">Conectando a Firebase...</option>
+                  </select>
+                </div>
+                <div class="form-grid-2" style="margin-bottom: 16px;">
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label style="color: var(--text-secondary); font-size: 0.8rem;">Descripción del Servicio 1</label>
+                    <textarea id="descripcion_servicio_display" class="form-control service-desc-display" readonly
+                      style="font-size: 0.8rem; height: 70px; resize: none; line-height: 1.45;"
+                      placeholder="La descripción registrada se cargará automáticamente aquí..."></textarea>
+                  </div>
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label style="color: var(--text-secondary); font-size: 0.8rem;">Precio Servicio 1 (C$) <span style="color: var(--color-danger);">*</span></label>
+                    <input type="number" step="0.01" class="form-control service-price" required placeholder="0.00" style="height: 70px;">
+                  </div>
+                </div>
               </div>
-              <select id="servicio_select" required class="form-control">
-                <option value="">Conectando a Firebase...</option>
-              </select>
             </div>
-
-            <!-- Descripción del Servicio (Solo Lectura) -->
-            <div class="form-group">
-              <label style="color: var(--text-secondary);">Descripción del Servicio</label>
-              <textarea id="descripcion_servicio_display" readonly class="form-control"
-                style="font-size: 0.8rem; height: 96px; resize: none; line-height: 1.45;"
-                placeholder="La descripción registrada del servicio se cargará automáticamente aquí..."></textarea>
-            </div>
+            <button type="button" id="btn-add-servicio" class="btn btn-secondary" style="padding: 8px 12px; font-size: 0.85rem; width: auto; margin-bottom: 16px;">
+              + Agregar otro servicio
+            </button>
 
             <!-- Fecha -->
             <div class="form-group">
@@ -1293,8 +1303,8 @@
 
             <!-- Precio -->
             <div class="form-group">
-              <label for="precio">Precio (C$) <span style="color: var(--color-danger);">*</span></label>
-              <input type="number" step="0.01" id="precio" required class="form-control" placeholder="0.00">
+              <label for="precio">Precio Neto Total (C$)</label>
+              <input type="number" step="0.01" id="precio" required readonly class="form-control" placeholder="Se calcula automáticamente..." title="Suma de los precios de cada servicio">
             </div>
 
             <!-- Importe en letras (Solo lectura, generado dinámicamente) -->
@@ -1477,13 +1487,10 @@
                         <th style="width: 65%;">Descripción detallada</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="preview-servicios-tbody">
                       <tr>
-                        <td id="preview-servicio-nombre"
-                          style="font-weight: 700; font-size: 0.75rem; vertical-align: top;">Seleccione un servicio...
-                        </td>
-                        <td id="preview-servicio-desc"
-                          style="font-size: 0.7rem; color: #475569; font-style: italic; vertical-align: top; line-height: 1.4;">
+                        <td style="font-weight: 700; font-size: 0.75rem; vertical-align: top;">Seleccione un servicio...</td>
+                        <td style="font-size: 0.7rem; color: #475569; font-style: italic; vertical-align: top; line-height: 1.4;">
                           La descripción técnica registrada se cargará automáticamente aquí...</td>
                       </tr>
                     </tbody>
@@ -1507,7 +1514,7 @@
               </div>
 
               <!-- Observaciones -->
-              <div>
+              <div style="margin-top: auto;">
                 <h4 class="invoice-section-title" style="margin-bottom: 6px;">OBSERVACIONES Y CONDICIONES</h4>
                 <div class="invoice-observaciones-block" id="preview-observaciones">Sin observaciones registradas por el
                   momento.</div>
@@ -1656,6 +1663,16 @@
       return srv.descripcion || srv.description || srv.detalle || srv.desc || srv.detail || 'Sin descripción guardada.';
     }
 
+    function getProcessedDescription(desc, totalServicesCount) {
+      return desc; // Do not truncate, show full description!
+    }
+
+    function getShortenedDesc(desc, maxLen = 160) {
+      if (!desc) return '';
+      if (desc.length <= maxLen) return desc;
+      return desc.substring(0, maxLen).trim() + '...';
+    }
+
     // Ventana de carga principal
     window.onload = async function () {
       setDefaultDate();
@@ -1667,6 +1684,26 @@
       document.getElementById('preview-asesor-tecnico').innerText = "JOSUE MIRANDA";
 
       updateObservacionesPreview();
+
+      // Setup btn-add-servicio click listener
+      const btnAddServicio = document.getElementById('btn-add-servicio');
+      if (btnAddServicio) {
+        btnAddServicio.addEventListener('click', () => {
+          addServiceBlock('');
+        });
+      }
+
+      // Initialize first select events
+      const firstSelect = document.querySelector('.service-select');
+      if (firstSelect) {
+        firstSelect.addEventListener('change', triggerServiciosChange);
+      }
+
+      // Initialize first price input event
+      const firstPrice = document.querySelector('.service-price');
+      if (firstPrice) {
+        firstPrice.addEventListener('input', triggerServiciosChange);
+      }
 
       // Temporizador para activar simulación local si Firebase tarda demasiado (Reglas / Red lentas)
       startFirebaseTimeout();
@@ -1818,25 +1855,145 @@
       setNextCotizacionNumber();
     }
 
+    // Update total price from inputs
+    window.updateTotalPrecio = function () {
+      const priceInputs = document.querySelectorAll('.service-price');
+      let total = 0;
+      priceInputs.forEach(input => {
+        total += parseFloat(input.value) || 0;
+      });
+      precioInput.value = total > 0 ? total.toFixed(2) : '';
+      document.getElementById('preview-precio').innerText = `C$ ${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      const letras = numeroALetras(total);
+      importeLetrasInput.value = letras;
+      document.getElementById('preview-total-letras').innerText = letras;
+    };
+
     // Carga inicial del selector de servicios
     function updateServiciosUI() {
-      const select = document.getElementById('servicio_select');
-      const currentVal = select.value;
-      select.innerHTML = '<option value="">-- Seleccione un Servicio --</option>';
+      const selects = document.querySelectorAll('.service-select');
+      selects.forEach(select => {
+        const currentVal = select.value;
+        populateSelectWithOptions(select, currentVal);
+      });
+    }
 
+    window.addServiceBlock = function (selectedId = "") {
+      const container = document.getElementById('servicios-dinamicos-container');
+      const currentCount = container.querySelectorAll('.servicio-bloque').length;
+      if (currentCount >= 3) return;
+
+      const newIdx = currentCount;
+      const div = document.createElement('div');
+      div.className = 'servicio-bloque';
+      div.setAttribute('data-index', newIdx);
+      if (newIdx > 0) {
+        div.style.borderTop = '1px dashed var(--border-color)';
+        div.style.paddingTop = '12px';
+        div.style.marginTop = '12px';
+      }
+
+      div.innerHTML = `
+        <div class="form-group" style="margin-bottom: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label style="margin-bottom: 0; font-weight: 600;">Servicio Solicitado ${newIdx + 1}</label>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <button type="button" class="btn-quick-service-temp"
+                style="background: none; border: none; color: var(--color-primary); font-family: var(--font-title); font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 2px;">
+                <span>+</span> Añadir temporal
+              </button>
+              ${newIdx > 0 ? `
+              <button type="button" class="btn-delete-servicio" style="background: none; border: none; color: var(--color-danger); cursor: pointer; font-size: 0.75rem; font-weight: 700;">
+                Eliminar
+              </button>` : ''}
+            </div>
+          </div>
+          <select class="form-control service-select" required>
+            <!-- populated below -->
+          </select>
+        </div>
+        <div class="form-grid-2" style="margin-bottom: 16px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="color: var(--text-secondary); font-size: 0.8rem;">Descripción del Servicio ${newIdx + 1}</label>
+            <textarea class="form-control service-desc-display" readonly
+              style="font-size: 0.8rem; height: 70px; resize: none; line-height: 1.45;"
+              placeholder="La descripción registrada se cargará automáticamente aquí..."></textarea>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="color: var(--text-secondary); font-size: 0.8rem;">Precio Servicio ${newIdx + 1} (C$) <span style="color: var(--color-danger);">*</span></label>
+            <input type="number" step="0.01" class="form-control service-price" required placeholder="0.00" style="height: 70px;">
+          </div>
+        </div>
+      `;
+
+      if (newIdx > 0) {
+        div.querySelector('.btn-delete-servicio').addEventListener('click', () => {
+          div.remove();
+          reindexServiceBlocks();
+          triggerServiciosChange();
+        });
+      }
+
+      div.querySelector('.btn-quick-service-temp').addEventListener('click', () => {
+        promptQuickService(newIdx);
+      });
+
+      container.appendChild(div);
+
+      const select = div.querySelector('.service-select');
+      populateSelectWithOptions(select, selectedId);
+
+      select.addEventListener('change', triggerServiciosChange);
+
+      const priceInput = div.querySelector('.service-price');
+      priceInput.addEventListener('input', triggerServiciosChange);
+
+      reindexServiceBlocks();
+      triggerServiciosChange();
+    };
+
+    function populateSelectWithOptions(select, selectedId = "") {
+      select.innerHTML = '<option value="">-- Seleccione un Servicio --</option>';
       if (cacheServicios.length === 0) {
         select.innerHTML = '<option value="">-- Sin servicios en la Base de Datos --</option>';
         return;
       }
-
       cacheServicios.forEach(srv => {
         const option = document.createElement('option');
         option.value = srv.id;
         option.textContent = resolveServiceName(srv);
         select.appendChild(option);
       });
+      if (selectedId) select.value = selectedId;
+    }
 
-      if (currentVal) select.value = currentVal;
+    function reindexServiceBlocks() {
+      const container = document.getElementById('servicios-dinamicos-container');
+      const blocks = container.querySelectorAll('.servicio-bloque');
+      blocks.forEach((block, idx) => {
+        block.setAttribute('data-index', idx);
+        const labels = block.querySelectorAll('label');
+        if (labels[0]) {
+          if (idx === 0) {
+            labels[0].innerHTML = `Servicio Solicitado 1 <span style="color: var(--color-danger);">*</span>`;
+          } else {
+            labels[0].innerHTML = `Servicio Solicitado ${idx + 1}`;
+          }
+        }
+        const label2 = block.querySelectorAll('.form-group label')[1];
+        if (label2) {
+          label2.textContent = `Descripción del Servicio ${idx + 1}`;
+        }
+      });
+
+      const btnAddServicio = document.getElementById('btn-add-servicio');
+      if (btnAddServicio) {
+        if (blocks.length >= 3) {
+          btnAddServicio.style.display = 'none';
+        } else {
+          btnAddServicio.style.display = 'inline-flex';
+        }
+      }
     }
 
     // Buscador interactivo de autocompletado de clientes
@@ -1932,7 +2089,7 @@
       showToast("Cliente temporal agregado", "success");
     };
 
-    window.promptQuickService = function () {
+    window.promptQuickService = function (idx = 0) {
       const nombre = prompt("Nombre del servicio nuevo o temporal:");
       if (!nombre) return;
       const descripcion = prompt("Descripción técnica detallada del servicio:");
@@ -1946,31 +2103,105 @@
 
       cacheServicios.push(nuevoSrv);
       updateServiciosUI();
-      selectServicio.value = nuevoSrv.id;
-      triggerServicioChange();
+
+      const container = document.getElementById('servicios-dinamicos-container');
+      const blocks = container.querySelectorAll('.servicio-bloque');
+      if (blocks[idx]) {
+        const select = blocks[idx].querySelector('.service-select');
+        if (select) {
+          select.value = nuevoSrv.id;
+          triggerServiciosChange();
+        }
+      }
       showToast("Servicio temporal agregado", "success");
     };
 
-    // Cambios dinámicos en selector de servicios
-    function triggerServicioChange() {
-      const id = selectServicio.value;
-      const servicioEncontrado = cacheServicios.find(s => String(s.id) === String(id));
-      if (servicioEncontrado) {
-        const nombre = resolveServiceName(servicioEncontrado);
-        const desc = resolveServiceDesc(servicioEncontrado);
+    window.triggerServiciosChange = function () {
+      const container = document.getElementById('servicios-dinamicos-container');
+      const blocks = container.querySelectorAll('.servicio-bloque');
+      const previewTbody = document.getElementById('preview-servicios-tbody');
+      const previewThead = document.querySelector('.invoice-table thead');
+      if (!previewTbody || !previewThead) return;
 
-        descServicioTextarea.value = desc;
-        document.getElementById('preview-servicio-nombre').innerText = nombre;
-        document.getElementById('preview-servicio-desc').innerText = desc;
+      previewTbody.innerHTML = '';
+      let hasSelectedServices = false;
+      const selectedServices = [];
+
+      blocks.forEach((block, idx) => {
+        const select = block.querySelector('.service-select');
+        const descTextarea = block.querySelector('.service-desc-display');
+        const priceInput = block.querySelector('.service-price');
+        const val = select ? select.value : '';
+
+        const srv = cacheServicios.find(s => String(s.id) === String(val));
+        if (srv) {
+          const srvName = resolveServiceName(srv);
+          const srvDesc = resolveServiceDesc(srv);
+          if (descTextarea) descTextarea.value = srvDesc;
+          const priceVal = priceInput ? parseFloat(priceInput.value) || 0 : 0;
+          selectedServices.push({ id: val, nombre: srvName, descripcion: srvDesc, precio: priceVal });
+          hasSelectedServices = true;
+        } else {
+          if (descTextarea) descTextarea.value = '';
+        }
+      });
+
+      const servicesCount = selectedServices.length;
+
+      // Update header based on count
+      if (servicesCount > 1) {
+        previewThead.innerHTML = `
+          <tr>
+            <th style="width: 25%;">Servicio</th>
+            <th style="width: 55%;">Descripción detallada</th>
+            <th style="width: 20%; text-align: right;">Precio</th>
+          </tr>
+        `;
       } else {
-        descServicioTextarea.value = '';
-        document.getElementById('preview-servicio-nombre').innerText = 'Seleccione un servicio...';
-        document.getElementById('preview-servicio-desc').innerText = 'La descripción técnica registrada se cargará automáticamente aquí...';
+        previewThead.innerHTML = `
+          <tr>
+            <th style="width: 35%;">Servicio</th>
+            <th style="width: 65%;">Descripción detallada</th>
+          </tr>
+        `;
       }
-      if (typeof updatePreviewLayoutSnugness === 'function') updatePreviewLayoutSnugness();
-    }
 
-    selectServicio.addEventListener('change', triggerServicioChange);
+      if (!hasSelectedServices) {
+        previewTbody.innerHTML = `
+          <tr>
+            <td style="font-weight: 700; font-size: 0.75rem; vertical-align: top;">Seleccione un servicio...</td>
+            <td style="font-size: 0.7rem; color: #475569; font-style: italic; vertical-align: top; line-height: 1.4;">
+              La descripción técnica registrada se cargará automáticamente aquí...</td>
+          </tr>
+        `;
+      } else {
+        selectedServices.forEach(s => {
+          const tr = document.createElement('tr');
+          if (servicesCount > 1) {
+            tr.innerHTML = `
+              <td style="font-weight: 700; font-size: 0.75rem; vertical-align: top;">${escapeHTML(s.nombre)}</td>
+              <td style="font-size: 0.7rem; color: #475569; font-style: italic; vertical-align: top; line-height: 1.4;">
+                ${escapeHTML(getProcessedDescription(s.descripcion, servicesCount))}
+              </td>
+              <td style="font-size: 0.72rem; font-weight: 700; color: #0f172a; vertical-align: top; text-align: right; font-family: monospace;">
+                C$ ${s.precio.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </td>
+            `;
+          } else {
+            tr.innerHTML = `
+              <td style="font-weight: 700; font-size: 0.75rem; vertical-align: top;">${escapeHTML(s.nombre)}</td>
+              <td style="font-size: 0.7rem; color: #475569; font-style: italic; vertical-align: top; line-height: 1.4;">
+                ${escapeHTML(getProcessedDescription(s.descripcion, servicesCount))}
+              </td>
+            `;
+          }
+          previewTbody.appendChild(tr);
+        });
+      }
+
+      updateTotalPrecio();
+      if (typeof updatePreviewLayoutSnugness === 'function') updatePreviewLayoutSnugness();
+    };
 
     // Eventos de sincronización con la previsualización
     fechaInput.addEventListener('change', () => {
@@ -2159,16 +2390,33 @@
       const rucVal = rucInput.value.trim();
       const dirVal = direccionInput.value.trim();
       const contVal = contactoInput.value.trim();
-      const srvId = selectServicio.value;
-      const srvObj = cacheServicios.find(s => String(s.id) === String(srvId));
 
-      if (!cliName || !srvId) {
-        showToast("Por favor complete todos los datos requeridos", "error");
+      // Collect services
+      const serviceBlocks = document.getElementById('servicios-dinamicos-container').querySelectorAll('.servicio-bloque');
+      const serviciosList = [];
+      serviceBlocks.forEach(block => {
+        const select = block.querySelector('.service-select');
+        const val = select ? select.value : '';
+        const priceInput = block.querySelector('.service-price');
+        const priceVal = priceInput ? parseFloat(priceInput.value) || 0 : 0;
+        const srvObj = cacheServicios.find(s => String(s.id) === String(val));
+        if (srvObj) {
+          serviciosList.push({
+            id: val,
+            nombre: resolveServiceName(srvObj),
+            descripcion: resolveServiceDesc(srvObj),
+            precio: priceVal
+          });
+        }
+      });
+
+      if (serviciosList.length === 0) {
+        showToast("Por favor seleccione al menos un servicio", "error");
         return;
       }
 
-      const srvNombre = srvObj ? resolveServiceName(srvObj) : "Servicio Desconocido";
-      const srvDesc = srvObj ? resolveServiceDesc(srvObj) : "";
+      const firstSrv = serviciosList[0];
+      const combinedSrvNames = serviciosList.map(s => s.nombre).join(" + ");
 
       const inputsObs = obsContainer.querySelectorAll('.observacion-input');
       const obsList = [];
@@ -2193,9 +2441,10 @@
         ruc: rucVal,
         direccion: dirVal,
         contacto: contVal,
-        servicio_id: srvId,
-        servicio_nombre: srvNombre,
-        servicio_descripcion: srvDesc,
+        servicio_id: firstSrv.id,
+        servicio_nombre: combinedSrvNames,
+        servicio_descripcion: firstSrv.descripcion,
+        servicios: serviciosList,
         fecha: fechaInput.value,
         precio: parseFloat(precioInput.value) || 0,
         importe_letras: importeLetrasInput.value,
@@ -2234,7 +2483,6 @@
     // Limpieza y restauración de valores por defecto
     window.clearForm = function () {
       document.getElementById('cotizacion-form').reset();
-      descServicioTextarea.value = '';
       selectedClienteObj = null;
 
       // Valores predeterminados del formulario
@@ -2253,6 +2501,43 @@
       `;
       obsContainer.querySelector('.observacion-input').addEventListener('input', updateObservacionesPreview);
 
+      // Limpiar servicios dinámicos
+      const container = document.getElementById('servicios-dinamicos-container');
+      container.innerHTML = `
+        <div class="servicio-bloque" data-index="0">
+          <div class="form-group" style="margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label style="margin-bottom: 0; font-weight: 600;">Servicio Solicitado 1 <span style="color: var(--color-danger);">*</span></label>
+              <button type="button" onclick="promptQuickService(0)"
+                style="background: none; border: none; color: var(--color-primary); font-family: var(--font-title); font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 2px;">
+                <span>+</span> Añadir temporal
+              </button>
+            </div>
+            <select id="servicio_select" class="form-control service-select" required>
+              <option value="">Conectando a Firebase...</option>
+            </select>
+          </div>
+          <div class="form-grid-2" style="margin-bottom: 16px;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label style="color: var(--text-secondary); font-size: 0.8rem;">Descripción del Servicio 1</label>
+              <textarea id="descripcion_servicio_display" class="form-control service-desc-display" readonly
+                style="font-size: 0.8rem; height: 70px; resize: none; line-height: 1.45;"
+                placeholder="La descripción registrada se cargará automáticamente aquí..."></textarea>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label style="color: var(--text-secondary); font-size: 0.8rem;">Precio Servicio 1 (C$) <span style="color: var(--color-danger);">*</span></label>
+              <input type="number" step="0.01" class="form-control service-price" required placeholder="0.00" style="height: 70px;">
+            </div>
+          </div>
+        </div>
+      `;
+      const firstSelect = container.querySelector('.service-select');
+      firstSelect.addEventListener('change', triggerServiciosChange);
+      const firstPrice = container.querySelector('.service-price');
+      firstPrice.addEventListener('input', triggerServiciosChange);
+      populateSelectWithOptions(firstSelect, "");
+      reindexServiceBlocks();
+
       // Reestablecer previsualización
       document.getElementById('preview-cotizacion-numero').innerText = 'COT-0745';
       document.getElementById('preview-cliente-nombre').innerText = 'Escriba un cliente...';
@@ -2263,15 +2548,13 @@
       document.getElementById('preview-tiempo-programacion').innerText = '24 horas';
       document.getElementById('preview-terminos-pago').innerText = 'CONTADO, CREDITO';
       document.getElementById('preview-asesor-tecnico').innerText = 'JOSUE MIRANDA';
-      document.getElementById('preview-servicio-nombre').innerText = 'Seleccione un servicio...';
-      document.getElementById('preview-servicio-desc').innerText = 'La descripción técnica registrada se cargará automáticamente aquí...';
       document.getElementById('preview-precio').innerText = 'C$ 0.00';
       document.getElementById('preview-total-letras').innerText = '--------';
 
       setDefaultDate();
       setNextCotizacionNumber();
       updateObservacionesPreview();
-      if (typeof updatePreviewLayoutSnugness === 'function') updatePreviewLayoutSnugness();
+      triggerServiciosChange();
     };
 
     // Actualización de la lista del historial
@@ -2317,6 +2600,8 @@
       const encontrada = cacheCotizaciones.find(c => String(c.numero_cotizacion).padStart(4, '0') === String(numStr));
 
       if (encontrada) {
+        clearForm();
+
         numCotizacionInput.value = numStr;
         clienteInput.value = encontrada.cliente_nombre;
         rucInput.value = encontrada.ruc || '';
@@ -2332,8 +2617,30 @@
           gerente: encontrada.contacto
         };
 
-        selectServicio.value = encontrada.servicio_id || '';
-        descServicioTextarea.value = encontrada.servicio_descripcion || '';
+        const container = document.getElementById('servicios-dinamicos-container');
+        container.innerHTML = '';
+
+        if (encontrada.servicios && encontrada.servicios.length > 0) {
+          encontrada.servicios.forEach((s, idx) => {
+            addServiceBlock(s.id);
+            const blocks = container.querySelectorAll('.servicio-bloque');
+            const lastBlock = blocks[blocks.length - 1];
+            if (lastBlock) {
+              const priceInput = lastBlock.querySelector('.service-price');
+              if (priceInput) priceInput.value = s.precio || '';
+            }
+          });
+        } else if (encontrada.servicio_id) {
+          addServiceBlock(encontrada.servicio_id);
+          const blocks = container.querySelectorAll('.servicio-bloque');
+          const lastBlock = blocks[blocks.length - 1];
+          if (lastBlock) {
+            const priceInput = lastBlock.querySelector('.service-price');
+            if (priceInput) priceInput.value = encontrada.precio || '';
+          }
+        } else {
+          addServiceBlock('');
+        }
 
         fechaInput.value = encontrada.fecha || '';
         precioInput.value = encontrada.precio || 0;
@@ -2384,12 +2691,11 @@
         document.getElementById('preview-tiempo-programacion').innerText = encontrada.tiempo_programacion || '--------';
         document.getElementById('preview-terminos-pago').innerText = encontrada.terminos_pago || '--------';
         document.getElementById('preview-asesor-tecnico').innerText = encontrada.asesor_tecnico || '--------';
-        document.getElementById('preview-servicio-nombre').innerText = encontrada.servicio_nombre;
-        document.getElementById('preview-servicio-desc').innerText = encontrada.servicio_descripcion;
         document.getElementById('preview-precio').innerText = `C$ ${(encontrada.precio || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         document.getElementById('preview-total-letras').innerText = encontrada.importe_letras || '--------';
 
         updateObservacionesPreview();
+        triggerServiciosChange();
         showToast(`Cotización COT-${numStr} cargada en el formulario`, "success");
         switchTab('nueva-cotizacion');
       }
@@ -2405,16 +2711,38 @@
 
     // Descarga del formulario activo
     window.printInvoice = function () {
-      if (!clienteInput.value || !selectServicio.value || !precioInput.value) {
-        showToast("Por favor, complete al menos el cliente, el servicio y el precio antes de generar el PDF.", "warning");
+      if (!clienteInput.value || !precioInput.value) {
+        showToast("Por favor, complete al menos el cliente y el precio antes de generar el PDF.", "warning");
         return;
       }
 
       const numCot = numCotizacionInput.value || '0745';
-      const srvId = selectServicio.value;
-      const srvObj = cacheServicios.find(s => String(s.id) === String(srvId));
-      const srvNombre = srvObj ? resolveServiceName(srvObj) : "Servicio Cotizado";
-      const srvDesc = srvObj ? resolveServiceDesc(srvObj) : "";
+
+      const serviceBlocks = document.getElementById('servicios-dinamicos-container').querySelectorAll('.servicio-bloque');
+      const serviciosList = [];
+      serviceBlocks.forEach(block => {
+        const select = block.querySelector('.service-select');
+        const val = select ? select.value : '';
+        const priceInput = block.querySelector('.service-price');
+        const priceVal = priceInput ? parseFloat(priceInput.value) || 0 : 0;
+        const srvObj = cacheServicios.find(s => String(s.id) === String(val));
+        if (srvObj) {
+          serviciosList.push({
+            id: val,
+            nombre: resolveServiceName(srvObj),
+            descripcion: resolveServiceDesc(srvObj),
+            precio: priceVal
+          });
+        }
+      });
+
+      if (serviciosList.length === 0) {
+        showToast("Por favor, seleccione al menos un servicio antes de generar el PDF.", "warning");
+        return;
+      }
+
+      const firstSrv = serviciosList[0];
+      const combinedSrvNames = serviciosList.map(s => s.nombre).join(" + ");
 
       const inputsObs = obsContainer.querySelectorAll('.observacion-input');
       const obsList = [];
@@ -2437,8 +2765,10 @@
         ruc: rucInput.value,
         direccion: direccionInput.value,
         contacto: contactoInput.value,
-        servicio_nombre: srvNombre,
-        servicio_descripcion: srvDesc,
+        servicio_id: firstSrv.id,
+        servicio_nombre: combinedSrvNames,
+        servicio_descripcion: firstSrv.descripcion,
+        servicios: serviciosList,
         fecha: fechaInput.value,
         precio: parseFloat(precioInput.value) || 0,
         importe_letras: importeLetrasInput.value,
@@ -2511,7 +2841,6 @@
         doc.setFont('courier', 'bold');
         doc.setFontSize(13);
         doc.text(`COT - ${numFormat}`, 200, 37.5, { align: 'right' });
-
         const parts = (cot.fecha || '').split('-');
         const fechaLegible = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : cot.fecha;
         doc.setFont('helvetica', 'normal');
@@ -2523,12 +2852,12 @@
         doc.setLineWidth(0.6);
         doc.line(15, 49, 200, 49);
 
-        // Bloque Datos Cliente / Datos Comerciales (Alto 32)
+        // Bloque Datos Cliente / Datos Comerciales (Alto 30)
         doc.setDrawColor(...line);
         doc.setFillColor(248, 250, 252);
         doc.setLineWidth(0.3);
-        doc.roundedRect(15, 52, 185, 32, 2, 2, 'FD');
-        doc.line(107.5, 52, 107.5, 84);
+        doc.roundedRect(15, 52, 185, 30, 2, 2, 'FD');
+        doc.line(107.5, 52, 107.5, 82);
 
         // Sección Cliente
         doc.setTextColor(...primary);
@@ -2579,7 +2908,7 @@
         ];
 
         rightRows.forEach(([label, value], idx) => {
-          const y = 61.5 + idx * 4.8;
+          const y = 61.5 + idx * 4.5;
           doc.setFont('helvetica', 'normal');
           doc.setTextColor(...slate);
           doc.setFontSize(8.5);
@@ -2590,107 +2919,67 @@
           doc.text(doc.splitTextToSize(value, 50).slice(0, 1)[0] || '', 142, y);
         });
 
-        // --- Calcular espacio disponible para la descripción del servicio ---
-        // Bloques posteriores a la tabla: precio(20) + obsTitle+gap(11) + obs + legal(43) + margen(10)
-        const obsList2 = cot.observaciones || [];
-        let dynObsLines = 0;
-        obsList2.forEach(obs => {
-          if (obs.trim()) {
-            dynObsLines += doc.splitTextToSize(`- ${obs.trim()}`, 172).length;
-          }
-        });
-        const dynObsHeight = dynObsLines > 0 ? dynObsLines * 4.0 + 6 : 10;
-
-        const RESERVED_HEIGHT = 84 + dynObsHeight;
-        const PAGE_HEIGHT = 279;
-        const TABLE_START_Y = 88;
-        const MAX_TABLE_HEIGHT = PAGE_HEIGHT - TABLE_START_Y - RESERVED_HEIGHT;
-
-        // Fórmula exacta de jsPDF: fontSize_pt × 1.15 × (25.4/72) mm por línea
-        function lineHeightMm(fs) { return fs * 1.15 * 25.4 / 72; }
-
-        // Alto estimado de tabla: cabecera (10pt) + padding (7mm) + nLines × lineH
-        function estimateTableH(nLines, fs) {
-          return lineHeightMm(10) + 7 + nLines * lineHeightMm(fs);
+        // --- CALCULAR ALTURAS Y ESPACIOS DE PIE DE PÁGINA DINÁMICAMENTE ---
+        
+        // Función para calcular la altura del bloque legal
+        function getLegalBlockHeight(d) {
+          let h = 0;
+          const w = 185;
+          const measure = (text, isBold, size, lineH) => {
+            d.setFont('helvetica', isBold ? 'bold' : 'normal');
+            d.setFontSize(size);
+            const lines = d.splitTextToSize(text, w);
+            return lines.length * lineH;
+          };
+          h += measure("El cliente pagará el valor de C$ 700.00 concepto de falso flete.", true, 8.5, 4.0);
+          h += measure("Cuando por motivos ajenos al nuestro el cliente no permite que nuestros técnicos realicen la aplicación (Fumigación), sin previa notificación.", false, 7.5, 3.5);
+          h += measure("Tiempo máximo de espera para realizar el servicio 20-30 minutos.", false, 7.5, 3.5);
+          h += 2.0; // spacer
+          h += measure("Régimen Cuota Fija.", true, 8.5, 4.0);
+          h += measure("NOTA*", true, 8.5, 4.0);
+          h += measure("Nombre del representante legal: JOSUE MIRANDA ROSALES", false, 7.5, 3.5);
+          h += measure("Cuentas banco LaFise Bancentro Córdobas: 130072672", false, 7.5, 3.5);
+          h += measure("Bac córdobas: 369246244", false, 7.5, 3.5);
+          return h;
         }
 
-        const TEXT_AREA_W = 128; // 135mm columna − 7mm padding (3.5×2)
-        const descText = cot.servicio_descripcion || '';
+        // Función para dibujar el bloque legal
+        function drawLegalBlock(d, startY) {
+          let currentY = startY;
+          const w = 185;
 
-        // Elegir el font size más grande que quepa; autoTable wrapeará nativamente
-        let tableFontSize = 7.5; // fallback mínimo
-        for (const fs of [9.5, 8.5, 7.5]) {
-          doc.setFontSize(fs);
-          const nLines = doc.splitTextToSize(descText, TEXT_AREA_W).length;
-          if (estimateTableH(nLines, fs) <= MAX_TABLE_HEIGHT) {
-            tableFontSize = fs;
-            break;
-          }
+          // Borde divisor estético
+          d.setDrawColor(203, 213, 225);
+          d.setLineWidth(0.4);
+          d.line(15, currentY - 2.5, 200, currentY - 2.5);
+
+          const drawItem = (text, isBold, size, lineH) => {
+            d.setFont('helvetica', isBold ? 'bold' : 'normal');
+            d.setFontSize(size);
+            d.setTextColor(isBold ? 15 : 51, isBold ? 23 : 65, isBold ? 42 : 85);
+            const lines = d.splitTextToSize(text, w);
+            lines.forEach(lineText => {
+              d.text(lineText, 15, currentY);
+              currentY += lineH;
+            });
+          };
+
+          drawItem("El cliente pagará el valor de C$ 700.00 concepto de falso flete.", true, 8.5, 4.0);
+          drawItem("Cuando por motivos ajenos al nuestro el cliente no permite que nuestros técnicos realicen la aplicación (Fumigación), sin previa notificación.", false, 7.5, 3.5);
+          drawItem("Tiempo máximo de espera para realizar el servicio 20-30 minutos.", false, 7.5, 3.5);
+          currentY += 2.0; // spacer
+          drawItem("Régimen Cuota Fija.", true, 8.5, 4.0);
+          drawItem("NOTA*", true, 8.5, 4.0);
+          drawItem("Nombre del representante legal: JOSUE MIRANDA ROSALES", false, 7.5, 3.5);
+          drawItem("Cuentas banco LaFise Bancentro Córdobas: 130072672", false, 7.5, 3.5);
+          drawItem("Bac córdobas: 369246244", false, 7.5, 3.5);
         }
 
-        // Tabla del Servicio — texto original para que autoTable llene el ancho completo
-        doc.autoTable({
-          startY: TABLE_START_Y,
-          margin: { left: 15, right: 15 },
-          theme: 'grid',
-          head: [["Servicio Cotizado", "Descripción técnica detallada"]],
-          body: [[cot.servicio_nombre, descText]],
-          styles: {
-            font: 'helvetica',
-            fontSize: tableFontSize,
-            cellPadding: 3.5,
-            valign: 'top',
-            lineColor: line,
-            lineWidth: 0.3,
-            textColor: [51, 65, 85]
-          },
-          headStyles: {
-            fillColor: dark,
-            textColor: [255, 255, 255],
-            fontStyle: 'bold',
-            fontSize: 10,
-            halign: 'left'
-          },
-          columnStyles: {
-            0: { cellWidth: 50, fontStyle: 'bold', textColor: dark },
-            1: { cellWidth: 135 }
-          }
-        });
-
-        // Bloque del Precio
-
-        let priceY = doc.lastAutoTable.finalY + 6;
-
-        doc.setDrawColor(...line);
-        doc.setFillColor(248, 250, 252);
-        doc.roundedRect(15, priceY, 185, 14, 1.5, 1.5, 'FD');
-        doc.line(145, priceY, 145, priceY + 14);
-
-        doc.setTextColor(...primary);
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(7.5);
-        doc.text("IMPORTE EN LETRAS", 20, priceY + 4.5);
-        doc.setTextColor(...dark);
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(8.5);
-        const splitLetras = doc.splitTextToSize(cot.importe_letras || '--------', 115);
-        doc.text(splitLetras, 20, priceY + 9.5);
-
-        doc.setTextColor(...primary);
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(7.5);
-        doc.text("PRECIO NETO TOTAL", 148, priceY + 4.5);
-        doc.setTextColor(...primary);
-        doc.setFont('courier', 'bold');
-        doc.setFontSize(11);
-        doc.text(precioFormat, 148, priceY + 9.5);
-
-        // Bloque Observaciones
-        let obsTop = priceY + 19;
+        // Calcular altura de observaciones
         const obsList = cot.observaciones || [];
-
-        // Calcular líneas y alto dinámicamente
         const wrappedObsLines = [];
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8.0);
         obsList.forEach(obs => {
           if (obs.trim()) {
             const wrapped = doc.splitTextToSize(`- ${obs.trim()}`, 172);
@@ -2700,90 +2989,205 @@
 
         let obsHeight = 10;
         if (wrappedObsLines.length > 0) {
-          obsHeight = wrappedObsLines.length * 4.0 + 6;
+          obsHeight = wrappedObsLines.length * 3.8 + 6;
         }
 
+        // Definir límites de la hoja
+        const PAGE_HEIGHT = 279;
+        const TABLE_START_Y = 85;
+
+        // Calcular posiciones del pie de página de abajo hacia arriba
+        const legalHeight = getLegalBlockHeight(doc);
+        const legalStartY = 269 - legalHeight; // Termina a 10mm del final de página (279)
+        const obsTop = legalStartY - 6 - obsHeight;
+
+        // Altura máxima para la tabla
+        // Restamos: TABLE_START_Y, el precio (12mm) y dos márgenes de 5mm (uno antes y otro después del precio)
+        const maxTableFinalY = obsTop - 22;
+        const MAX_TABLE_HEIGHT = maxTableFinalY - TABLE_START_Y;
+
+        // --- PREPARAR DATOS DE LA TABLA ---
+        let bodyRows = [];
+        let headers = [];
+        const servicesCount = cot.servicios ? cot.servicios.length : 1;
+
+        if (servicesCount > 1) {
+          headers = [["Servicio Cotizado", "Descripción técnica detallada", "Precio"]];
+          bodyRows = cot.servicios.map(s => [
+            s.nombre,
+            getProcessedDescription(s.descripcion, servicesCount),
+            `C$ ${(s.precio || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          ]);
+        } else {
+          headers = [["Servicio Cotizado", "Descripción técnica detallada"]];
+          if (cot.servicios && cot.servicios.length > 0) {
+            bodyRows = [[
+              cot.servicios[0].nombre,
+              getProcessedDescription(cot.servicios[0].descripcion, 1)
+            ]];
+          } else {
+            bodyRows = [[
+              cot.servicio_nombre,
+              getProcessedDescription(cot.servicio_descripcion || '', 1)
+            ]];
+          }
+        }
+
+        const TEXT_AREA_W = servicesCount > 1 ? 108 : 128;
+
+        // --- SELECCIONAR TAMAÑO Y PADDING DE CELDA ÓPTIMO ---
+        let tableFontSize = 6.5;
+        let tableCellPadding = 1.5;
+
+        const configurations = [
+          { fs: 9.5, pad: 2.8 },
+          { fs: 8.5, pad: 2.4 },
+          { fs: 7.5, pad: 2.0 },
+          { fs: 6.5, pad: 1.5 },
+          { fs: 5.5, pad: 1.2 }
+        ];
+
+        // Función para estimar la altura de la tabla en mm
+        function estimateTableH(nLines, fs, pad, nRows) {
+          const lineH = fs * 1.15 * 25.4 / 72;
+          const headerH = (10 * 1.15 * 25.4 / 72) + 7;
+          const contentPaddingH = nRows * (pad * 2);
+          return headerH + contentPaddingH + (nLines * lineH);
+        }
+
+        for (const conf of configurations) {
+          doc.setFontSize(conf.fs);
+          let estimatedLines = 0;
+          bodyRows.forEach(row => {
+            estimatedLines += doc.splitTextToSize(row[1], TEXT_AREA_W).length;
+          });
+          const estimatedHeight = estimateTableH(estimatedLines, conf.fs, conf.pad, bodyRows.length);
+          if (estimatedHeight <= MAX_TABLE_HEIGHT) {
+            tableFontSize = conf.fs;
+            tableCellPadding = conf.pad;
+            break;
+          }
+        }
+
+        // --- TRUNCAR DESCRIPCIONES PARA GARANTIZAR UNA SOLA PÁGINA ---
+        // Calcular cuántas líneas de texto caben en la tabla con el tamaño de fuente elegido
+        const lineHeightMm = tableFontSize * 1.15 * 25.4 / 72;
+        const headerHeightMm = (Math.max(8.0, tableFontSize + 0.5) * 1.15 * 25.4 / 72) + 7;
+        const availableForRows = MAX_TABLE_HEIGHT - headerHeightMm;
+        const maxTotalLinesAllRows = Math.floor((availableForRows - bodyRows.length * tableCellPadding * 2) / lineHeightMm);
+        const maxLinesPerRow = Math.max(3, Math.floor(maxTotalLinesAllRows / bodyRows.length));
+
+        doc.setFontSize(tableFontSize);
+        bodyRows = bodyRows.map(row => {
+          const descIdx = servicesCount > 1 ? 1 : 1;
+          const wrapped = doc.splitTextToSize(row[descIdx], TEXT_AREA_W);
+          if (wrapped.length > maxLinesPerRow) {
+            // Truncate and add ellipsis
+            const truncated = wrapped.slice(0, maxLinesPerRow);
+            let lastLine = truncated[maxLinesPerRow - 1];
+            if (lastLine.length > 3) lastLine = lastLine.substring(0, lastLine.length - 3) + '...';
+            truncated[maxLinesPerRow - 1] = lastLine;
+            const newRow = [...row];
+            newRow[descIdx] = truncated.join('\n');
+            return newRow;
+          }
+          return row;
+        });
+
+        const columnStylesConf = servicesCount > 1 ? {
+          0: { cellWidth: 40, fontStyle: 'bold', textColor: dark },
+          1: { cellWidth: 115 },
+          2: { cellWidth: 30, halign: 'right', fontStyle: 'bold', textColor: dark }
+        } : {
+          0: { cellWidth: 50, fontStyle: 'bold', textColor: dark },
+          1: { cellWidth: 135 }
+        };
+
+        // Dibujar Tabla (pageBreak: 'avoid' garantiza una sola página)
+        doc.autoTable({
+          startY: TABLE_START_Y,
+          margin: { left: 15, right: 15 },
+          theme: 'grid',
+          head: headers,
+          body: bodyRows,
+          showHead: 'firstPage',
+          pageBreak: 'avoid',
+          styles: {
+            font: 'helvetica',
+            fontSize: tableFontSize,
+            cellPadding: tableCellPadding,
+            valign: 'top',
+            lineColor: line,
+            lineWidth: 0.3,
+            textColor: [51, 65, 85],
+            overflow: 'linebreak'
+          },
+          headStyles: {
+            fillColor: dark,
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            fontSize: Math.max(8.0, tableFontSize + 0.5),
+            halign: 'left'
+          },
+          columnStyles: columnStylesConf
+        });
+
+        // --- DIBUJAR BLOQUE DE PRECIO ---
+        // Clamp priceY: nunca puede solaparse con el bloque de observaciones
+        let priceY = Math.min(doc.lastAutoTable.finalY + 5, obsTop - 17);
+
+        doc.setDrawColor(...line);
+        doc.setFillColor(248, 250, 252);
+        doc.setLineWidth(0.3);
+        doc.roundedRect(15, priceY, 185, 12, 1.5, 1.5, 'FD');
+        doc.line(145, priceY, 145, priceY + 12);
+
+        doc.setTextColor(...primary);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.text("IMPORTE EN LETRAS", 20, priceY + 4.0);
+        doc.setTextColor(...dark);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.0);
+        const splitLetras = doc.splitTextToSize(cot.importe_letras || '--------', 115);
+        doc.text(splitLetras, 20, priceY + 8.5);
+
+        doc.setTextColor(...primary);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.text("PRECIO NETO TOTAL", 148, priceY + 4.0);
+        doc.setTextColor(...primary);
+        doc.setFont('courier', 'bold');
+        doc.setFontSize(11);
+        doc.text(precioFormat, 148, priceY + 8.5);
+
+        // --- DIBUJAR OBSERVACIONES ---
         doc.setFillColor(255, 251, 235);
         doc.setDrawColor(253, 230, 138);
+        doc.setLineWidth(0.3);
         doc.roundedRect(15, obsTop, 185, obsHeight, 1.5, 1.5, 'FD');
 
         doc.setTextColor(...primary);
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(8.5);
-        doc.text("OBSERVACIONES Y CONDICIONES DE OFERTA", 15, obsTop - 3.0);
+        doc.text("OBSERVACIONES Y CONDICIONES DE OFERTA", 15, obsTop - 2.5);
 
         doc.setTextColor(51, 65, 85);
         doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
+        doc.setFontSize(8.0);
 
         if (wrappedObsLines.length === 0) {
-          doc.text("Sin observaciones registradas.", 20, obsTop + 6.5);
+          doc.text("Sin observaciones registradas.", 20, obsTop + 6.0);
         } else {
-          let currentObsY = obsTop + 6.5;
+          let currentObsY = obsTop + 5.5;
           wrappedObsLines.forEach(lineText => {
             doc.text(lineText, 20, currentObsY);
-            currentObsY += 4.0;
+            currentObsY += 3.8;
           });
         }
 
-        // Bloque Legal (En reemplazo de firmas)
-        let legalY = obsTop + obsHeight + 8;
-
-        // Borde divisor estético
-        doc.setDrawColor(203, 213, 225);
-        doc.setLineWidth(0.4);
-        doc.line(15, legalY - 2.5, 200, legalY - 2.5);
-
-        // Cláusula de Falso Flete (Negrita) - ancho total 185mm
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(8.5);
-        doc.setTextColor(...dark);
-        const falteFlete = "El cliente pagará el valor de C$ 700.00 concepto de falso flete.";
-        const fleteLines = doc.splitTextToSize(falteFlete, 185);
-        fleteLines.forEach(lineText => {
-          doc.text(lineText, 15, legalY);
-          legalY += 4.2;
-        });
-
-        // Texto secundario flete (Normal) - ancho completo 185mm
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(51, 65, 85);
-        const text1 = "Cuando por motivos ajenos al nuestro el cliente no permite que nuestros técnicos realicen la aplicación (Fumigación), sin previa notificación.";
-        const text2 = "Tiempo máximo de espera para realizar el servicio 20-30 minutos.";
-
-        const linesText1 = doc.splitTextToSize(text1, 185);
-        linesText1.forEach(lineText => {
-          doc.text(lineText, 15, legalY);
-          legalY += 3.8;
-        });
-        const linesText2 = doc.splitTextToSize(text2, 185);
-        linesText2.forEach(lineText => {
-          doc.text(lineText, 15, legalY);
-          legalY += 3.8;
-        });
-        legalY += 2.2;
-
-        // Régimen Cuota Fija y NOTA (Negrita)
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(8.5);
-        doc.setTextColor(...dark);
-        doc.text("Régimen Cuota Fija.", 15, legalY);
-        legalY += 4.2;
-
-        doc.text("NOTA*", 15, legalY);
-        legalY += 4.2;
-
-        // Datos del Representante y Cuentas Bancarias (Normal)
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(51, 65, 85);
-        const repLine = "Nombre del representante legal: JOSUE MIRANDA ROSALES";
-        const lafiseLine = "Cuentas banco LaFise Bancentro Córdobas: 130072672";
-        const bacLine = "Bac córdobas: 369246244";
-        doc.splitTextToSize(repLine, 185).forEach(l => { doc.text(l, 15, legalY); legalY += 3.8; });
-        doc.splitTextToSize(lafiseLine, 185).forEach(l => { doc.text(l, 15, legalY); legalY += 3.8; });
-        doc.splitTextToSize(bacLine, 185).forEach(l => { doc.text(l, 15, legalY); legalY += 3.8; });
+        // --- DIBUJAR BLOQUE LEGAL EN PIE DE PÁGINA ---
+        drawLegalBlock(doc, legalStartY);
 
         // Nombre del archivo: COT [CLIENTE] COT-[NUMERO]
         const clienteNombrePDF = (cot.cliente_nombre || 'Cliente').replace(/[/\\?%*:|"<>]/g, '-').trim();
@@ -2891,34 +3295,29 @@
 
     // Escalamiento de previsualización según tamaño del texto
     window.updatePreviewLayoutSnugness = function () {
-      const descText = document.getElementById('preview-servicio-desc').innerText;
+      const previewTbody = document.getElementById('preview-servicios-tbody');
+      if (!previewTbody) return;
+      const descText = previewTbody.innerText;
       const obsText = document.getElementById('preview-observaciones').innerText;
       const totalLen = descText.length + obsText.length;
 
       const previewContainer = document.getElementById('invoice-preview');
-      const tableDescCell = document.getElementById('preview-servicio-desc');
       const obsBlock = document.getElementById('preview-observaciones');
 
-      if (!previewContainer || !tableDescCell || !obsBlock) return;
+      if (!previewContainer || !obsBlock) return;
 
       if (totalLen > 900) {
         previewContainer.style.fontSize = '0.62rem';
-        tableDescCell.style.fontSize = '0.58rem';
-        tableDescCell.style.lineHeight = '1.25';
         obsBlock.style.fontSize = '0.60rem';
         obsBlock.style.lineHeight = '1.25';
         obsBlock.style.padding = '6px';
       } else if (totalLen > 600) {
         previewContainer.style.fontSize = '0.66rem';
-        tableDescCell.style.fontSize = '0.64rem';
-        tableDescCell.style.lineHeight = '1.3';
         obsBlock.style.fontSize = '0.64rem';
         obsBlock.style.lineHeight = '1.3';
         obsBlock.style.padding = '8px';
       } else {
         previewContainer.style.fontSize = '0.72rem';
-        tableDescCell.style.fontSize = '0.7rem';
-        tableDescCell.style.lineHeight = '1.4';
         obsBlock.style.fontSize = '0.72rem';
         obsBlock.style.lineHeight = '1.4';
         obsBlock.style.padding = '10px';
