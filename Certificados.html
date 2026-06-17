@@ -711,6 +711,35 @@
                     </div>
                 </div>
 
+                <!-- Sección de Vehículo (Opcional) -->
+                <div class="form-group" style="margin-top: 10px;">
+                    <button type="button" id="btn-toggle-vehiculo" class="btn btn-secondary" style="width: auto; font-size: 0.85rem; padding: 8px 16px; display: inline-flex; align-items: center; gap: 6px;">
+                        <span>➕ Agregar Información de Vehículo</span>
+                    </button>
+                </div>
+                <div id="vehiculo-inputs-container" class="hidden form-grid" style="border: 1px dashed var(--border-color); padding: 16px; border-radius: 8px; margin-bottom: 15px; background: rgba(15, 23, 42, 0.01);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h4 style="font-family: var(--font-title); font-size: 0.9rem; font-weight: 700; color: var(--text-secondary);">Información del Vehículo (Opcional)</h4>
+                        <button type="button" id="btn-quitar-vehiculo" class="btn-action" style="padding: 4px 8px; font-size: 0.75rem; border: none; border-radius: 4px; color: var(--color-danger); cursor: pointer;">
+                            Quitar ❌
+                        </button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="vehiculo_tipo">Vehículo (Ej: Camión)</label>
+                            <input type="text" id="vehiculo_tipo" name="vehiculo_tipo" placeholder="Tipo de Vehículo" class="form-control">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="vehiculo_marca">Marca</label>
+                            <input type="text" id="vehiculo_marca" name="vehiculo_marca" placeholder="Marca" class="form-control">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="vehiculo_placa">Placa</label>
+                            <input type="text" id="vehiculo_placa" name="vehiculo_placa" placeholder="Placa" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Acciones de Generación -->
                 <div style="margin-top: 12px; border-top: 1px solid var(--border-color); padding-top: 16px;">
                     <button type="button" onclick="generarCertificado()" class="btn btn-primary">
@@ -810,6 +839,14 @@
                         <p style="font-size: 1.1rem; font-weight: 700;">RUC: <span id="cert-ruc"></span></p>
                     </div>
 
+                    <!-- Datos del Vehículo (Opcional, se muestra solo si se ingresaron datos) -->
+                    <div id="cert-vehiculo-block" style="display: none; text-align: center; margin-top: 5px; margin-bottom: 15px; font-family: 'Plus Jakarta Sans', sans-serif;">
+                        <p style="font-size: 1.05rem; font-weight: 800; text-transform: uppercase; color: #dc2626; margin-bottom: 2px;">Para el Vehículo:</p>
+                        <p style="font-size: 1.15rem; font-weight: 700; color: #0f172a;">
+                            <span id="cert-vehiculo-tipo"></span> / Marca: <span id="cert-vehiculo-marca"></span> / Placa: <span id="cert-vehiculo-placa"></span>
+                        </p>
+                    </div>
+
                     <p style="margin-bottom: 12px;">
                         Los productos utilizados son biodegradables y autorizados por el ministerio de
                         agricultura y ganadería para el control de plaga de salud pública, garantizando de
@@ -838,6 +875,38 @@
             </div>
         </div>
 
+        <!-- SECCIÓN DE HISTORIAL DE CERTIFICADOS (Se oculta al imprimir) -->
+        <div id="historial-section" class="card no-print" style="margin-top: 32px;">
+            <h2 class="card-title">
+                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Historial de Certificados Emitidos</span>
+            </h2>
+            
+            <div style="overflow-x: auto;">
+                <table id="tabla-historial" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-secondary); font-weight: 600;">
+                            <th style="padding: 12px 8px;">Fecha</th>
+                            <th style="padding: 12px 8px;">Cliente</th>
+                            <th style="padding: 12px 8px;">RUC</th>
+                            <th style="padding: 12px 8px;">Período</th>
+                            <th style="padding: 12px 8px;">Vehículo / Placa</th>
+                            <th style="padding: 12px 8px; text-align: center;">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historial-body">
+                        <tr>
+                            <td colspan="6" style="padding: 24px; text-align: center; color: var(--text-secondary);">
+                                Cargando historial desde Firestore...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </main>
 
 
@@ -853,7 +922,7 @@
     <!-- Firebase SDK Importaciones (v10.8.0) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, addDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Configuración de Firebase provista por el usuario
         const firebaseConfig = {
@@ -869,6 +938,7 @@
         let app, db;
         let isConnected = false;
         let cacheClientes = [];
+        let cacheHistorial = [];
 
         // Buscador dinámico de campos por compatibilidad con diferentes esquemas
         function resolveClientName(cli) {
@@ -893,6 +963,31 @@
 
             // Setear el año actual por defecto
             document.getElementById('anio').value = new Date().getFullYear();
+
+            // Inicializar botones de vehículo
+            const btnToggle = document.getElementById('btn-toggle-vehiculo');
+            const btnQuitar = document.getElementById('btn-quitar-vehiculo');
+            const container = document.getElementById('vehiculo-inputs-container');
+            const inputTipo = document.getElementById('vehiculo_tipo');
+            const inputMarca = document.getElementById('vehiculo_marca');
+            const inputPlaca = document.getElementById('vehiculo_placa');
+
+            if (btnToggle && container) {
+                btnToggle.addEventListener('click', () => {
+                    container.classList.remove('hidden');
+                    btnToggle.parentElement.classList.add('hidden');
+                });
+            }
+
+            if (btnQuitar && container) {
+                btnQuitar.addEventListener('click', () => {
+                    if (inputTipo) inputTipo.value = '';
+                    if (inputMarca) inputMarca.value = '';
+                    if (inputPlaca) inputPlaca.value = '';
+                    container.classList.add('hidden');
+                    if (btnToggle) btnToggle.parentElement.classList.remove('hidden');
+                });
+            }
 
             // Sincronizar Firebase Firestore
             try {
@@ -925,6 +1020,48 @@
             }
         }
 
+        // Renderizar Historial en el DOM (Usado para modo local)
+        function renderHistorialLocal() {
+            const historialBody = document.getElementById("historial-body");
+            if (!historialBody) return;
+            historialBody.innerHTML = "";
+            if (cacheHistorial.length === 0) {
+                historialBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="padding: 24px; text-align: center; color: var(--text-secondary);">
+                            No hay certificados emitidos en el historial (Modo Local).
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            cacheHistorial.forEach(cert => {
+                const date = new Date(cert.fechaEmision).toLocaleString();
+                const cliente = cert.cliente || "N/A";
+                const ruc = cert.ruc || "N/A";
+                const mesAnio = `${cert.mes || ""} ${cert.anio || ""}`.trim();
+                const vehiculoInfo = cert.vehiculo ? `${cert.vehiculo} (M: ${cert.marca || "N/A"}, P: ${cert.placa || "N/A"})` : "Ninguno";
+                
+                const tr = document.createElement("tr");
+                tr.style.borderBottom = "1px solid var(--border-color)";
+                tr.style.fontSize = "0.85rem";
+                
+                tr.innerHTML = `
+                    <td style="padding: 10px 8px; color: var(--text-secondary);">${date}</td>
+                    <td style="padding: 10px 8px; font-weight: 600;">${cliente}</td>
+                    <td style="padding: 10px 8px; font-family: monospace;">${ruc}</td>
+                    <td style="padding: 10px 8px; text-transform: capitalize;">${mesAnio}</td>
+                    <td style="padding: 10px 8px; color: var(--text-secondary);">${vehiculoInfo}</td>
+                    <td style="padding: 10px 8px; text-align: center;">
+                        <button onclick="descargarCertificadoHistorial('${cert.id}')" class="btn btn-primary" style="width: auto; padding: 6px 12px; font-size: 0.75rem;">
+                            📥 Descargar
+                        </button>
+                    </td>
+                `;
+                historialBody.appendChild(tr);
+            });
+        }
+
         // Listener en tiempo real de colecciones Firebase
         function listenToFirebaseCollections() {
             onSnapshot(collection(db, "clientes"), (snapshot) => {
@@ -938,6 +1075,61 @@
                 showToast("Error al sincronizar clientes. Verifique reglas de Firestore.", "error");
                 enableLocalSimulation();
             });
+
+            // ESCUCHAR HISTORIAL DE CERTIFICADOS EMITIDOS
+            const certsQuery = query(collection(db, "certificados_emitidos"), orderBy("timestamp", "desc"));
+            onSnapshot(certsQuery, (snapshot) => {
+                const historialBody = document.getElementById("historial-body");
+                if (!historialBody) return;
+                
+                historialBody.innerHTML = "";
+                cacheHistorial = [];
+                
+                if (snapshot.empty) {
+                    historialBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="padding: 24px; text-align: center; color: var(--text-secondary);">
+                                No hay certificados emitidos en el historial.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const id = doc.id;
+                    cacheHistorial.push({ id, ...data });
+                    
+                    const date = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString() : (data.fechaEmision ? new Date(data.fechaEmision).toLocaleString() : "N/A");
+                    const cliente = data.cliente || "N/A";
+                    const ruc = data.ruc || "N/A";
+                    const mesAnio = `${data.mes || ""} ${data.anio || ""}`.trim();
+                    const vehiculoInfo = data.vehiculo ? `${data.vehiculo} (M: ${data.marca || "N/A"}, P: ${data.placa || "N/A"})` : "Ninguno";
+                    
+                    const tr = document.createElement("tr");
+                    tr.style.borderBottom = "1px solid var(--border-color)";
+                    tr.style.fontSize = "0.85rem";
+                    
+                    tr.innerHTML = `
+                        <td style="padding: 10px 8px; color: var(--text-secondary);">${date}</td>
+                        <td style="padding: 10px 8px; font-weight: 600;">${cliente}</td>
+                        <td style="padding: 10px 8px; font-family: monospace;">${ruc}</td>
+                        <td style="padding: 10px 8px; text-transform: capitalize;">${mesAnio}</td>
+                        <td style="padding: 10px 8px; color: var(--text-secondary);">${vehiculoInfo}</td>
+                        <td style="padding: 10px 8px; text-align: center;">
+                            <button onclick="descargarCertificadoHistorial('${id}')" class="btn btn-primary" style="width: auto; padding: 6px 12px; font-size: 0.75rem;">
+                                📥 Descargar
+                            </button>
+                        </td>
+                    `;
+                    historialBody.appendChild(tr);
+                });
+            }, (error) => {
+                console.error("Falla al escuchar certificados emitidos:", error);
+                // Si falla por permisos/reglas, mostramos local simulation
+                enableLocalSimulation();
+            });
         }
 
         // Simulación local de respaldo en caso de desconexión
@@ -947,6 +1139,20 @@
                 { id: 'cli-demo2', nombre: 'Corporación Salvadoreña (Local)', ruc: '0012704961001T' },
                 { id: 'cli-demo3', nombre: 'COMEDOR LA FINCA (Local)', ruc: '0012506840003H' }
             ];
+            cacheHistorial = [
+                {
+                    id: 'cert-local1',
+                    cliente: 'Distribuidora Díaz (Local)',
+                    ruc: '0011408820005K',
+                    mes: 'enero',
+                    anio: 2026,
+                    vehiculo: 'Camioneta',
+                    marca: 'Toyota',
+                    placa: 'M-554231',
+                    fechaEmision: new Date().toISOString()
+                }
+            ];
+            renderHistorialLocal();
         }
 
         // Autocompletado del Campo de Cliente
@@ -1033,15 +1239,31 @@
             document.getElementById('cert-mes').innerText = mes;
             document.getElementById('cert-anio').innerText = anio;
 
-            // Transici\u00f3n visual
+            // Manejo de información de vehículo
+            const vehiculoVal = document.getElementById('vehiculo_tipo').value.trim();
+            const marcaVal = document.getElementById('vehiculo_marca').value.trim();
+            const placaVal = document.getElementById('vehiculo_placa').value.trim();
+
+            const hasVehiculo = (vehiculoVal || marcaVal || placaVal);
+
+            if (hasVehiculo) {
+                document.getElementById('cert-vehiculo-tipo').innerText = vehiculoVal || 'N/A';
+                document.getElementById('cert-vehiculo-marca').innerText = marcaVal || 'N/A';
+                document.getElementById('cert-vehiculo-placa').innerText = placaVal || 'N/A';
+                document.getElementById('cert-vehiculo-block').style.display = 'block';
+            } else {
+                document.getElementById('cert-vehiculo-block').style.display = 'none';
+            }
+
+            // Transición visual
             document.getElementById('form-section').classList.add('hidden');
             document.getElementById('cert-section').classList.remove('hidden');
             showToast("Vista previa generada", "success");
 
-            // Auditor\u00eda
+            // Auditoría
             if (window.parent && typeof window.parent.logAudit === 'function') {
               window.parent.logAudit('GENERAR_CERTIFICADO', 'Certificados',
-                `Vista previa generada para: ${clienteVal} | RUC: ${rucVal} | Per\u00edodo: ${mes} ${anio}`
+                `Vista previa generada para: ${clienteVal} | RUC: ${rucVal} | Período: ${mes} ${anio}`
               );
             }
         }
@@ -1050,6 +1272,116 @@
         function volver() {
             document.getElementById('cert-section').classList.add('hidden');
             document.getElementById('form-section').classList.remove('hidden');
+        }
+
+        // Guardar certificado emitido en Firestore o Localmente
+        async function guardarCertificadoEnFirestore() {
+            const clienteVal = clienteInput.value;
+            const rucVal = rucInput.value;
+            const mes = document.getElementById('mes').value;
+            const anio = document.getElementById('anio').value;
+            const vehiculoVal = document.getElementById('vehiculo_tipo').value.trim();
+            const marcaVal = document.getElementById('vehiculo_marca').value.trim();
+            const placaVal = document.getElementById('vehiculo_placa').value.trim();
+
+            if (!isConnected || !db) {
+                console.log("No conectado a Firebase, guardando en historial local.");
+                const localCert = {
+                    id: 'cert-local-' + Date.now(),
+                    cliente: clienteVal,
+                    ruc: rucVal,
+                    mes: mes,
+                    anio: parseInt(anio) || new Date().getFullYear(),
+                    vehiculo: vehiculoVal || null,
+                    marca: marcaVal || null,
+                    placa: placaVal || null,
+                    fechaEmision: new Date().toISOString()
+                };
+                cacheHistorial.unshift(localCert);
+                renderHistorialLocal();
+                showToast("Certificado guardado en historial local", "warning");
+                return;
+            }
+
+            try {
+                const docRef = await addDoc(collection(db, "certificados_emitidos"), {
+                    cliente: clienteVal,
+                    ruc: rucVal,
+                    mes: mes,
+                    anio: parseInt(anio) || new Date().getFullYear(),
+                    vehiculo: vehiculoVal || null,
+                    marca: marcaVal || null,
+                    placa: placaVal || null,
+                    fechaEmision: new Date().toISOString(),
+                    timestamp: serverTimestamp()
+                });
+                console.log("Certificado registrado en Firestore con ID:", docRef.id);
+                showToast("Certificado registrado en el historial", "success");
+            } catch (e) {
+                console.error("Error al registrar en Firestore:", e);
+                showToast("Error al guardar en el historial", "error");
+            }
+        }
+
+        // Descargar certificado desde el historial
+        function descargarCertificadoHistorial(id) {
+            const cert = cacheHistorial.find(c => c.id === id);
+            if (!cert) {
+                showToast("Certificado no encontrado", "error");
+                return;
+            }
+
+            // Respaldar datos actuales del formulario
+            const originalCliente = clienteInput.value;
+            const originalRuc = rucInput.value;
+            const originalMes = document.getElementById('mes').value;
+            const originalAnio = document.getElementById('anio').value;
+            
+            // Llenar datos en el certificado temporalmente
+            document.getElementById('cert-cliente').innerText = cert.cliente;
+            document.getElementById('cert-ruc').innerText = cert.ruc;
+            document.getElementById('cert-mes').innerText = cert.mes;
+            document.getElementById('cert-anio').innerText = cert.anio;
+
+            if (cert.vehiculo || cert.marca || cert.placa) {
+                document.getElementById('cert-vehiculo-tipo').innerText = cert.vehiculo || 'N/A';
+                document.getElementById('cert-vehiculo-marca').innerText = cert.marca || 'N/A';
+                document.getElementById('cert-vehiculo-placa').innerText = cert.placa || 'N/A';
+                document.getElementById('cert-vehiculo-block').style.display = 'block';
+            } else {
+                document.getElementById('cert-vehiculo-block').style.display = 'none';
+            }
+
+            const element = document.getElementById('cert-paper');
+            const cliente = cert.cliente || 'Cliente';
+
+            const opt = {
+                margin: 0,
+                filename: `CERTIFICADO ${cliente}.pdf`,
+                image: { type: 'jpeg', quality: 1.0 },
+                html2canvas: {
+                    scale: 3,
+                    useCORS: true,
+                    letterRendering: true
+                },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            showToast("Descargando PDF desde historial...", "info");
+
+            html2pdf().set(opt).from(element).save()
+                .then(() => {
+                    showToast("PDF descargado con éxito", "success");
+                    // Restaurar datos de la vista previa con el estado del formulario actual si está visible
+                    const isFormHidden = document.getElementById('form-section').classList.contains('hidden');
+                    if (isFormHidden) {
+                        generarCertificado(); // Regenera con lo del formulario
+                    }
+                })
+                .catch(err => {
+                    console.error("Error al exportar PDF desde historial:", err);
+                    showToast("Error al descargar el PDF", "error");
+                });
         }
 
         // Descargar Directamente el PDF o lanzar diálogo nativo como fallback
@@ -1076,11 +1408,14 @@
             html2pdf().set(opt).from(element).save()
                 .then(() => {
                     showToast("PDF descargado con éxito", "success");
+                    guardarCertificadoEnFirestore();
                 })
                 .catch(err => {
                     console.error("Error al exportar PDF con html2pdf:", err);
                     showToast("Iniciando ventana de impresión estándar...", "warning");
                     window.print();
+                    // Intentar guardar de todas formas
+                    guardarCertificadoEnFirestore();
                 });
         }
 
@@ -1138,6 +1473,7 @@
         window.imprimirPDF = imprimirPDF;
         window.toggleTheme = toggleTheme;
         window.showToast = showToast;
+        window.descargarCertificadoHistorial = descargarCertificadoHistorial;
     </script>
 </body>
 
