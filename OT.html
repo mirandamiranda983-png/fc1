@@ -1718,6 +1718,49 @@
       return srv.descripcion || srv.description || srv.detalle || srv.desc || srv.detail || 'Sin descripción guardada.';
     }
 
+    // Ordena y limpia texto libre (descripciones, observaciones) antes de imprimirlo en el PDF.
+    // Resuelve el problema de texto "desordenado": cuando el texto fuente trae saltos de línea
+    // sueltos (copiado de otro lado, renglones cortados a la mitad, espacios dobles, etc.),
+    // esta función junta las líneas que son continuación de la misma idea en un solo párrafo
+    // fluido, y respeta los saltos reales como viñetas, listas numeradas o fin de oración.
+    function formatTextoOrdenado(texto) {
+      if (!texto) return texto;
+
+      const limpio = String(texto).replace(/\r\n/g, '\n').replace(/\t/g, ' ');
+
+      // Cada línea se limpia de espacios repetidos y espacios al inicio/fin
+      const lineasCrudas = limpio.split('\n').map(l => l.replace(/[ ]{2,}/g, ' ').trim());
+
+      // Detecta líneas que son ítems de lista (viñetas, numeración, letras con punto)
+      const esItemLista = (linea) => /^([-•*▪◦]|\d+[\.\)]|[a-zA-Z][\.\)])\s+/.test(linea);
+      // Detecta si una línea termina en puntuación de cierre de oración
+      const terminaOracion = (linea) => /[\.\:\;\!\?]$/.test(linea);
+
+      const lineasFinales = [];
+      lineasCrudas.forEach((linea) => {
+        if (linea === '') return; // se descartan líneas vacías sueltas
+
+        const anterior = lineasFinales[lineasFinales.length - 1];
+
+        const debeUnirse =
+          lineasFinales.length > 0 &&
+          !esItemLista(linea) &&
+          anterior &&
+          !esItemLista(anterior) &&
+          !terminaOracion(anterior);
+
+        if (debeUnirse) {
+          // La línea anterior no cerró la idea: esta línea es la continuación
+          // (probablemente un salto de línea accidental), así que se unen.
+          lineasFinales[lineasFinales.length - 1] = anterior + ' ' + linea;
+        } else {
+          lineasFinales.push(linea);
+        }
+      });
+
+      return lineasFinales.join('\n');
+    }
+
     window.onload = async function () {
       setDefaultDateTime();
       setNextOrderNumber();
@@ -2386,74 +2429,96 @@
             <button onclick="cargarOrdenEnFormulario('${escapeHTML(getOrderIdentifier(ord))}')" class="btn-action edit" title="Cargar Orden" style="width: auto; padding: 4px 10px; font-size: 0.75rem; height: auto;">
               Cargar
             </button>
+            <button onclick="descargarPdfDesdeHistorial('${escapeHTML(getOrderIdentifier(ord))}')" class="btn-action edit" title="Descargar PDF" style="width: auto; padding: 4px 10px; font-size: 0.75rem; height: auto; margin-left: 6px;">
+              PDF
+            </button>
           </td>
         `;
         tableBody.appendChild(row);
       });
     }
 
+    // Vuelca los datos de una orden del historial en el formulario y en la previsualización.
+    // Se usa tanto para "Cargar" (editar) como para "Descargar PDF" directo desde el historial.
+    function popularFormularioConOrden(encontrada) {
+      const clienteId = encontrada.cliente_id || 'cli-history-' + Date.now();
+      const servicioId = encontrada.servicio_id || 'srv-history-' + Date.now();
+
+      // Si los IDs de la orden no están en caché, los agregamos para que la UI los pinte correctamente
+      if (!cacheClientes.some(c => String(c.id) === String(clienteId))) {
+        cacheClientes.push({
+          id: clienteId,
+          nombre: encontrada.cliente_nombre,
+          telefono: encontrada.cliente_telefono || "--------",
+          correo: encontrada.cliente_correo || "--------"
+        });
+        updateClientesUI();
+      }
+
+      if (!cacheServicios.some(s => String(s.id) === String(servicioId))) {
+        cacheServicios.push({
+          id: servicioId,
+          nombre: encontrada.servicio_nombre,
+          descripcion: encontrada.servicio_descripcion || "Sin descripción"
+        });
+        updateServiciosUI();
+      }
+
+      numOtInput.value = getOrderIdentifier(encontrada);
+      numFacturaInput.value = getInvoiceNumber(encontrada);
+      fechaHoraInput.value = encontrada.fecha_hora || encontrada.fecha || '';
+      loadTecnicosIntoContainer(encontrada.tecnico || '');
+      observacionInput.value = encontrada.observacion || '';
+      direccionInput.value = encontrada.direccion || '';
+      contactoInput.value = encontrada.atencion_de || encontrada.contacto || '';
+      sectorInput.value = encontrada.sector || '';
+      applyTipoServicioSelection(encontrada.tipo_servicio);
+
+      document.getElementById('cliente_input').value = encontrada.cliente_nombre || '';
+      selectCliente.value = String(clienteId);
+      selectServicio.value = String(servicioId);
+      descServicioTextarea.value = encontrada.servicio_descripcion || '';
+
+      document.getElementById('preview-factura').innerText = getOrderIdentifier(encontrada) || '--------';
+      document.getElementById('preview-numero-factura').innerText = getInvoiceNumber(encontrada) || '--------';
+      document.getElementById('preview-fecha').innerText = formatDateTime12H(encontrada.fecha_hora || encontrada.fecha || '');
+      document.getElementById('preview-tecnico').innerText = getSelectedTecnicos().join(' / ') || '--------';
+      document.getElementById('preview-firma-tecnico').innerText = getSelectedTecnicos().join(' / ') || '--------';
+
+      document.getElementById('preview-cliente-nombre').innerText = encontrada.cliente_nombre || 'Seleccionado';
+      document.getElementById('preview-direccion').innerText = encontrada.direccion || '--------';
+      document.getElementById('preview-contacto').innerText = encontrada.atencion_de || encontrada.contacto || '--------';
+      document.getElementById('preview-sector').innerText = encontrada.sector || '--------';
+      updatePreviewTipoServicio();
+
+      document.getElementById('preview-servicio-nombre').innerText = encontrada.servicio_nombre || 'Seleccionado';
+      document.getElementById('preview-servicio-desc').innerText = encontrada.servicio_descripcion || '';
+      document.getElementById('preview-observaciones').innerText = encontrada.observacion || 'Sin observaciones registradas.';
+
+      if (typeof updatePreviewLayoutSnugness === 'function') updatePreviewLayoutSnugness();
+    }
+
     window.cargarOrdenEnFormulario = function (facturaNum) {
       const encontrada = cacheOrdenes.find(o => String(getOrderIdentifier(o)) === String(facturaNum));
 
       if (encontrada) {
-        const clienteId = encontrada.cliente_id || 'cli-history-' + Date.now();
-        const servicioId = encontrada.servicio_id || 'srv-history-' + Date.now();
-
-        // Si los IDs de la orden no están en caché, los agregamos para que la UI los pinte correctamente
-        if (!cacheClientes.some(c => String(c.id) === String(clienteId))) {
-          cacheClientes.push({
-            id: clienteId,
-            nombre: encontrada.cliente_nombre,
-            telefono: encontrada.cliente_telefono || "--------",
-            correo: encontrada.cliente_correo || "--------"
-          });
-          updateClientesUI();
-        }
-
-        if (!cacheServicios.some(s => String(s.id) === String(servicioId))) {
-          cacheServicios.push({
-            id: servicioId,
-            nombre: encontrada.servicio_nombre,
-            descripcion: encontrada.servicio_descripcion || "Sin descripción"
-          });
-          updateServiciosUI();
-        }
-
-        numOtInput.value = getOrderIdentifier(encontrada);
-        numFacturaInput.value = getInvoiceNumber(encontrada);
-        fechaHoraInput.value = encontrada.fecha_hora || encontrada.fecha || '';
-        loadTecnicosIntoContainer(encontrada.tecnico || '');
-        observacionInput.value = encontrada.observacion || '';
-        direccionInput.value = encontrada.direccion || '';
-        contactoInput.value = encontrada.atencion_de || encontrada.contacto || '';
-        sectorInput.value = encontrada.sector || '';
-        applyTipoServicioSelection(encontrada.tipo_servicio);
-
-        document.getElementById('cliente_input').value = encontrada.cliente_nombre || '';
-        selectCliente.value = String(clienteId);
-        selectServicio.value = String(servicioId);
-        descServicioTextarea.value = encontrada.servicio_descripcion || '';
-
-        document.getElementById('preview-factura').innerText = getOrderIdentifier(encontrada) || '--------';
-        document.getElementById('preview-numero-factura').innerText = getInvoiceNumber(encontrada) || '--------';
-        document.getElementById('preview-fecha').innerText = formatDateTime12H(encontrada.fecha_hora || encontrada.fecha || '');
-        document.getElementById('preview-tecnico').innerText = getSelectedTecnicos().join(' / ') || '--------';
-        document.getElementById('preview-firma-tecnico').innerText = getSelectedTecnicos().join(' / ') || '--------';
-
-        document.getElementById('preview-cliente-nombre').innerText = encontrada.cliente_nombre || 'Seleccionado';
-        document.getElementById('preview-direccion').innerText = encontrada.direccion || '--------';
-        document.getElementById('preview-contacto').innerText = encontrada.atencion_de || encontrada.contacto || '--------';
-        document.getElementById('preview-sector').innerText = encontrada.sector || '--------';
-        updatePreviewTipoServicio();
-
-        document.getElementById('preview-servicio-nombre').innerText = encontrada.servicio_nombre || 'Seleccionado';
-        document.getElementById('preview-servicio-desc').innerText = encontrada.servicio_descripcion || '';
-        document.getElementById('preview-observaciones').innerText = encontrada.observacion || 'Sin observaciones registradas.';
-
-        if (typeof updatePreviewLayoutSnugness === 'function') updatePreviewLayoutSnugness();
+        popularFormularioConOrden(encontrada);
         showToast(`Orden ${getOrderIdentifier(encontrada)} cargada con éxito`, "success");
         switchTab('nueva-orden');
       }
+    };
+
+    // Genera y descarga el PDF de una orden directamente desde el Historial, sin salir de la pestaña.
+    window.descargarPdfDesdeHistorial = function (facturaNum) {
+      const encontrada = cacheOrdenes.find(o => String(getOrderIdentifier(o)) === String(facturaNum));
+
+      if (!encontrada) {
+        showToast("No se encontró la orden seleccionada.", "error");
+        return;
+      }
+
+      popularFormularioConOrden(encontrada);
+      printInvoice();
     };
 
     // Ajustador dinámico de fuentes y relleno en la previsualización del navegador
@@ -2521,8 +2586,8 @@
         const hasObservaciones = observacionInput.value.trim().length > 0;
         const rawObsValue = hasObservaciones ? observacionInput.value : '-';
 
-        const servicioDesc = servicioObj ? resolveServiceDesc(servicioObj) : '';
-        const observacionVal = rawObsValue;
+        const servicioDesc = servicioObj ? formatTextoOrdenado(resolveServiceDesc(servicioObj)) : '';
+        const observacionVal = formatTextoOrdenado(rawObsValue);
 
         const direccionVal = direccionInput.value || '--------';
         const atencionVal = contactoInput.value || '--------';
@@ -2706,63 +2771,102 @@
           currentY = 195;
         }
 
-        const obsLines = doc.splitTextToSize(observacionVal, 172);
-        let obsHeight = hasObservaciones ? (obsLines.length * obsLineSpacing + 6) : 12;
-        if (obsHeight > 26) {
-          obsHeight = 26; // Keep the observations block compact at the bottom
+        // ===== BLOQUE DE OBSERVACIONES: SIN TRUNCAMIENTO, APROVECHANDO TODO EL ESPACIO DISPONIBLE =====
+        const pageBottomLimit = 270; // límite inferior seguro en hoja Carta
+
+        function drawSignatures(yPos) {
+          doc.setDrawColor(203, 213, 225);
+          doc.setLineWidth(0.4);
+          doc.line(25, yPos, 95, yPos);
+          doc.line(120, yPos, 190, yPos);
+
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(51, 65, 85);
+          doc.setFontSize(10);
+          doc.text("Ejecutivo de Servicio", 60, yPos + 5, { align: 'center' });
+          doc.text("Cliente", 155, yPos + 5, { align: 'center' });
+
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(148, 163, 184);
+          doc.setFontSize(8.5);
+          doc.text(tecnicoVal, 60, yPos + 9, { align: 'center' });
+          doc.text("Firma Autorizada", 155, yPos + 9, { align: 'center' });
+
+          doc.setTextColor(100, 116, 139);
+          doc.setFontSize(7.5);
+          doc.text("(Nombre)", 60, yPos + 13, { align: 'center' });
+          doc.text("(Nombre y Cédula)", 155, yPos + 13, { align: 'center' });
         }
 
-        // SIGNATURES - FIRMLY ANCHORED AT THE BOTTOM OF THE PAGE
+        function drawObsBox(lines, top, height, title) {
+          doc.setFillColor(255, 251, 235);
+          doc.setDrawColor(253, 230, 138);
+          doc.roundedRect(15, top, 185, height, 1.5, 1.5, 'FD');
+
+          doc.setTextColor(...primary);
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(currentFitFontSize + 1);
+          doc.text(title, 15, top - 4);
+
+          doc.setTextColor(51, 65, 85);
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(currentFitFontSize);
+          doc.text(lines, 20, top + 7.5);
+        }
+
+        // Espacio disponible en la página 1, anclado 14mm arriba de la línea de firma
         const signatureY = 246;
-        const maxObsBottom = 232; // Ends exactly 14mm above signature line
-        const obsTop = maxObsBottom - obsHeight;
+        const obsBoxTop = currentY + 6;
+        const maxObsBottom = signatureY - 14;
+        const availableHeightPage1 = Math.max(14, maxObsBottom - obsBoxTop);
 
-        // Check if the observations text exceeds the compact observations block height
-        const allowedObsLines = Math.floor((obsHeight - 6) / obsLineSpacing);
-        let finalObsLines = [...obsLines];
-        if (obsLines.length > allowedObsLines && allowedObsLines > 0) {
-          finalObsLines = obsLines.slice(0, allowedObsLines - 1);
-          finalObsLines.push("... [Texto truncado]");
+        // Motor de ajuste progresivo: reduce el tamaño de fuente hasta que el texto entre,
+        // priorizando SIEMPRE mostrar el texto completo en vez de truncarlo
+        let currentFitFontSize = obsFontSize;
+        let currentFitLineSpacing = obsLineSpacing;
+        let obsLines = doc.splitTextToSize(observacionVal, 172);
+        let requiredHeight = hasObservaciones ? (obsLines.length * currentFitLineSpacing + 6) : 12;
+        const minObsFontSize = 6.5;
+
+        while (requiredHeight > availableHeightPage1 && currentFitFontSize > minObsFontSize) {
+          currentFitFontSize -= 0.3;
+          currentFitLineSpacing -= 0.15;
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(currentFitFontSize);
+          obsLines = doc.splitTextToSize(observacionVal, 172);
+          requiredHeight = hasObservaciones ? (obsLines.length * currentFitLineSpacing + 6) : 12;
         }
 
-        doc.setFillColor(255, 251, 235);
-        doc.setDrawColor(253, 230, 138);
-        doc.roundedRect(15, obsTop, 185, obsHeight, 1.5, 1.5, 'FD');
+        if (requiredHeight <= availableHeightPage1) {
+          // CASO NORMAL: el texto completo cabe en la página 1.
+          // El cuadro toma exactamente el alto que el texto necesita (ya no se queda fijo en 26mm).
+          const obsHeight = requiredHeight;
+          const obsTop = maxObsBottom - obsHeight; // anclado justo arriba de las firmas
+          drawObsBox(obsLines, obsTop, obsHeight, "OBSERVACIONES Y RECOMENDACIONES");
+          drawSignatures(signatureY);
+        } else {
+          // CASO EXCEPCIONAL: el texto es demasiado extenso incluso con la fuente mínima.
+          // En vez de truncar, el cuadro ocupa TODO el espacio restante de la página 1
+          // y el texto continúa en una segunda página, junto con las firmas.
+          const obsHeightPage1 = availableHeightPage1;
+          const linesPerPage1 = Math.max(1, Math.floor((obsHeightPage1 - 6) / currentFitLineSpacing));
+          const linesPage1 = obsLines.slice(0, linesPerPage1);
+          const linesPage2 = obsLines.slice(linesPerPage1);
 
-        doc.setTextColor(...primary);
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(obsFontSize + 1);
-        doc.text("OBSERVACIONES Y RECOMENDACIONES", 15, obsTop - 4);
+          drawObsBox(linesPage1, obsBoxTop, obsHeightPage1, "OBSERVACIONES Y RECOMENDACIONES");
 
-        doc.setTextColor(51, 65, 85);
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(obsFontSize);
-        doc.text(finalObsLines, 20, obsTop + 7.5);
+          doc.addPage();
+          doc.setTextColor(...dark);
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(12);
+          doc.text(`ORDEN DE TRABAJO ${numOt} — Observaciones (continuación)`, 15, 20);
 
-        doc.setDrawColor(203, 213, 225);
-        doc.setLineWidth(0.4);
-        doc.line(25, signatureY, 95, signatureY);
-        doc.line(120, signatureY, 190, signatureY);
+          const obsTopPage2 = 30;
+          const obsHeightPage2 = Math.max(20, linesPage2.length * currentFitLineSpacing + 6);
+          drawObsBox(linesPage2, obsTopPage2, obsHeightPage2, "OBSERVACIONES Y RECOMENDACIONES (CONT.)");
 
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(51, 65, 85);
-        doc.setFontSize(10);
-        doc.text("Ejecutivo de Servicio", 60, signatureY + 5, { align: 'center' });
-        doc.text("Cliente", 155, signatureY + 5, { align: 'center' });
-
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(148, 163, 184);
-        doc.setFontSize(8.5);
-        doc.text(tecnicoVal, 60, signatureY + 9, { align: 'center' });
-        doc.text("Firma Autorizada", 155, signatureY + 9, { align: 'center' });
-
-        doc.setTextColor(100, 116, 139);
-        doc.setFontSize(7.5);
-        doc.text("(Nombre)", 60, signatureY + 13, { align: 'center' });
-        doc.text("(Nombre y Cédula)", 155, signatureY + 13, { align: 'center' });
-
-        if (doc.internal.getNumberOfPages() > 1) {
-          while (doc.internal.getNumberOfPages() > 1) doc.deletePage(doc.internal.getNumberOfPages());
+          const signatureYPage2 = obsTopPage2 + obsHeightPage2 + 20;
+          drawSignatures(Math.min(signatureYPage2, pageBottomLimit - 14));
         }
 
         doc.save(`Orden_${numOt}.pdf`);
