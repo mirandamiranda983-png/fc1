@@ -712,9 +712,12 @@
                 </div>
 
                 <!-- Sección de Vehículo (Opcional) -->
-                <div class="form-group" style="margin-top: 10px;">
+                <div class="form-group" style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
                     <button type="button" id="btn-toggle-vehiculo" class="btn btn-secondary" style="width: auto; font-size: 0.85rem; padding: 8px 16px; display: inline-flex; align-items: center; gap: 6px;">
                         <span>➕ Agregar Información de Vehículo</span>
+                    </button>
+                    <button type="button" id="btn-toggle-sucursal" class="btn btn-secondary" style="width: auto; font-size: 0.85rem; padding: 8px 16px; display: inline-flex; align-items: center; gap: 6px;">
+                        <span>🏢 Agregar Información de Sucursal</span>
                     </button>
                 </div>
                 <div id="vehiculo-inputs-container" class="hidden form-grid" style="border: 1px dashed var(--border-color); padding: 16px; border-radius: 8px; margin-bottom: 15px; background: rgba(15, 23, 42, 0.01);">
@@ -738,6 +741,26 @@
                             <input type="text" id="vehiculo_placa" name="vehiculo_placa" placeholder="Placa" class="form-control">
                         </div>
                     </div>
+                </div>
+
+                <!-- Sección de Sucursal (Opcional) -->
+                <div id="sucursal-inputs-container" class="hidden form-grid" style="border: 1px dashed var(--border-color); padding: 16px; border-radius: 8px; margin-bottom: 15px; background: rgba(15, 23, 42, 0.01);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h4 style="font-family: var(--font-title); font-size: 0.9rem; font-weight: 700; color: var(--text-secondary);">Información de Sucursal (Opcional)</h4>
+                        <button type="button" id="btn-quitar-sucursal" class="btn-action" style="padding: 4px 8px; font-size: 0.75rem; border: none; border-radius: 4px; color: var(--color-danger); cursor: pointer;">
+                            Quitar ❌
+                        </button>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="sucursal_nombre">Nombre de Sucursal</label>
+                        <input type="text" id="sucursal_nombre" name="sucursal_nombre" placeholder="Ej: Sucursal Norte, Sucursal Central..." class="form-control">
+                    </div>
+                </div>
+
+                <!-- Campo de Información Adicional (Opcional) -->
+                <div class="form-group" style="margin-top: 6px;">
+                    <label for="info_adicional">Información Adicional (Opcional)</label>
+                    <textarea id="info_adicional" name="info_adicional" placeholder="Escriba aquí cualquier información adicional que desee incluir en el certificado..." class="form-control" rows="3" style="resize: vertical;"></textarea>
                 </div>
 
                 <!-- Acciones de Generación -->
@@ -845,6 +868,19 @@
                         <p style="font-size: 1.15rem; font-weight: 700; color: #0f172a;">
                             <span id="cert-vehiculo-tipo"></span> / Marca: <span id="cert-vehiculo-marca"></span> / Placa: <span id="cert-vehiculo-placa"></span>
                         </p>
+                    </div>
+
+                    <!-- Datos de Sucursal (Opcional, se muestra solo si se ingresaron datos) -->
+                    <div id="cert-sucursal-block" style="display: none; text-align: center; margin-top: 5px; margin-bottom: 15px; font-family: 'Plus Jakarta Sans', sans-serif;">
+                        <p style="font-size: 1.05rem; font-weight: 800; text-transform: uppercase; color: #dc2626; margin-bottom: 2px;">Para la sucursal:</p>
+                        <p style="font-size: 1.15rem; font-weight: 700; color: #0f172a;">
+                            <span id="cert-sucursal-nombre"></span>
+                        </p>
+                    </div>
+
+                    <!-- Información Adicional (Opcional, se muestra solo si se ingresó algo) -->
+                    <div id="cert-info-adicional-block" style="display: none; text-align: justify; margin-top: 5px; margin-bottom: 15px; font-family: 'Plus Jakarta Sans', sans-serif;">
+                        <p id="cert-info-adicional-texto" style="font-size: 1.0rem; font-weight: 600; color: #0f172a; font-style: italic; border-left: 3px solid #dc2626; padding-left: 12px;"></p>
                     </div>
 
                     <p style="margin-bottom: 12px;">
@@ -975,7 +1011,7 @@
             if (btnToggle && container) {
                 btnToggle.addEventListener('click', () => {
                     container.classList.remove('hidden');
-                    btnToggle.parentElement.classList.add('hidden');
+                    btnToggle.classList.add('hidden');
                 });
             }
 
@@ -985,7 +1021,28 @@
                     if (inputMarca) inputMarca.value = '';
                     if (inputPlaca) inputPlaca.value = '';
                     container.classList.add('hidden');
-                    if (btnToggle) btnToggle.parentElement.classList.remove('hidden');
+                    if (btnToggle) btnToggle.classList.remove('hidden');
+                });
+            }
+
+            // Inicializar botones de sucursal
+            const btnToggleSucursal = document.getElementById('btn-toggle-sucursal');
+            const btnQuitarSucursal = document.getElementById('btn-quitar-sucursal');
+            const containerSucursal = document.getElementById('sucursal-inputs-container');
+            const inputSucursalNombre = document.getElementById('sucursal_nombre');
+
+            if (btnToggleSucursal && containerSucursal) {
+                btnToggleSucursal.addEventListener('click', () => {
+                    containerSucursal.classList.remove('hidden');
+                    btnToggleSucursal.classList.add('hidden');
+                });
+            }
+
+            if (btnQuitarSucursal && containerSucursal) {
+                btnQuitarSucursal.addEventListener('click', () => {
+                    if (inputSucursalNombre) inputSucursalNombre.value = '';
+                    containerSucursal.classList.add('hidden');
+                    if (btnToggleSucursal) btnToggleSucursal.classList.remove('hidden');
                 });
             }
 
@@ -1255,6 +1312,24 @@
                 document.getElementById('cert-vehiculo-block').style.display = 'none';
             }
 
+            // Manejo de información de sucursal
+            const sucursalVal = document.getElementById('sucursal_nombre').value.trim();
+            if (sucursalVal) {
+                document.getElementById('cert-sucursal-nombre').innerText = sucursalVal;
+                document.getElementById('cert-sucursal-block').style.display = 'block';
+            } else {
+                document.getElementById('cert-sucursal-block').style.display = 'none';
+            }
+
+            // Manejo de información adicional
+            const infoAdicionalVal = document.getElementById('info_adicional').value.trim();
+            if (infoAdicionalVal) {
+                document.getElementById('cert-info-adicional-texto').innerText = infoAdicionalVal;
+                document.getElementById('cert-info-adicional-block').style.display = 'block';
+            } else {
+                document.getElementById('cert-info-adicional-block').style.display = 'none';
+            }
+
             // Transición visual
             document.getElementById('form-section').classList.add('hidden');
             document.getElementById('cert-section').classList.remove('hidden');
@@ -1283,6 +1358,8 @@
             const vehiculoVal = document.getElementById('vehiculo_tipo').value.trim();
             const marcaVal = document.getElementById('vehiculo_marca').value.trim();
             const placaVal = document.getElementById('vehiculo_placa').value.trim();
+            const sucursalVal = document.getElementById('sucursal_nombre').value.trim();
+            const infoAdicionalVal = document.getElementById('info_adicional').value.trim();
 
             if (!isConnected || !db) {
                 console.log("No conectado a Firebase, guardando en historial local.");
@@ -1295,6 +1372,8 @@
                     vehiculo: vehiculoVal || null,
                     marca: marcaVal || null,
                     placa: placaVal || null,
+                    sucursal: sucursalVal || null,
+                    infoAdicional: infoAdicionalVal || null,
                     fechaEmision: new Date().toISOString()
                 };
                 cacheHistorial.unshift(localCert);
@@ -1312,6 +1391,8 @@
                     vehiculo: vehiculoVal || null,
                     marca: marcaVal || null,
                     placa: placaVal || null,
+                    sucursal: sucursalVal || null,
+                    infoAdicional: infoAdicionalVal || null,
                     fechaEmision: new Date().toISOString(),
                     timestamp: serverTimestamp()
                 });
@@ -1323,6 +1404,23 @@
             }
         }
 
+        // Función para abreviar el nombre del cliente para el nombre del archivo
+        function abbreviateName(name) {
+            if (!name) return 'Cliente';
+            // Quitar paréntesis y su contenido, ej: (Local), (Sucursal)
+            let clean = name.replace(/\(.*?\)/g, '');
+            // Quitar palabras comunes de tipo de empresa para simplificar el nombre
+            clean = clean.replace(/\b(distribuidora|corporacion|corporación|comercial|comedor|servicios|servicio|industrias|industria|grupo|asociados|s\.a\.|sa|de cv|cia|ltda)\b/gi, '');
+            // Limpiar espacios dobles y recortar extremos
+            clean = clean.replace(/\s+/g, ' ').trim();
+            // Tomar las primeras dos palabras para abreviar
+            const words = clean.split(' ');
+            if (words.length > 2) {
+                return words.slice(0, 2).join(' ');
+            }
+            return clean || 'Cliente';
+        }
+
         // Descargar certificado desde el historial
         function descargarCertificadoHistorial(id) {
             const cert = cacheHistorial.find(c => c.id === id);
@@ -1331,18 +1429,13 @@
                 return;
             }
 
-            // Respaldar datos actuales del formulario
-            const originalCliente = clienteInput.value;
-            const originalRuc = rucInput.value;
-            const originalMes = document.getElementById('mes').value;
-            const originalAnio = document.getElementById('anio').value;
-            
-            // Llenar datos en el certificado temporalmente
+            // Llenar datos en el certificado
             document.getElementById('cert-cliente').innerText = cert.cliente;
             document.getElementById('cert-ruc').innerText = cert.ruc;
             document.getElementById('cert-mes').innerText = cert.mes;
             document.getElementById('cert-anio').innerText = cert.anio;
 
+            // Vehículo
             if (cert.vehiculo || cert.marca || cert.placa) {
                 document.getElementById('cert-vehiculo-tipo').innerText = cert.vehiculo || 'N/A';
                 document.getElementById('cert-vehiculo-marca').innerText = cert.marca || 'N/A';
@@ -1352,36 +1445,83 @@
                 document.getElementById('cert-vehiculo-block').style.display = 'none';
             }
 
-            const element = document.getElementById('cert-paper');
+            // Sucursal
+            if (cert.sucursal) {
+                document.getElementById('cert-sucursal-nombre').innerText = cert.sucursal;
+                document.getElementById('cert-sucursal-block').style.display = 'block';
+            } else {
+                document.getElementById('cert-sucursal-block').style.display = 'none';
+            }
+
+            // Información adicional
+            if (cert.infoAdicional) {
+                document.getElementById('cert-info-adicional-texto').innerText = cert.infoAdicional;
+                document.getElementById('cert-info-adicional-block').style.display = 'block';
+            } else {
+                document.getElementById('cert-info-adicional-block').style.display = 'none';
+            }
+
+            // Crear un clon visible pero posicionado de forma que no altere la vista del usuario
+            const original = document.getElementById('cert-paper');
+            const clone = original.cloneNode(true);
+            
+            // Aseguramos que el clon mantenga centrado y dimensiones relativas correctas
+            clone.style.display = 'flex';
+            clone.style.visibility = 'visible';
+            clone.style.position = 'relative';
+            clone.style.margin = '0 auto';
+            clone.style.maxWidth = '850px';
+            clone.style.width = '100%';
+
+            // Contenedor absoluto en el origen (top: 0) de la página
+            const wrapper = document.createElement('div');
+            wrapper.style.position = 'absolute';
+            wrapper.style.top = '0';
+            wrapper.style.left = '0';
+            wrapper.style.width = '100%';
+            wrapper.style.zIndex = '-99999';
+            wrapper.style.overflow = 'hidden';
+            wrapper.style.background = 'transparent';
+            
+            wrapper.appendChild(clone);
+            document.body.appendChild(wrapper);
+
             const cliente = cert.cliente || 'Cliente';
+            const nombreAbreviado = abbreviateName(cliente);
 
             const opt = {
                 margin: 0,
-                filename: `CERTIFICADO ${cliente}.pdf`,
+                filename: `Certificado ${nombreAbreviado}.pdf`,
                 image: { type: 'jpeg', quality: 1.0 },
                 html2canvas: {
                     scale: 3,
                     useCORS: true,
-                    letterRendering: true
+                    letterRendering: true,
+                    scrollX: 0,
+                    scrollY: 0
                 },
                 jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
             };
 
             showToast("Descargando PDF desde historial...", "info");
 
-            html2pdf().set(opt).from(element).save()
-                .then(() => {
-                    showToast("PDF descargado con éxito", "success");
-                    // Restaurar datos de la vista previa con el estado del formulario actual si está visible
-                    const isFormHidden = document.getElementById('form-section').classList.contains('hidden');
-                    if (isFormHidden) {
-                        generarCertificado(); // Regenera con lo del formulario
-                    }
-                })
-                .catch(err => {
-                    console.error("Error al exportar PDF desde historial:", err);
-                    showToast("Error al descargar el PDF", "error");
-                });
+            // Esperar un instante corto para asegurar que se procese en el DOM y se renderice
+            setTimeout(() => {
+                html2pdf().set(opt).from(clone).save()
+                    .then(() => {
+                        showToast("PDF descargado con éxito", "success");
+                        if (document.body.contains(wrapper)) {
+                            document.body.removeChild(wrapper);
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Error al exportar PDF desde historial:", err);
+                        showToast("Error al descargar el PDF", "error");
+                        if (document.body.contains(wrapper)) {
+                            document.body.removeChild(wrapper);
+                        }
+                    });
+            }, 200);
         }
 
         // Descargar Directamente el PDF o lanzar diálogo nativo como fallback
@@ -1390,10 +1530,11 @@
             const cliente = clienteInput.value || 'Cliente';
             const mes = document.getElementById('mes').value || 'servicio';
             const anio = document.getElementById('anio').value || '2026';
+            const nombreAbreviado = abbreviateName(cliente);
 
             const opt = {
                 margin: 0, // Margen cero para que la escala del canvas concuerde 1:1 con el Letter size
-                filename: `CERTIFICADO ${cliente}.pdf`,
+                filename: `Certificado ${nombreAbreviado}.pdf`,
                 image: { type: 'jpeg', quality: 1.0 },
                 html2canvas: {
                     scale: 3, // Calidad super alta retina
