@@ -2353,7 +2353,7 @@
             );
           }
           showToast("Orden de trabajo guardada con éxito", "success");
-          printInvoice();
+          printInvoice(nuevaOrden.numero_ot);
           clearForm();
         } catch (err) {
           console.error("Error al registrar en Firestore:", err);
@@ -2372,7 +2372,7 @@
         updateOrdenesTabla(cacheOrdenes);
         reserveNextOrderNumber(nuevaOrden.numero_ot);
         showToast("Guardado local exitoso (Modo Simulación)", "success");
-        printInvoice();
+        printInvoice(nuevaOrden.numero_ot);
         clearForm();
       }
     });
@@ -2518,7 +2518,7 @@
       }
 
       popularFormularioConOrden(encontrada);
-      printInvoice();
+      printInvoice(getOrderIdentifier(encontrada));
     };
 
     // Ajustador dinámico de fuentes y relleno en la previsualización del navegador
@@ -2558,20 +2558,20 @@
     };
 
     // Método interactivo para imprimir / guardar PDF tamaño Carta
-    window.printInvoice = function () {
+    window.printInvoice = function (overrideNumOt) {
       if (!window.jspdf || !window.jspdf.jsPDF) {
         showToast("Error: La librería PDF no está cargada. Verifique su conexión a internet.", "error");
         console.error("jsPDF no disponible en window.jspdf");
         return;
       }
 
-      if (!numOtInput.value || !selectServicio.value) {
+      if ((!overrideNumOt && !numOtInput.value) || !selectServicio.value) {
         showToast("Por favor, complete la OT y seleccione un servicio antes de descargar el PDF.", "warning");
         return;
       }
 
       try {
-        const numOt = numOtInput.value || '--------';
+        const numOt = overrideNumOt || numOtInput.value || '--------';
         const numFactura = numFacturaInput.value || '--------';
         const fechaHoraVal = fechaHoraInput.value ? fechaHoraInput.value.replace('T', ' ') : '--/--/---- --:--';
         const tecnicoVal = getSelectedTecnicos().join(' / ') || '--------';
