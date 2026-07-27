@@ -2,30 +2,420 @@
 <html lang="es">
 
 <head>
-     <link rel="icon" type="image/png" href="LOGO FC.png">
+    <link rel="icon" type="image/png" href="LOGO FC.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fast Control - Sistema</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
+        * { box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; }
+
+        .hidden { display: none !important; }
+
+        #main-iframe { transition: opacity 0.3s ease; }
+
+        /* =============================================
+           FLOATING BUBBLE BOTTOM NAV
+        ============================================= */
+        #bottom-nav-wrapper {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            pointer-events: none;
         }
 
-        .hidden {
-            display: none !important;
+        /* The floating pill bar */
+        #bottom-nav-bar {
+            pointer-events: all;
+            display: flex;
+            align-items: flex-end;
+            background: rgba(18, 18, 18, 0.97);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-bottom: none;
+            border-radius: 28px 28px 0 0;
+            box-shadow: 0 -6px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.03);
+            padding: 0 12px;
+            padding-bottom: 10px;
+            gap: 2px;
+            width: 100%;
+            max-width: 720px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1),
+                        opacity 0.45s ease;
+        }
+        #bottom-nav-bar::-webkit-scrollbar { display: none; }
+
+        /* Hide state */
+        #bottom-nav-bar.nav-hidden {
+            transform: translateY(110%);
+            opacity: 0;
+            pointer-events: none;
         }
 
-        .active-nav {
-            background-color: #c62828 !important;
-            color: white !important;
+        /* Individual nav button */
+        .bubble-btn {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            flex: 1;
+            min-width: 56px;
+            max-width: 80px;
+            height: 64px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            outline: none;
+            padding: 0 2px 0;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            -webkit-tap-highlight-color: transparent;
         }
 
-        #main-iframe {
+        /* Icon container */
+        .bubble-icon-wrap {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            transition: all 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+            margin-bottom: 3px;
+            flex-shrink: 0;
+        }
+
+        .bubble-icon-wrap svg {
+            width: 20px;
+            height: 20px;
+            stroke: #666;
+            transition: stroke 0.25s ease;
+        }
+
+        /* Label */
+        .bubble-label {
+            font-size: 9px;
+            font-weight: 600;
+            color: #555;
+            white-space: nowrap;
+            transition: color 0.25s ease, opacity 0.25s ease;
+            line-height: 1;
+            text-align: center;
+        }
+
+        /* ACTIVE STATE — bubble pops up */
+        .bubble-btn.bubble-active .bubble-icon-wrap {
+            background: #c62828;
+            box-shadow: 0 8px 24px rgba(198, 40, 40, 0.55),
+                        0 0 0 6px rgba(198, 40, 40, 0.12);
+            transform: translateY(-18px);
+        }
+
+        .bubble-btn.bubble-active .bubble-icon-wrap svg {
+            stroke: #ffffff;
+            width: 22px;
+            height: 22px;
+        }
+
+        .bubble-btn.bubble-active .bubble-label {
+            color: #c62828;
+            font-weight: 700;
+        }
+
+        /* Press effect */
+        .bubble-btn:active .bubble-icon-wrap {
+            transform: scale(0.88) translateY(-14px);
+        }
+
+        .bubble-btn:not(.bubble-active):hover .bubble-icon-wrap {
+            background: rgba(255,255,255,0.06);
+        }
+
+        .bubble-btn:not(.bubble-active):hover .bubble-icon-wrap svg {
+            stroke: #999;
+        }
+
+        /* =============================================
+           HAMBURGER FAB BUTTON (always visible)
+        ============================================= */
+        #hamburger-fab {
+            pointer-events: all;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #c62828, #7f0000);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(198,40,40,0.5), 0 0 0 3px rgba(198,40,40,0.15);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 55;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #hamburger-fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 28px rgba(198,40,40,0.65), 0 0 0 5px rgba(198,40,40,0.18);
+        }
+
+        #hamburger-fab:active { transform: scale(0.93); }
+
+        #hamburger-fab svg { stroke: white; width: 22px; height: 22px; transition: all 0.3s ease; }
+
+        /* FAB only shows when nav is hidden */
+        #hamburger-fab {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.6) translateY(10px);
+            transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+        }
+
+        #hamburger-fab.fab-visible {
+            opacity: 1;
+            pointer-events: all;
+            transform: scale(1) translateY(0);
+        }
+
+        /* =============================================
+           PROFILE PILL — inside bottom bar (right end)
+        ============================================= */
+        #profile-pill-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(198,40,40,0.1);
+            border: 1px solid rgba(198,40,40,0.2);
+            border-radius: 20px;
+            padding: 4px 8px 4px 6px;
+            cursor: pointer;
+            flex-shrink: 0;
+            margin-left: 4px;
+            margin-bottom: 10px;
+            align-self: flex-end;
+            transition: background 0.2s;
+        }
+
+        #profile-pill-btn:hover { background: rgba(198,40,40,0.2); }
+
+        #profile-avatar-bottom {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #c62828;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+            font-size: 11px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(198,40,40,0.4);
+        }
+
+        #user-display-name-bottom {
+            font-size: 11px;
+            font-weight: 700;
+            color: white;
+            white-space: nowrap;
+            line-height: 1.1;
+        }
+
+        #user-role-label-bottom {
+            font-size: 8px;
+            color: #c62828;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* =============================================
+           PROFILE DROPDOWN
+        ============================================= */
+        #profile-dropdown {
+            background: rgba(22,22,22,0.98);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 18px;
+            box-shadow: 0 -4px 32px rgba(0,0,0,0.6);
+            padding: 6px;
+            width: 192px;
+            position: fixed;
+            bottom: 84px;
+            right: 16px;
+            z-index: 60;
+            transform-origin: bottom right;
+            transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+        }
+
+        #profile-dropdown.dd-hidden {
+            opacity: 0;
+            transform: scale(0.85);
+            pointer-events: none;
+        }
+
+        .dd-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.18s;
+            background: none;
+            border: none;
+            width: 100%;
+            color: #ccc;
+        }
+
+        .dd-item:hover { background: rgba(255,255,255,0.06); color: white; }
+        .dd-item:hover svg { stroke: white; }
+        .dd-item svg { stroke: #666; width: 16px; height: 16px; flex-shrink: 0; }
+
+        .dd-item.dd-danger { color: #c62828; }
+        .dd-item.dd-danger:hover { background: rgba(198,40,40,0.12); color: #e53935; }
+        .dd-item.dd-danger svg { stroke: #c62828; }
+
+        /* =============================================
+           HAMBURGER FULL PANEL (slides from bottom)
+        ============================================= */
+        #hamburger-overlay {
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            position: fixed;
+            inset: 0;
+            z-index: 56;
             transition: opacity 0.3s ease;
+        }
+
+        #hamburger-overlay.overlay-hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #hamburger-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 57;
+            max-height: 88vh;
+            background: rgba(14, 14, 14, 0.99);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-bottom: none;
+            border-radius: 28px 28px 0 0;
+            box-shadow: 0 -8px 56px rgba(0,0,0,0.75);
+            transform: translateY(100%);
+            transition: transform 0.42s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+
+        #hamburger-panel.panel-open {
+            transform: translateY(0);
+        }
+
+        .drag-handle {
+            width: 44px;
+            height: 4px;
+            background: rgba(255,255,255,0.12);
+            border-radius: 2px;
+            margin: 14px auto 10px;
+        }
+
+        /* Ham panel nav items */
+        .ham-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            border-radius: 14px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            width: 100%;
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .ham-item:hover { background: rgba(255,255,255,0.04); transform: translateX(3px); }
+
+        .ham-item.ham-active { background: rgba(198,40,40,0.12); }
+        .ham-item.ham-active .ham-icon { background: rgba(198,40,40,0.2); }
+        .ham-item.ham-active .ham-icon svg { stroke: #c62828; }
+        .ham-item.ham-active .ham-label { color: white; font-weight: 700; }
+        .ham-item.ham-active .ham-arrow svg { stroke: #c62828; }
+
+        .ham-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+
+        .ham-icon svg { stroke: #666; width: 18px; height: 18px; }
+
+        .ham-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #aaa;
+            flex: 1;
+            text-align: left;
+        }
+
+        .ham-arrow svg { stroke: #333; width: 16px; height: 16px; }
+
+        /* logout */
+        .ham-item.ham-logout .ham-icon { background: rgba(198,40,40,0.08); }
+        .ham-item.ham-logout .ham-icon svg { stroke: #c62828; }
+        .ham-item.ham-logout .ham-label { color: #c62828; }
+        .ham-item.ham-logout:hover { background: rgba(198,40,40,0.08); }
+
+        /* Scrollbar */
+        #ham-nav-list::-webkit-scrollbar { width: 3px; }
+        #ham-nav-list::-webkit-scrollbar-track { background: transparent; }
+        #ham-nav-list::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 3px; }
+
+        /* Brand logo gradient */
+        .brand-logo-grad { background: linear-gradient(135deg, #c62828, #7f0000); }
+
+        /* PROGRESS BAR for auto-hide countdown */
+        #nav-timer-bar {
+            height: 2px;
+            background: linear-gradient(90deg, #c62828, #ff5252);
+            border-radius: 0 2px 0 0;
+            transition: width 0.1s linear;
+            width: 100%;
+        }
+
+        #nav-timer-track {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 2px 2px 0 0;
+            overflow: hidden;
         }
     </style>
     <script>
@@ -38,12 +428,11 @@
 
 <body class="bg-gray-50 text-gray-800 dark:bg-brand-black dark:text-gray-100 min-h-screen">
 
-    <!-- PANTALLA DE LOGIN -->
+    <!-- ===================== LOGIN ===================== -->
     <div id="login-screen" class="fixed inset-0 z-[100] flex items-center justify-center bg-brand-black">
         <div class="w-full max-w-md p-8 bg-brand-dark rounded-2xl border border-brand-border shadow-2xl">
             <div class="text-center mb-8">
-                <div
-                    class="bg-brand-red w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-red/20">
+                <div class="bg-brand-red w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-red/20">
                     <i data-lucide="shield-check" class="text-white w-10 h-10"></i>
                 </div>
                 <h2 class="text-2xl font-bold text-white">Bienvenido</h2>
@@ -55,7 +444,6 @@
                     <input type="email" id="login-email" list="email-suggestions"
                         class="w-full bg-brand-black border border-brand-border rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-red transition-all"
                         placeholder="admin@fastcontrolni.com" required autocomplete="off">
-                    <!-- Desplegable para sugerir correos de usuarios -->
                     <datalist id="email-suggestions"></datalist>
                 </div>
                 <div>
@@ -73,114 +461,122 @@
         </div>
     </div>
 
-    <!-- ESTRUCTURA DASHBOARD (Oculta por defecto) -->
-    <div id="dashboard-layout" class="hidden flex min-h-screen">
+    <!-- ===================== DASHBOARD ===================== -->
+    <div id="dashboard-layout" class="hidden flex flex-col min-h-screen">
 
-        <!-- SIDEBAR -->
-        <aside id="sidebar"
-            class="fixed inset-y-0 left-0 w-64 bg-brand-black border-r border-brand-border flex flex-col z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300">
-            <div class="h-20 flex items-center px-6 border-b border-brand-border gap-3">
-                <div class="bg-brand-red p-2 rounded-lg"><i data-lucide="layout-grid" class="w-6 h-6 text-white"></i>
-                </div>
-                <h1 class="text-lg font-bold text-white tracking-wider">FAST <span class="text-brand-red">CONTROL</span>
-                </h1>
-            </div>
-
-            <nav id="nav-menu" class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-                <p class="px-3 text-[10px] font-bold text-gray-500 uppercase mb-4 tracking-widest">Navegación</p>
-            </nav>
-
-            <div class="p-4 border-t border-brand-border">
-                <button onclick="logout()"
-                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all">
-                    <i data-lucide="log-out" class="w-5 h-5"></i> Cerrar Sesión
-                </button>
-            </div>
-        </aside>
-
-        <!-- CONTENIDO -->
-        <main class="flex-1 flex flex-col lg:ml-64 w-full">
-            <header
-                class="h-20 bg-white dark:bg-brand-dark border-b border-gray-200 dark:border-brand-border flex items-center justify-between px-6 sticky top-0 z-40">
-                <div class="flex items-center gap-4">
-                    <button onclick="document.getElementById('sidebar').classList.toggle('-translate-x-full')"
-                        class="lg:hidden p-2"><i data-lucide="menu"></i></button>
-                    <div class="flex items-center gap-3">
-                        <div id="header-icon" class="text-brand-red"><i data-lucide="home"></i></div>
-                        <h2 id="page-title" class="text-xl font-bold dark:text-white">Panel Principal</h2>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-4">
-                    <button onclick="document.documentElement.classList.toggle('dark')"
-                        class="p-2.5 rounded-xl border border-gray-200 dark:border-brand-border"><i data-lucide="moon"
-                            class="dark:text-yellow-400"></i></button>
-
-                    <!-- PERFIL CON MENU DROPDOWN -->
-                    <div class="relative group">
-                        <button class="flex items-center gap-3 pl-4 border-l border-brand-border">
-                            <div class="text-right">
-                                <p id="user-display-name" class="text-sm font-bold dark:text-white leading-none">
-                                    Cargando...</p>
-                                <p id="user-role-label" class="text-[10px] text-brand-red font-bold uppercase">Rol</p>
-                            </div>
-                            <div id="profile-avatar"
-                                class="w-10 h-10 rounded-full bg-brand-red flex items-center justify-center font-bold text-white shadow-lg">
-                                FC</div>
-                        </button>
-                        <!-- Dropdown -->
-                        <div
-                            class="absolute right-0 mt-2 w-48 bg-brand-dark border border-brand-border rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                            <div class="py-2">
-                                <button id="btn-user-mgmt"
-                                    onclick="loadPage('Usuarios_Gestor', 'Gestión de Usuarios', 'users')"
-                                    class="hidden w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:bg-brand-red hover:text-white">
-                                    <i data-lucide="users" class="w-4 h-4"></i> Gestión Usuarios
-                                </button>
-                                <button onclick="logout()"
-                                    class="w-full flex items-center gap-2 px-4 py-2 text-sm text-brand-red hover:bg-red-900/20">
-                                    <i data-lucide="log-out" class="w-4 h-4"></i> Salir
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <div class="flex-1 bg-gray-100 dark:bg-brand-black overflow-hidden relative">
-                <!-- IFRAME PARA PAGINAS -->
+        <!-- CONTENT AREA -->
+        <main class="flex-1 w-full" style="height: 100vh;">
+            <div class="relative w-full h-full bg-gray-100 dark:bg-brand-black">
+                <!-- IFRAME -->
                 <iframe id="main-iframe" class="w-full h-full border-0 absolute inset-0" src=""></iframe>
 
-                <!-- GESTOR DE USUARIOS (VISTA INTERNA) -->
-                <div id="user-manager-view"
-                    class="hidden absolute inset-0 bg-gray-100 dark:bg-brand-black p-8 overflow-y-auto">
+                <!-- USER MANAGER VIEW -->
+                <div id="user-manager-view" class="hidden absolute inset-0 bg-gray-100 dark:bg-brand-black p-8 overflow-y-auto">
                     <div class="max-w-4xl mx-auto">
                         <div class="flex justify-between items-center mb-8">
                             <h3 class="text-2xl font-bold">Gestión de Usuarios</h3>
                             <button onclick="toggleUserModal()"
-                                class="bg-brand-red hover:bg-red-700 text-white px-4 py-2 rounded-lg font-bold transition-all shadow-md shadow-brand-red/15">+
-                                Nuevo Usuario</button>
+                                class="bg-brand-red hover:bg-red-700 text-white px-4 py-2 rounded-lg font-bold transition-all shadow-md shadow-brand-red/15">
+                                + Nuevo Usuario
+                            </button>
                         </div>
                         <div class="bg-brand-dark border border-brand-border rounded-2xl overflow-hidden shadow-xl">
                             <table class="w-full text-left border-collapse">
-                                <thead
-                                    class="bg-brand-black text-xs font-bold text-gray-500 uppercase border-b border-brand-border">
+                                <thead class="bg-brand-black text-xs font-bold text-gray-500 uppercase border-b border-brand-border">
                                     <tr>
                                         <th class="p-4">Email de Acceso</th>
                                         <th class="p-4">Rol Asignado</th>
                                         <th class="p-4 text-right">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody id="user-table-body" class="text-sm">
-                                    <!-- Carga dinámica -->
-                                </tbody>
+                                <tbody id="user-table-body" class="text-sm"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </div>
         </main>
+
+        <!-- =============================================
+             FLOATING BUBBLE BOTTOM NAV WRAPPER
+        ============================================= -->
+        <div id="bottom-nav-wrapper">
+            <div id="bottom-nav-bar">
+                <!-- Timer progress bar -->
+                <div id="nav-timer-track" style="position:absolute;top:0;left:0;right:0;height:2px;overflow:hidden;">
+                    <div id="nav-timer-bar"></div>
+                </div>
+
+                <!-- Nav items injected here dynamically -->
+                <div id="bottom-nav-items" style="display:flex;align-items:flex-end;flex:1;gap:2px;overflow-x:auto;scrollbar-width:none;padding-bottom:0;">
+                </div>
+
+                <!-- Divider -->
+                <div style="width:1px;height:36px;background:rgba(255,255,255,0.07);align-self:center;flex-shrink:0;margin:0 4px;"></div>
+
+                <!-- Profile pill -->
+                <button id="profile-pill-btn" onclick="toggleProfileDropdown()">
+                    <div id="profile-avatar-bottom">FC</div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-start;">
+                        <span id="user-display-name-bottom">...</span>
+                        <span id="user-role-label-bottom">Rol</span>
+                    </div>
+                    <i data-lucide="chevron-up" style="width:12px;height:12px;stroke:#888;"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- HAMBURGER FAB (shown when bar is hidden) -->
+        <button id="hamburger-fab" onclick="showNavBar()">
+            <i data-lucide="layout-grid"></i>
+        </button>
+
+        <!-- PROFILE DROPDOWN -->
+        <div id="profile-dropdown" class="dd-hidden">
+            <div style="padding:10px 12px 8px;border-bottom:1px solid rgba(255,255,255,0.07);margin-bottom:4px;">
+                <p id="profile-dd-name" style="font-size:13px;font-weight:700;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">–</p>
+                <p id="profile-dd-role" style="font-size:10px;color:#c62828;font-weight:700;text-transform:uppercase;">–</p>
+            </div>
+            <button id="btn-user-mgmt" onclick="loadPage('Usuarios_Gestor','Gestión de Usuarios','users'); toggleProfileDropdown();"
+                class="dd-item hidden">
+                <i data-lucide="users"></i> Gestión Usuarios
+            </button>
+            <button onclick="logout()" class="dd-item dd-danger">
+                <i data-lucide="log-out"></i> Cerrar Sesión
+            </button>
+        </div>
+
+        <!-- HAMBURGER OVERLAY -->
+        <div id="hamburger-overlay" class="overlay-hidden" onclick="closeHamburgerPanel()"></div>
+
+        <!-- HAMBURGER FULL PANEL -->
+        <div id="hamburger-panel">
+            <div class="drag-handle"></div>
+
+            <!-- Panel header -->
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 20px 14px;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div class="brand-logo-grad" style="padding:8px;border-radius:12px;">
+                        <i data-lucide="layout-grid" style="width:18px;height:18px;stroke:white;"></i>
+                    </div>
+                    <div>
+                        <p style="font-size:15px;font-weight:700;color:white;letter-spacing:0.5px;">FAST <span style="color:#c62828;">CONTROL</span></p>
+                        <p style="font-size:10px;color:#555;">Navegación del sistema</p>
+                    </div>
+                </div>
+                <button onclick="closeHamburgerPanel()"
+                    style="width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,0.05);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+                    <i data-lucide="x" style="width:16px;height:16px;stroke:#666;"></i>
+                </button>
+            </div>
+
+            <!-- Nav list -->
+            <div id="ham-nav-list" style="padding:0 12px 28px;overflow-y:auto;max-height:calc(88vh - 120px);"></div>
+        </div>
+
     </div>
+
+    <!-- ================= MODALS ================= -->
 
     <!-- MODAL NUEVO USUARIO -->
     <div id="user-modal" class="fixed inset-0 z-[110] bg-black/80 flex items-center justify-center hidden">
@@ -196,8 +592,7 @@
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Contraseña</label>
                     <input type="password" id="new-user-pass" placeholder="••••••••"
                         class="w-full bg-brand-black border border-brand-border rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand-red transition-all">
-                    <p class="text-[10px] text-gray-500 mt-1">Si es menor a 6 caracteres, se ajustará automáticamente.
-                    </p>
+                    <p class="text-[10px] text-gray-500 mt-1">Si es menor a 6 caracteres, se ajustará automáticamente.</p>
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Rol</label>
@@ -211,8 +606,7 @@
                     class="w-full bg-brand-red hover:bg-red-700 py-3 rounded-lg font-bold text-white transition-all shadow-lg shadow-brand-red/20 mt-2">
                     Guardar en Firestore
                 </button>
-                <button onclick="toggleUserModal()"
-                    class="w-full text-gray-400 hover:text-white text-sm transition-all py-1">Cancelar</button>
+                <button onclick="toggleUserModal()" class="w-full text-gray-400 hover:text-white text-sm transition-all py-1">Cancelar</button>
             </div>
         </div>
     </div>
@@ -240,17 +634,15 @@
                     class="w-full bg-brand-red hover:bg-red-700 py-3 rounded-lg font-bold text-white transition-all shadow-lg shadow-brand-red/20 mt-2">
                     Guardar Cambios
                 </button>
-                <button onclick="toggleEditUserModal()"
-                    class="w-full text-gray-400 hover:text-white text-sm transition-all py-1">Cancelar</button>
+                <button onclick="toggleEditUserModal()" class="w-full text-gray-400 hover:text-white text-sm transition-all py-1">Cancelar</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL CONFIRMACION PERSONALIZADO (Reemplaza a confirm) -->
+    <!-- MODAL CONFIRMACION -->
     <div id="confirm-modal" class="fixed inset-0 z-[120] bg-black/80 flex items-center justify-center hidden">
         <div class="bg-brand-dark w-full max-w-sm p-6 rounded-2xl border border-brand-border text-center shadow-2xl">
-            <div
-                class="text-brand-red w-12 h-12 rounded-full bg-brand-red/10 flex items-center justify-center mx-auto mb-4">
+            <div class="text-brand-red w-12 h-12 rounded-full bg-brand-red/10 flex items-center justify-center mx-auto mb-4">
                 <i data-lucide="help-circle" class="w-8 h-8"></i>
             </div>
             <h3 class="text-xl font-bold mb-2 text-white">¿Estás seguro?</h3>
@@ -264,7 +656,7 @@
         </div>
     </div>
 
-    <!-- SCRIPTS FIREBASE -->
+    <!-- ================= FIREBASE SCRIPTS ================= -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInAnonymously, browserSessionPersistence, setPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -283,42 +675,34 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Usar persistencia de sesión: al cerrar el navegador/pestaña se cierra la sesión automáticamente
         await setPersistence(auth, browserSessionPersistence);
 
-        // Variables Globales
         window.userRole = '';
         window.currentUserEmail = '';
 
         // =============================================
-        // MODULO DE AUDITORIA - Registro de eventos
+        // AUDITORIA
         // =============================================
         window.logAudit = async (accion, modulo, detalles = '') => {
             try {
                 const user = auth.currentUser;
                 if (!user || user.isAnonymous) return;
                 await addDoc(collection(db, 'auditoria'), {
-                    timestamp:    serverTimestamp(),
-                    fechaLocal:   new Date().toLocaleString('es-NI', { timeZone: 'America/Managua', hour12: true }),
-                    uid:          user.uid,
-                    email:        user.email || window.currentUserEmail,
-                    rol:          window.userRole || 'desconocido',
-                    accion,
-                    modulo,
-                    detalles,
-                    userAgent:    navigator.userAgent.substring(0, 120)
+                    timestamp:  serverTimestamp(),
+                    fechaLocal: new Date().toLocaleString('es-NI', { timeZone: 'America/Managua', hour12: true }),
+                    uid:        user.uid,
+                    email:      user.email || window.currentUserEmail,
+                    rol:        window.userRole || 'desconocido',
+                    accion, modulo, detalles,
+                    userAgent:  navigator.userAgent.substring(0, 120)
                 });
             } catch (e) {
-                console.warn('Auditoría: no se pudo registrar el evento:', e);
+                console.warn('Auditoría:', e);
             }
         };
 
-        // Función Helper para adaptar contraseñas cortas al mínimo de 6 caracteres exigido por Firebase
         function getFirebasePassword(rawPassword) {
-            if (rawPassword.length < 6) {
-                return rawPassword + "_fastcontrol_secure_padding";
-            }
-            return rawPassword;
+            return rawPassword.length < 6 ? rawPassword + "_fastcontrol_secure_padding" : rawPassword;
         }
 
         // LOGIN
@@ -331,309 +715,168 @@
 
             try {
                 await signInWithEmailAndPassword(auth, email, pass);
-                // El log de inicio de sesión se registra en onAuthStateChanged al detectar el usuario
             } catch (error) {
-                // Registrar intento fallido (sin uid real disponible, se usa 'anonimo')
                 try {
                     await addDoc(collection(db, 'auditoria'), {
-                        timestamp:  serverTimestamp(),
+                        timestamp: serverTimestamp(),
                         fechaLocal: new Date().toLocaleString('es-NI', { timeZone: 'America/Managua', hour12: true }),
-                        uid:        'N/A',
-                        email:      email,
-                        rol:        'N/A',
-                        accion:     'INICIO_SESION_FALLIDO',
-                        modulo:     'Autenticación',
-                        detalles:   `Intento de acceso fallido con el correo: ${email}`,
-                        userAgent:  navigator.userAgent.substring(0, 120)
+                        uid: 'N/A', email, rol: 'N/A',
+                        accion: 'INICIO_SESION_FALLIDO', modulo: 'Autenticación',
+                        detalles: `Intento de acceso fallido con el correo: ${email}`,
+                        userAgent: navigator.userAgent.substring(0, 120)
                     });
                 } catch (_) {}
 
-                // Auto-registro en primer inicio para el administrador preestablecido
                 if (email === "soporte@fastcontrolni.com" && rawPass === "1234") {
                     try {
                         const res = await createUserWithEmailAndPassword(auth, email, pass);
                         await setDoc(doc(db, "users", res.user.uid), { email, role: 'admin' });
                         window.showNotification("¡Usuario administrador configurado con éxito!");
                         return;
-                    } catch (createErr) {
-                        console.error("Fallo de auto-registro:", createErr);
-                    }
+                    } catch (createErr) { console.error(createErr); }
                 }
                 errorLabel.classList.remove('hidden');
                 errorLabel.textContent = "Credenciales incorrectas o problemas de conexión.";
-                console.error(error);
             }
         });
 
-        // OBSERVADOR DE ESTADO DE AUTENTICACION
+        // AUTH STATE
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 if (user.isAnonymous) {
-                    // Si el inicio de sesión es temporal para cargar sugerencias
                     await window.loadEmailSuggestions();
                     document.getElementById('login-screen').classList.remove('hidden');
                     document.getElementById('dashboard-layout').classList.add('hidden');
                     return;
                 }
-
-                const docRef = doc(db, "users", user.uid);
-                const docSnap = await getDoc(docRef);
-
+                const docSnap = await getDoc(doc(db, "users", user.uid));
                 if (docSnap.exists()) {
                     window.userRole = docSnap.data().role;
                     window.currentUserEmail = user.email;
                     setupDashboard(user, window.userRole);
-                    // Registrar inicio de sesión exitoso
                     await window.logAudit('INICIO_SESION', 'Autenticación', `El usuario inició sesión correctamente. Rol: ${window.userRole}`);
-                } else {
-                    if (user.email === "soporte@fastcontrolni.com") {
-                        await setDoc(doc(db, "users", user.uid), { email: user.email, role: 'admin' });
-                        window.userRole = 'admin';
-                        window.currentUserEmail = user.email;
-                        setupDashboard(user, 'admin');
-                        await window.logAudit('INICIO_SESION', 'Autenticación', 'Primer inicio de sesión del administrador del sistema.');
-                    }
+                } else if (user.email === "soporte@fastcontrolni.com") {
+                    await setDoc(doc(db, "users", user.uid), { email: user.email, role: 'admin' });
+                    window.userRole = 'admin';
+                    window.currentUserEmail = user.email;
+                    setupDashboard(user, 'admin');
+                    await window.logAudit('INICIO_SESION', 'Autenticación', 'Primer inicio de sesión del administrador del sistema.');
                 }
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('dashboard-layout').classList.remove('hidden');
             } else {
                 document.getElementById('login-screen').classList.remove('hidden');
                 document.getElementById('dashboard-layout').classList.add('hidden');
-
-                // Iniciar sesión de forma anónima y silenciosa para precargar las sugerencias
-                try {
-                    await signInAnonymously(auth);
-                } catch (e) {
-                    console.warn("Inicio de sesión anónimo no disponible. Las sugerencias se cargarán al autenticar.");
-                }
+                try { await signInAnonymously(auth); } catch (e) {}
             }
         });
 
         function setupDashboard(user, role) {
             const userName = user.email.split('@')[0];
-            document.getElementById('user-display-name').textContent = userName;
-            document.getElementById('user-role-label').textContent = role;
 
-            // Colocar iniciales en el Avatar de Perfil
-            document.getElementById('profile-avatar').textContent = userName.substring(0, 2).toUpperCase();
+            // Profile pill
+            document.getElementById('user-display-name-bottom').textContent = userName;
+            document.getElementById('user-role-label-bottom').textContent = role;
+            document.getElementById('profile-avatar-bottom').textContent = userName.substring(0, 2).toUpperCase();
+            document.getElementById('profile-dd-name').textContent = userName;
+            document.getElementById('profile-dd-role').textContent = role;
 
-            const menu = document.getElementById('nav-menu');
-            menu.innerHTML = '<p class="px-3 text-[10px] font-bold text-gray-500 uppercase mb-4 tracking-widest">Navegación</p>';
-
-            // Estructura de módulos con restricción estricta de Roles
+            // All nav items
             const allItems = [
-                { id: 'Base_de_Datos.html',       label: 'Base de Datos',     icon: 'database',      roles: ['admin'] },
-                { id: 'Certificados.html',         label: 'Certificados',      icon: 'award',         roles: ['admin'] },
-                { id: 'Cotizaciones.html',         label: 'Cotizaciones',      icon: 'file-text',     roles: ['admin'] },
-                { id: 'Inventario.html',           label: 'Inventario',        icon: 'package',       roles: ['admin'] },
-                { id: 'kardex.html',               label: 'Kardex',            icon: 'trending-up',   roles: ['admin'] },
-                { id: 'OT.html',                   label: 'OT',                icon: 'wrench',        roles: ['admin'] },
-                { id: 'Reporte_de_Servicios.html', label: 'Reporte Servicios', icon: 'bar-chart',     roles: ['admin', 'tecnico'] },
-                { id: 'Requisas.html',             label: 'Requisas',          icon: 'clipboard-list',roles: ['admin'] },
-                { id: 'Auditoria.html',            label: 'Auditoría',         icon: 'shield-alert',  roles: ['admin'] }
+                { id: 'Base_de_Datos.html',       label: 'Base Datos',        icon: 'database',       roles: ['admin'] },
+                { id: 'Certificados.html',         label: 'Certificados',      icon: 'award',          roles: ['admin'] },
+                { id: 'Cotizaciones.html',         label: 'Cotizaciones',      icon: 'file-text',      roles: ['admin'] },
+                { id: 'Inventario.html',           label: 'Inventario',        icon: 'package',        roles: ['admin'] },
+                { id: 'kardex.html',               label: 'Kardex',            icon: 'trending-up',    roles: ['admin'] },
+                { id: 'OT.html',                   label: 'OT',                icon: 'wrench',         roles: ['admin'] },
+                { id: 'Reporte_de_Servicios.html', label: 'Reportes',          icon: 'bar-chart',      roles: ['admin', 'tecnico'] },
+                { id: 'Requisas.html',             label: 'Requisas',          icon: 'clipboard-list', roles: ['admin'] },
+                { id: 'Auditoria.html',            label: 'Auditoría',         icon: 'shield-alert',   roles: ['admin'] }
             ];
 
-            allItems.forEach(item => {
-                if (item.roles.includes(role)) {
-                    const btn = document.createElement('button');
-                    btn.id = `btn-${item.id}`;
-                    btn.className = "nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all group";
-                    btn.innerHTML = `<i data-lucide="${item.icon}" class="w-5 h-5 group-hover:text-brand-red"></i><span>${item.label}</span>`;
-                    btn.onclick = () => window.loadPage(item.id, item.label, item.icon);
-                    menu.appendChild(btn);
-                }
+            const visibleItems = allItems.filter(i => i.roles.includes(role));
+            window._navItems = visibleItems;
+
+            // Build bottom bar items
+            const container = document.getElementById('bottom-nav-items');
+            container.innerHTML = '';
+
+            visibleItems.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = 'bubble-btn';
+                btn.id = `bbtn-${item.id}`;
+                btn.innerHTML = `
+                    <div class="bubble-icon-wrap">
+                        <i data-lucide="${item.icon}"></i>
+                    </div>
+                    <span class="bubble-label">${item.label}</span>
+                `;
+                btn.onclick = () => window.loadPage(item.id, item.label, item.icon);
+                container.appendChild(btn);
             });
 
+            // Build hamburger panel items
+            buildHamPanel(visibleItems, role);
+
+            // Admin user mgmt
             if (role === 'admin') {
                 document.getElementById('btn-user-mgmt').classList.remove('hidden');
-            } else {
-                document.getElementById('btn-user-mgmt').classList.add('hidden');
             }
 
             lucide.createIcons();
 
-            // Cargar página predeterminada según privilegios
+            // Load default page
             if (role === 'admin') {
-                window.loadPage('Base_de_Datos.html', 'Base de Datos', 'database');
+                window.loadPage('Base_de_Datos.html', 'Base Datos', 'database');
             } else {
-                window.loadPage('Reporte_de_Servicios.html', 'Reporte Servicios', 'award');
+                window.loadPage('Reporte_de_Servicios.html', 'Reportes', 'bar-chart');
             }
+
+            // Start the auto-hide timer
+            window.startNavTimer();
         }
 
-        // CARGAR SUGERENCIAS DE CORREOS EN EL LOGIN
-        window.loadEmailSuggestions = async () => {
-            const datalist = document.getElementById('email-suggestions');
-            if (!datalist) return;
-            datalist.innerHTML = '';
-            try {
-                const querySnapshot = await getDocs(collection(db, "users"));
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    if (data && data.email) {
-                        const option = document.createElement('option');
-                        option.value = data.email;
-                        datalist.appendChild(option);
-                    }
-                });
-            } catch (e) {
-                console.error("No se pudo leer la colección para sugerencias:", e);
-            }
-        };
+        function buildHamPanel(items, role) {
+            const list = document.getElementById('ham-nav-list');
+            list.innerHTML = '';
 
-        // GESTOR DE USUARIOS - MOSTRAR TABLA
-        window.loadUsersTable = async () => {
-            const tbody = document.getElementById('user-table-body');
-            tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-400">Cargando base de datos...</td></tr>';
-
-            try {
-                const querySnapshot = await getDocs(collection(db, "users"));
-                tbody.innerHTML = '';
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    tbody.innerHTML += `
-                        <tr class="border-b border-brand-border hover:bg-white/5">
-                            <td class="p-4 text-white font-medium">${data.email}</td>
-                            <td class="p-4 uppercase text-xs font-bold ${data.role === 'admin' ? 'text-brand-red' : 'text-blue-400'}">${data.role}</td>
-                            <td class="p-4 text-right space-x-2">
-                                <button onclick="window.openEditUserModal('${doc.id}', '${data.email}', '${data.role}')" class="text-gray-400 hover:text-white inline-flex p-1.5 rounded hover:bg-white/5 transition-all" title="Editar Usuario">
-                                    <i data-lucide="edit-2" class="w-4 h-4"></i>
-                                </button>
-                                <button onclick="window.updateUserRole('${doc.id}', '${data.role}')" class="text-gray-400 hover:text-white inline-flex p-1.5 rounded hover:bg-white/5 transition-all" title="Alternar Rol">
-                                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                                </button>
-                                <button onclick="window.deleteUserFromDb('${doc.id}')" class="text-brand-red hover:text-red-500 inline-flex p-1.5 rounded hover:bg-red-950/20 transition-all" title="Eliminar">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
-                lucide.createIcons();
-            } catch (error) {
-                tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-brand-red">Error al leer la base de datos de usuarios.</td></tr>';
-            }
-        };
-
-        // REGISTRAR NUEVO USUARIO
-        window.registerNewUser = async () => {
-            const email = document.getElementById('new-user-email').value.trim();
-            const rawPass = document.getElementById('new-user-pass').value;
-            const pass = getFirebasePassword(rawPass);
-            const role = document.getElementById('new-user-role').value;
-
-            if (!email || !rawPass) {
-                window.showNotification("Por favor completa todos los campos", true);
-                return;
-            }
-
-            try {
-                // Registrar credenciales
-                const res = await createUserWithEmailAndPassword(auth, email, pass);
-                // Vincular su respectivo rol en Firestore
-                await setDoc(doc(db, "users", res.user.uid), { email, role });
-
-                await window.logAudit('CREAR_USUARIO', 'Gestión de Usuarios', `Se creó el usuario: ${email} con el rol: ${role}`);
-
-                window.showNotification("Usuario guardado con éxito");
-                window.toggleUserModal();
-                window.loadUsersTable();
-
-                // Limpiar campos
-                document.getElementById('new-user-email').value = '';
-                document.getElementById('new-user-pass').value = '';
-            } catch (e) {
-                window.showNotification("Error: " + e.message, true);
-            }
-        };
-
-        // ELIMINAR USUARIO
-        window.deleteUserFromDb = async (id) => {
-            // Obtener el email del usuario antes de eliminar para el log
-            let emailEliminado = id;
-            try {
-                const snap = await getDoc(doc(db, 'users', id));
-                if (snap.exists()) emailEliminado = snap.data().email || id;
-            } catch (_) {}
-
-            window.customConfirm("¿Eliminar acceso de este usuario en la base de datos?", async () => {
-                try {
-                    await deleteDoc(doc(db, "users", id));
-                    await window.logAudit('ELIMINAR_USUARIO', 'Gestión de Usuarios', `Se eliminó el usuario: ${emailEliminado} (UID: ${id})`);
-                    window.showNotification("Usuario eliminado");
-                    window.loadUsersTable();
-                } catch (e) {
-                    window.showNotification("Error: " + e.message, true);
-                }
+            items.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = 'ham-item';
+                btn.id = `hambtn-${item.id}`;
+                btn.innerHTML = `
+                    <div class="ham-icon"><i data-lucide="${item.icon}"></i></div>
+                    <span class="ham-label">${item.label}</span>
+                    <div class="ham-arrow"><i data-lucide="chevron-right"></i></div>
+                `;
+                btn.onclick = () => {
+                    window.loadPage(item.id, item.label, item.icon);
+                    closeHamburgerPanel();
+                };
+                list.appendChild(btn);
             });
-        };
 
-        // ACTUALIZAR ROL
-        window.updateUserRole = async (id, currentRole) => {
-            const newRole = currentRole === 'admin' ? 'tecnico' : 'admin';
-            let emailAfectado = id;
-            try {
-                const snap = await getDoc(doc(db, 'users', id));
-                if (snap.exists()) emailAfectado = snap.data().email || id;
-            } catch (_) {}
-            try {
-                await updateDoc(doc(db, "users", id), { role: newRole });
-                await window.logAudit('CAMBIAR_ROL', 'Gestión de Usuarios', `Rol del usuario ${emailAfectado} cambiado de '${currentRole}' a '${newRole}'`);
-                window.showNotification(`Usuario configurado como ${newRole}`);
-                window.loadUsersTable();
-            } catch (e) {
-                window.showNotification("Error: " + e.message, true);
-            }
-        };
+            // Separator + logout
+            const sep = document.createElement('div');
+            sep.style.cssText = 'height:1px;background:rgba(255,255,255,0.05);margin:8px 4px;';
+            list.appendChild(sep);
 
-        // CERRAR SESION
-        window.logout = async () => {
-            await window.logAudit('CIERRE_SESION', 'Autenticación', `El usuario cerró sesión manualmente.`);
-            // Limpiar campos del formulario de login antes de cerrar sesión
-            document.getElementById('login-email').value = '';
-            document.getElementById('login-pass').value = '';
-            document.getElementById('login-error').classList.add('hidden');
-            window.currentUserEmail = '';
-            window.userRole = '';
-            await signOut(auth);
-        };
+            const logoutBtn = document.createElement('button');
+            logoutBtn.className = 'ham-item ham-logout';
+            logoutBtn.innerHTML = `
+                <div class="ham-icon"><i data-lucide="log-out"></i></div>
+                <span class="ham-label">Cerrar Sesión</span>
+            `;
+            logoutBtn.onclick = () => window.logout();
+            list.appendChild(logoutBtn);
 
-        // UI NOTIFICACION PERSONALIZADA
-        window.showNotification = (msg, isError = false) => {
-            const toast = document.createElement('div');
-            toast.className = `fixed bottom-5 right-5 z-[200] px-6 py-3 rounded-xl shadow-lg text-white font-bold transform transition-all duration-300 translate-y-10 opacity-0 ${isError ? 'bg-brand-red' : 'bg-green-600'}`;
-            toast.innerHTML = `<div class="flex items-center gap-2"><i data-lucide="${isError ? 'alert-circle' : 'check-circle'}" class="w-5 h-5"></i><span>${msg}</span></div>`;
-            document.body.appendChild(toast);
             lucide.createIcons();
+        }
 
-            setTimeout(() => { toast.classList.remove('translate-y-10', 'opacity-0'); }, 50);
-            setTimeout(() => {
-                toast.classList.add('translate-y-10', 'opacity-0');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        };
-
-        // CONFIRMACIÓN PERSONALIZADA
-        window.customConfirm = (msg, onConfirm) => {
-            const modal = document.getElementById('confirm-modal');
-            const msgEl = document.getElementById('confirm-msg');
-            const cancelBtn = document.getElementById('confirm-cancel-btn');
-            const okBtn = document.getElementById('confirm-ok-btn');
-
-            msgEl.textContent = msg;
-            modal.classList.remove('hidden');
-
-            const close = () => modal.classList.add('hidden');
-
-            cancelBtn.onclick = () => { close(); };
-            okBtn.onclick = () => { onConfirm(); close(); };
-        };
-
-        // CONTROL DE CARGA DE PAGINAS E IFRAMES
+        // LOAD PAGE
         window.loadPage = (id, title, icon) => {
             const iframe = document.getElementById('main-iframe');
             const userView = document.getElementById('user-manager-view');
-            const titleEl = document.getElementById('page-title');
-            const iconBox = document.getElementById('header-icon');
 
             if (id === 'Usuarios_Gestor') {
                 iframe.classList.add('hidden');
@@ -645,58 +888,322 @@
                 iframe.src = id;
             }
 
-            titleEl.textContent = title;
-            iconBox.innerHTML = `<i data-lucide="${icon}"></i>`;
+            // Update active states — bottom bar
+            document.querySelectorAll('.bubble-btn').forEach(b => b.classList.remove('bubble-active'));
+            const activeB = document.getElementById(`bbtn-${id}`);
+            if (activeB) activeB.classList.add('bubble-active');
+
+            // Update active states — ham panel
+            document.querySelectorAll('.ham-item').forEach(b => b.classList.remove('ham-active'));
+            const activeH = document.getElementById(`hambtn-${id}`);
+            if (activeH) activeH.classList.add('ham-active');
+
             lucide.createIcons();
 
-            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active-nav'));
-            const activeBtn = document.getElementById(`btn-${id}`);
-            if (activeBtn) activeBtn.classList.add('active-nav');
-
-            // Registrar navegación en la auditoría (excluir el propio módulo para no generar ruido)
             if (id !== 'Auditoria.html') {
                 window.logAudit('NAVEGACION', title, `Accedió al módulo: ${title}`);
             }
 
-            // Cerrar sidebar en dispositivos móviles
-            document.getElementById('sidebar').classList.add('-translate-x-full');
+            // Reset the nav timer so bar stays visible after navigation
+            window.startNavTimer();
+        };
+
+        // EMAIL SUGGESTIONS
+        window.loadEmailSuggestions = async () => {
+            const datalist = document.getElementById('email-suggestions');
+            if (!datalist) return;
+            datalist.innerHTML = '';
+            try {
+                const qs = await getDocs(collection(db, "users"));
+                qs.forEach(d => {
+                    const data = d.data();
+                    if (data && data.email) {
+                        const opt = document.createElement('option');
+                        opt.value = data.email;
+                        datalist.appendChild(opt);
+                    }
+                });
+            } catch (e) { console.error(e); }
+        };
+
+        // USERS TABLE
+        window.loadUsersTable = async () => {
+            const tbody = document.getElementById('user-table-body');
+            tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-400">Cargando...</td></tr>';
+            try {
+                const qs = await getDocs(collection(db, "users"));
+                tbody.innerHTML = '';
+                qs.forEach(d => {
+                    const data = d.data();
+                    tbody.innerHTML += `
+                        <tr class="border-b border-brand-border hover:bg-white/5">
+                            <td class="p-4 text-white font-medium">${data.email}</td>
+                            <td class="p-4 uppercase text-xs font-bold ${data.role === 'admin' ? 'text-brand-red' : 'text-blue-400'}">${data.role}</td>
+                            <td class="p-4 text-right space-x-2">
+                                <button onclick="window.openEditUserModal('${d.id}','${data.email}','${data.role}')" class="text-gray-400 hover:text-white inline-flex p-1.5 rounded hover:bg-white/5" title="Editar">
+                                    <i data-lucide="edit-2" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="window.updateUserRole('${d.id}','${data.role}')" class="text-gray-400 hover:text-white inline-flex p-1.5 rounded hover:bg-white/5" title="Alternar Rol">
+                                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="window.deleteUserFromDb('${d.id}')" class="text-brand-red hover:text-red-500 inline-flex p-1.5 rounded hover:bg-red-950/20" title="Eliminar">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </td>
+                        </tr>`;
+                });
+                lucide.createIcons();
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-brand-red">Error al cargar usuarios.</td></tr>';
+            }
+        };
+
+        window.registerNewUser = async () => {
+            const email = document.getElementById('new-user-email').value.trim();
+            const rawPass = document.getElementById('new-user-pass').value;
+            const pass = getFirebasePassword(rawPass);
+            const role = document.getElementById('new-user-role').value;
+            if (!email || !rawPass) { window.showNotification("Completa todos los campos", true); return; }
+            try {
+                const res = await createUserWithEmailAndPassword(auth, email, pass);
+                await setDoc(doc(db, "users", res.user.uid), { email, role });
+                await window.logAudit('CREAR_USUARIO', 'Gestión de Usuarios', `Usuario creado: ${email} (${role})`);
+                window.showNotification("Usuario guardado con éxito");
+                window.toggleUserModal();
+                window.loadUsersTable();
+                document.getElementById('new-user-email').value = '';
+                document.getElementById('new-user-pass').value = '';
+            } catch (e) { window.showNotification("Error: " + e.message, true); }
+        };
+
+        window.deleteUserFromDb = async (id) => {
+            let email = id;
+            try { const s = await getDoc(doc(db,'users',id)); if(s.exists()) email = s.data().email||id; } catch(_){}
+            window.customConfirm("¿Eliminar acceso de este usuario?", async () => {
+                try {
+                    await deleteDoc(doc(db, "users", id));
+                    await window.logAudit('ELIMINAR_USUARIO','Gestión de Usuarios',`Eliminado: ${email}`);
+                    window.showNotification("Usuario eliminado");
+                    window.loadUsersTable();
+                } catch(e){ window.showNotification("Error: "+e.message,true); }
+            });
+        };
+
+        window.updateUserRole = async (id, currentRole) => {
+            const newRole = currentRole === 'admin' ? 'tecnico' : 'admin';
+            let email = id;
+            try { const s = await getDoc(doc(db,'users',id)); if(s.exists()) email=s.data().email||id; } catch(_){}
+            try {
+                await updateDoc(doc(db,"users",id),{role:newRole});
+                await window.logAudit('CAMBIAR_ROL','Gestión de Usuarios',`${email}: ${currentRole} → ${newRole}`);
+                window.showNotification(`Rol actualizado a ${newRole}`);
+                window.loadUsersTable();
+            } catch(e){ window.showNotification("Error: "+e.message,true); }
+        };
+
+        window.logout = async () => {
+            await window.logAudit('CIERRE_SESION','Autenticación','Cerró sesión manualmente.');
+            document.getElementById('login-email').value = '';
+            document.getElementById('login-pass').value = '';
+            document.getElementById('login-error').classList.add('hidden');
+            window.currentUserEmail = '';
+            window.userRole = '';
+            await signOut(auth);
+        };
+
+        window.showNotification = (msg, isError = false) => {
+            const toast = document.createElement('div');
+            toast.style.cssText = `position:fixed;bottom:90px;right:20px;z-index:200;padding:12px 20px;border-radius:14px;box-shadow:0 4px 24px rgba(0,0,0,0.4);color:white;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;transform:translateY(20px);opacity:0;transition:all 0.3s ease;background:${isError?'#c62828':'#16a34a'};`;
+            toast.innerHTML = `<div style="display:flex;align-items:center;gap:8px;"><i data-lucide="${isError?'alert-circle':'check-circle'}" style="width:18px;height:18px;"></i><span>${msg}</span></div>`;
+            document.body.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => { toast.style.transform='translateY(0)'; toast.style.opacity='1'; }, 50);
+            setTimeout(() => {
+                toast.style.transform='translateY(20px)'; toast.style.opacity='0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        };
+
+        window.customConfirm = (msg, onConfirm) => {
+            const modal = document.getElementById('confirm-modal');
+            document.getElementById('confirm-msg').textContent = msg;
+            modal.classList.remove('hidden');
+            const close = () => modal.classList.add('hidden');
+            document.getElementById('confirm-cancel-btn').onclick = close;
+            document.getElementById('confirm-ok-btn').onclick = () => { onConfirm(); close(); };
         };
 
         window.toggleUserModal = () => document.getElementById('user-modal').classList.toggle('hidden');
-
-        // ABRIR MODAL EDITAR USUARIO
         window.openEditUserModal = (userId, email, role) => {
             document.getElementById('edit-user-email').value = email;
             document.getElementById('edit-user-role').value = role;
             window.currentEditUserId = userId;
             document.getElementById('edit-user-modal').classList.remove('hidden');
         };
-
-        // CERRAR MODAL EDITAR USUARIO
         window.toggleEditUserModal = () => document.getElementById('edit-user-modal').classList.toggle('hidden');
-
-        // GUARDAR CAMBIOS DE USUARIO
         window.saveUserChanges = async () => {
             const userId = window.currentEditUserId;
             const newRole = document.getElementById('edit-user-role').value;
             const email = document.getElementById('edit-user-email').value;
-
-            if (!userId || !newRole) {
-                window.showNotification("Error: Datos incompletos", true);
-                return;
-            }
-
+            if (!userId || !newRole) { window.showNotification("Error: Datos incompletos", true); return; }
             try {
-                await updateDoc(doc(db, "users", userId), { role: newRole });
-                await window.logAudit('EDITAR_USUARIO', 'Gestión de Usuarios', `Se editó el usuario: ${email} - Rol actualizado a: ${newRole}`);
-                window.showNotification("Usuario actualizado exitosamente");
+                await updateDoc(doc(db,"users",userId),{role:newRole});
+                await window.logAudit('EDITAR_USUARIO','Gestión de Usuarios',`${email} → rol: ${newRole}`);
+                window.showNotification("Usuario actualizado");
                 window.toggleEditUserModal();
                 window.loadUsersTable();
-            } catch (e) {
-                window.showNotification("Error: " + e.message, true);
+            } catch(e){ window.showNotification("Error: "+e.message,true); }
+        };
+
+    </script>
+
+    <!-- ================= NAV BAR CONTROLS ================= -->
+    <script>
+        /* ------------------------------------------------
+           AUTO-HIDE TIMER LOGIC
+           - Bar shows for 10 seconds
+           - Progress bar counts down visually
+           - Then bar slides down and FAB appears
+        ------------------------------------------------ */
+        let _navTimer     = null;
+        let _timerStart   = null;
+        const NAV_DURATION = 10000; // 10 seconds
+
+        window.startNavTimer = () => {
+            // Show the bar
+            showNavBar();
+
+            // Clear any existing timer
+            if (_navTimer) clearInterval(_navTimer);
+
+            _timerStart = Date.now();
+            const timerBar = document.getElementById('nav-timer-bar');
+
+            // Animate the progress bar
+            _navTimer = setInterval(() => {
+                const elapsed = Date.now() - _timerStart;
+                const pct = Math.max(0, 100 - (elapsed / NAV_DURATION) * 100);
+                if (timerBar) timerBar.style.width = pct + '%';
+
+                if (elapsed >= NAV_DURATION) {
+                    clearInterval(_navTimer);
+                    _navTimer = null;
+                    hideNavBar();
+                }
+            }, 80);
+        };
+
+        window.showNavBar = () => {
+            const bar = document.getElementById('bottom-nav-bar');
+            const fab = document.getElementById('hamburger-fab');
+            if (bar) bar.classList.remove('nav-hidden');
+            if (fab) fab.classList.remove('fab-visible');
+        };
+
+        function hideNavBar() {
+            const bar = document.getElementById('bottom-nav-bar');
+            const fab = document.getElementById('hamburger-fab');
+            if (bar) bar.classList.add('nav-hidden');
+            setTimeout(() => {
+                if (fab) fab.classList.add('fab-visible');
+            }, 200);
+        }
+
+        /* ------------------------------------------------
+           HAMBURGER PANEL
+        ------------------------------------------------ */
+        window.openHamburgerPanel = () => {
+            document.getElementById('hamburger-overlay').classList.remove('overlay-hidden');
+            document.getElementById('hamburger-panel').classList.add('panel-open');
+        };
+
+        window.closeHamburgerPanel = () => {
+            document.getElementById('hamburger-panel').classList.remove('panel-open');
+            setTimeout(() => {
+                document.getElementById('hamburger-overlay').classList.add('overlay-hidden');
+            }, 380);
+        };
+
+        /* Clicking FAB:
+           - If bar is hidden → show bar + start 10s timer
+           - If bar is visible → open full panel */
+        window.showNavBar = () => {
+            const bar = document.getElementById('bottom-nav-bar');
+            const fab = document.getElementById('hamburger-fab');
+            const isHidden = bar && bar.classList.contains('nav-hidden');
+
+            if (bar) bar.classList.remove('nav-hidden');
+            if (fab) fab.classList.remove('fab-visible');
+
+            return isHidden; // returns true if we just showed it
+        };
+
+        /* Override for FAB button click */
+        document.addEventListener('DOMContentLoaded', () => {
+            const fab = document.getElementById('hamburger-fab');
+            if (fab) {
+                fab.onclick = () => {
+                    const wasHidden = document.getElementById('bottom-nav-bar').classList.contains('nav-hidden');
+                    if (wasHidden) {
+                        // Just show the bar and restart timer
+                        showNavBar();
+                        startNavTimerOnly();
+                    } else {
+                        // Bar is visible → open full panel
+                        window.openHamburgerPanel();
+                    }
+                };
+            }
+        });
+
+        function startTimerBar() {
+            if (_navTimer) clearInterval(_navTimer);
+            _timerStart = Date.now();
+            const timerBar = document.getElementById('nav-timer-bar');
+            _navTimer = setInterval(() => {
+                const elapsed = Date.now() - _timerStart;
+                const pct = Math.max(0, 100 - (elapsed / NAV_DURATION) * 100);
+                if (timerBar) timerBar.style.width = pct + '%';
+                if (elapsed >= NAV_DURATION) {
+                    clearInterval(_navTimer);
+                    _navTimer = null;
+                    hideNavBar();
+                }
+            }, 80);
+        }
+
+        function startNavTimerOnly() {
+            startTimerBar();
+        }
+
+        window.startNavTimer = () => {
+            showNavBar();
+            startTimerBar();
+        };
+
+        /* ------------------------------------------------
+           PROFILE DROPDOWN
+        ------------------------------------------------ */
+        window.toggleProfileDropdown = () => {
+            const dd = document.getElementById('profile-dropdown');
+            const isHidden = dd.classList.contains('dd-hidden');
+            if (isHidden) {
+                dd.classList.remove('dd-hidden');
+                setTimeout(() => {
+                    document.addEventListener('click', _closeDD, { once: true });
+                }, 10);
+            } else {
+                dd.classList.add('dd-hidden');
             }
         };
 
+        function _closeDD(e) {
+            const dd = document.getElementById('profile-dropdown');
+            const btn = document.getElementById('profile-pill-btn');
+            if (!dd.contains(e.target) && btn && !btn.contains(e.target)) {
+                dd.classList.add('dd-hidden');
+            }
+        }
     </script>
 </body>
 
