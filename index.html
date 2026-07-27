@@ -26,8 +26,8 @@
             left: 0;
             right: 0;
             z-index: 50;
-            /* Extra padding-top so the popped bubbles are never clipped */
-            padding-top: 28px;
+            /* Extra padding-top para que el ícono elevado no se corte */
+            padding-top: 36px;
             pointer-events: none;
             display: flex;
             justify-content: center;
@@ -39,12 +39,12 @@
             pointer-events: all;
             width: calc(100% - 24px);
             max-width: 860px;
-            background: rgba(16, 16, 16, 0.97);
+            background: #ffffff;
             backdrop-filter: blur(24px);
             -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255,255,255,0.07);
+            border: 1px solid rgba(0,0,0,0.08);
             border-radius: 24px 24px 0 0;
-            box-shadow: 0 -4px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+            box-shadow: 0 -4px 32px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.8);
             overflow: visible; /* CRITICAL: allow bubbles to pop above */
             transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1),
                         opacity 0.4s ease;
@@ -68,7 +68,7 @@
             left: 12px;
             right: 12px;
             height: 2px;
-            background: rgba(255,255,255,0.05);
+            background: rgba(0,0,0,0.05);
             border-radius: 2px;
             overflow: hidden;
         }
@@ -131,7 +131,7 @@
         .bubble-icon-wrap svg {
             width: 18px;
             height: 18px;
-            stroke: #5a5a5a;
+            stroke: #1a1a1a;
             transition: all 0.25s ease;
         }
 
@@ -139,7 +139,7 @@
         .bubble-label {
             font-size: 9px;
             font-weight: 600;
-            color: #4a4a4a;
+            color: #1a1a1a;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -152,9 +152,9 @@
         /* ACTIVE: bubble pops up */
         .bubble-btn.bubble-active .bubble-icon-wrap {
             background: #c62828;
-            box-shadow: 0 8px 22px rgba(198,40,40,0.55),
-                        0 0 0 5px rgba(198,40,40,0.13);
-            transform: translateY(-20px);
+            box-shadow: 0 8px 22px rgba(198,40,40,0.4),
+                        0 0 0 5px rgba(198,40,40,0.12);
+            transform: translateY(-16px);
         }
         .bubble-btn.bubble-active .bubble-icon-wrap svg {
             stroke: #ffffff;
@@ -168,15 +168,15 @@
 
         /* Hover (inactive) */
         .bubble-btn:not(.bubble-active):hover .bubble-icon-wrap {
-            background: rgba(255,255,255,0.06);
+            background: rgba(0,0,0,0.05);
         }
         .bubble-btn:not(.bubble-active):hover .bubble-icon-wrap svg {
-            stroke: #999;
+            stroke: #000000;
         }
 
         /* Press */
         .bubble-btn:active .bubble-icon-wrap {
-            transform: scale(0.88) translateY(-14px);
+            transform: scale(0.88) translateY(-12px);
         }
         .bubble-btn:not(.bubble-active):active .bubble-icon-wrap {
             transform: scale(0.88) translateY(0);
@@ -189,8 +189,8 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            background: rgba(198,40,40,0.1);
-            border: 1px solid rgba(198,40,40,0.22);
+            background: rgba(198,40,40,0.08);
+            border: 1px solid rgba(198,40,40,0.2);
             border-radius: 20px;
             padding: 4px 10px 4px 5px;
             cursor: pointer;
@@ -201,7 +201,7 @@
             transition: background 0.2s;
             -webkit-tap-highlight-color: transparent;
         }
-        #profile-pill-btn:hover { background: rgba(198,40,40,0.18); }
+        #profile-pill-btn:hover { background: rgba(198,40,40,0.15); }
 
         #profile-avatar-bottom {
             width: 28px; height: 28px;
@@ -210,10 +210,10 @@
             display: flex; align-items: center; justify-content: center;
             font-weight: 700; color: white; font-size: 10px;
             flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(198,40,40,0.4);
+            box-shadow: 0 2px 8px rgba(198,40,40,0.3);
         }
         #user-display-name-bottom {
-            font-size: 11px; font-weight: 700; color: white;
+            font-size: 11px; font-weight: 700; color: #1a1a1a;
             white-space: nowrap; line-height: 1.1; display: block;
         }
         #user-role-label-bottom {
@@ -225,7 +225,7 @@
         .bar-divider {
             width: 1px;
             height: 30px;
-            background: rgba(255,255,255,0.07);
+            background: rgba(0,0,0,0.1);
             flex-shrink: 0;
             align-self: center;
             margin: 0 4px 8px;
@@ -275,10 +275,10 @@
             right: 16px;
             z-index: 60;
             width: 196px;
-            background: rgba(18,18,18,0.99);
-            border: 1px solid rgba(255,255,255,0.08);
+            background: #ffffff;
+            border: 1px solid rgba(0,0,0,0.08);
             border-radius: 18px;
-            box-shadow: 0 -4px 32px rgba(0,0,0,0.6);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.15);
             padding: 6px;
             transform-origin: bottom right;
             transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.34,1.56,0.64,1);
@@ -290,23 +290,23 @@
         }
         .dd-header {
             padding: 10px 12px 8px;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
+            border-bottom: 1px solid rgba(0,0,0,0.06);
             margin-bottom: 4px;
         }
-        .dd-header p:first-child { font-size:13px;font-weight:700;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0; }
+        .dd-header p:first-child { font-size:13px;font-weight:700;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0; }
         .dd-header p:last-child  { font-size:10px;color:#c62828;font-weight:700;text-transform:uppercase;margin:2px 0 0; }
         .dd-item {
             display: flex; align-items: center; gap: 10px;
             padding: 10px 12px; border-radius: 12px;
             font-size: 13px; cursor: pointer; transition: all 0.18s;
-            background: none; border: none; width: 100%; color: #bbb;
+            background: none; border: none; width: 100%; color: #333;
         }
-        .dd-item:hover { background: rgba(255,255,255,0.06); color: white; }
-        .dd-item svg { stroke: #555; width: 16px; height: 16px; flex-shrink: 0; }
-        .dd-item:hover svg { stroke: white; }
+        .dd-item:hover { background: rgba(0,0,0,0.05); color: #000; }
+        .dd-item svg { stroke: #666; width: 16px; height: 16px; flex-shrink: 0; }
+        .dd-item:hover svg { stroke: #000; }
         .dd-item.dd-danger { color: #c62828; }
         .dd-item.dd-danger svg { stroke: #c62828; }
-        .dd-item.dd-danger:hover { background: rgba(198,40,40,0.1); color: #e53935; }
+        .dd-item.dd-danger:hover { background: rgba(198,40,40,0.08); color: #c62828; }
 
         /* =============================================
            HAMBURGER PANEL (full list)
