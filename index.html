@@ -11,57 +11,87 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; }
-
+        body { font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; padding: 0; }
         .hidden { display: none !important; }
-
         #main-iframe { transition: opacity 0.3s ease; }
 
         /* =============================================
            FLOATING BUBBLE BOTTOM NAV
         ============================================= */
+
+        /* Wrapper that sits at the very bottom */
         #bottom-nav-wrapper {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
             z-index: 50;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            /* Extra padding-top so the popped bubbles are never clipped */
+            padding-top: 28px;
             pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
         }
 
-        /* The floating pill bar */
+        /* The pill-shaped floating bar */
         #bottom-nav-bar {
             pointer-events: all;
-            display: flex;
-            align-items: flex-end;
-            background: rgba(18, 18, 18, 0.97);
+            width: calc(100% - 24px);
+            max-width: 860px;
+            background: rgba(16, 16, 16, 0.97);
             backdrop-filter: blur(24px);
             -webkit-backdrop-filter: blur(24px);
             border: 1px solid rgba(255,255,255,0.07);
-            border-bottom: none;
-            border-radius: 28px 28px 0 0;
-            box-shadow: 0 -6px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.03);
-            padding: 0 12px;
-            padding-bottom: 10px;
-            gap: 2px;
-            width: 100%;
-            max-width: 720px;
-            overflow-x: auto;
-            scrollbar-width: none;
+            border-radius: 24px 24px 0 0;
+            box-shadow: 0 -4px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+            overflow: visible; /* CRITICAL: allow bubbles to pop above */
             transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1),
-                        opacity 0.45s ease;
+                        opacity 0.4s ease;
+            /* Inner content row */
+            display: flex;
+            align-items: flex-end;
+            padding: 0 10px 10px 10px;
+            gap: 0;
         }
-        #bottom-nav-bar::-webkit-scrollbar { display: none; }
 
-        /* Hide state */
         #bottom-nav-bar.nav-hidden {
             transform: translateY(110%);
             opacity: 0;
             pointer-events: none;
         }
+
+        /* Timer track at top of bar */
+        #nav-timer-track {
+            position: absolute;
+            top: 0;
+            left: 12px;
+            right: 12px;
+            height: 2px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        #nav-timer-bar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #c62828, #ff5252);
+            border-radius: 2px;
+            transition: width 0.1s linear;
+        }
+
+        /* Scrollable items row (no scrollbar shown) */
+        #bottom-nav-items {
+            display: flex;
+            flex: 1;
+            align-items: flex-end;
+            overflow-x: auto;
+            overflow-y: visible;
+            scrollbar-width: none;
+            gap: 0;
+            padding-bottom: 0;
+        }
+        #bottom-nav-items::-webkit-scrollbar { display: none; }
 
         /* Individual nav button */
         .bubble-btn {
@@ -70,123 +100,166 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-end;
-            flex: 1;
+            flex: 1 0 56px;
             min-width: 56px;
-            max-width: 80px;
-            height: 64px;
+            max-width: 90px;
+            height: 60px;
             cursor: pointer;
             background: none;
             border: none;
             outline: none;
-            padding: 0 2px 0;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            padding: 0 3px;
+            transition: all 0.2s ease;
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Icon container */
+        /* Icon circle */
         .bubble-icon-wrap {
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             background: transparent;
             transition: all 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
-            margin-bottom: 3px;
+            margin-bottom: 4px;
             flex-shrink: 0;
+            position: relative;
+            z-index: 2;
         }
-
         .bubble-icon-wrap svg {
-            width: 20px;
-            height: 20px;
-            stroke: #666;
-            transition: stroke 0.25s ease;
+            width: 18px;
+            height: 18px;
+            stroke: #5a5a5a;
+            transition: all 0.25s ease;
         }
 
         /* Label */
         .bubble-label {
             font-size: 9px;
             font-weight: 600;
-            color: #555;
+            color: #4a4a4a;
             white-space: nowrap;
-            transition: color 0.25s ease, opacity 0.25s ease;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            transition: color 0.25s ease;
             line-height: 1;
             text-align: center;
         }
 
-        /* ACTIVE STATE — bubble pops up */
+        /* ACTIVE: bubble pops up */
         .bubble-btn.bubble-active .bubble-icon-wrap {
             background: #c62828;
-            box-shadow: 0 8px 24px rgba(198, 40, 40, 0.55),
-                        0 0 0 6px rgba(198, 40, 40, 0.12);
-            transform: translateY(-18px);
+            box-shadow: 0 8px 22px rgba(198,40,40,0.55),
+                        0 0 0 5px rgba(198,40,40,0.13);
+            transform: translateY(-20px);
         }
-
         .bubble-btn.bubble-active .bubble-icon-wrap svg {
             stroke: #ffffff;
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
         }
-
         .bubble-btn.bubble-active .bubble-label {
             color: #c62828;
             font-weight: 700;
         }
 
-        /* Press effect */
-        .bubble-btn:active .bubble-icon-wrap {
-            transform: scale(0.88) translateY(-14px);
-        }
-
+        /* Hover (inactive) */
         .bubble-btn:not(.bubble-active):hover .bubble-icon-wrap {
             background: rgba(255,255,255,0.06);
         }
-
         .bubble-btn:not(.bubble-active):hover .bubble-icon-wrap svg {
             stroke: #999;
         }
 
+        /* Press */
+        .bubble-btn:active .bubble-icon-wrap {
+            transform: scale(0.88) translateY(-14px);
+        }
+        .bubble-btn:not(.bubble-active):active .bubble-icon-wrap {
+            transform: scale(0.88) translateY(0);
+        }
+
         /* =============================================
-           HAMBURGER FAB BUTTON (always visible)
+           PROFILE PILL (right side of bar)
+        ============================================= */
+        #profile-pill-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(198,40,40,0.1);
+            border: 1px solid rgba(198,40,40,0.22);
+            border-radius: 20px;
+            padding: 4px 10px 4px 5px;
+            cursor: pointer;
+            flex-shrink: 0;
+            margin-left: 6px;
+            margin-bottom: 8px;
+            align-self: flex-end;
+            transition: background 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #profile-pill-btn:hover { background: rgba(198,40,40,0.18); }
+
+        #profile-avatar-bottom {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: #c62828;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; color: white; font-size: 10px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(198,40,40,0.4);
+        }
+        #user-display-name-bottom {
+            font-size: 11px; font-weight: 700; color: white;
+            white-space: nowrap; line-height: 1.1; display: block;
+        }
+        #user-role-label-bottom {
+            font-size: 8px; color: #c62828;
+            font-weight: 700; text-transform: uppercase; display: block;
+        }
+
+        /* Divider inside bar */
+        .bar-divider {
+            width: 1px;
+            height: 30px;
+            background: rgba(255,255,255,0.07);
+            flex-shrink: 0;
+            align-self: center;
+            margin: 0 4px 8px;
+        }
+
+        /* =============================================
+           HAMBURGER FAB (only when bar is hidden)
         ============================================= */
         #hamburger-fab {
-            pointer-events: all;
             position: fixed;
             bottom: 20px;
             right: 20px;
-            width: 52px;
-            height: 52px;
+            width: 52px; height: 52px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #c62828, #7f0000);
+            background: linear-gradient(135deg, #c62828, #8b0000);
             border: none;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 20px rgba(198,40,40,0.5), 0 0 0 3px rgba(198,40,40,0.15);
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 20px rgba(198,40,40,0.5),
+                        0 0 0 3px rgba(198,40,40,0.15);
             z-index: 55;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        #hamburger-fab:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 28px rgba(198,40,40,0.65), 0 0 0 5px rgba(198,40,40,0.18);
-        }
-
-        #hamburger-fab:active { transform: scale(0.93); }
-
-        #hamburger-fab svg { stroke: white; width: 22px; height: 22px; transition: all 0.3s ease; }
-
-        /* FAB only shows when nav is hidden */
-        #hamburger-fab {
             opacity: 0;
             pointer-events: none;
-            transform: scale(0.6) translateY(10px);
-            transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+            transform: scale(0.5) translateY(10px);
+            transition: opacity 0.35s ease,
+                        transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+            -webkit-tap-highlight-color: transparent;
         }
-
+        #hamburger-fab:hover {
+            transform: scale(1.08) translateY(0) !important;
+            box-shadow: 0 6px 28px rgba(198,40,40,0.65);
+        }
+        #hamburger-fab:active { transform: scale(0.93) !important; }
+        #hamburger-fab svg { stroke: white; width: 22px; height: 22px; }
         #hamburger-fab.fab-visible {
             opacity: 1;
             pointer-events: all;
@@ -194,229 +267,130 @@
         }
 
         /* =============================================
-           PROFILE PILL — inside bottom bar (right end)
-        ============================================= */
-        #profile-pill-btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(198,40,40,0.1);
-            border: 1px solid rgba(198,40,40,0.2);
-            border-radius: 20px;
-            padding: 4px 8px 4px 6px;
-            cursor: pointer;
-            flex-shrink: 0;
-            margin-left: 4px;
-            margin-bottom: 10px;
-            align-self: flex-end;
-            transition: background 0.2s;
-        }
-
-        #profile-pill-btn:hover { background: rgba(198,40,40,0.2); }
-
-        #profile-avatar-bottom {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: #c62828;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            color: white;
-            font-size: 11px;
-            flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(198,40,40,0.4);
-        }
-
-        #user-display-name-bottom {
-            font-size: 11px;
-            font-weight: 700;
-            color: white;
-            white-space: nowrap;
-            line-height: 1.1;
-        }
-
-        #user-role-label-bottom {
-            font-size: 8px;
-            color: #c62828;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        /* =============================================
            PROFILE DROPDOWN
         ============================================= */
         #profile-dropdown {
-            background: rgba(22,22,22,0.98);
+            position: fixed;
+            bottom: 90px;
+            right: 16px;
+            z-index: 60;
+            width: 196px;
+            background: rgba(18,18,18,0.99);
             border: 1px solid rgba(255,255,255,0.08);
             border-radius: 18px;
             box-shadow: 0 -4px 32px rgba(0,0,0,0.6);
             padding: 6px;
-            width: 192px;
-            position: fixed;
-            bottom: 84px;
-            right: 16px;
-            z-index: 60;
             transform-origin: bottom right;
-            transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+            transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.34,1.56,0.64,1);
         }
-
         #profile-dropdown.dd-hidden {
             opacity: 0;
             transform: scale(0.85);
             pointer-events: none;
         }
-
-        .dd-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 12px;
-            border-radius: 12px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.18s;
-            background: none;
-            border: none;
-            width: 100%;
-            color: #ccc;
+        .dd-header {
+            padding: 10px 12px 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            margin-bottom: 4px;
         }
-
+        .dd-header p:first-child { font-size:13px;font-weight:700;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0; }
+        .dd-header p:last-child  { font-size:10px;color:#c62828;font-weight:700;text-transform:uppercase;margin:2px 0 0; }
+        .dd-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border-radius: 12px;
+            font-size: 13px; cursor: pointer; transition: all 0.18s;
+            background: none; border: none; width: 100%; color: #bbb;
+        }
         .dd-item:hover { background: rgba(255,255,255,0.06); color: white; }
+        .dd-item svg { stroke: #555; width: 16px; height: 16px; flex-shrink: 0; }
         .dd-item:hover svg { stroke: white; }
-        .dd-item svg { stroke: #666; width: 16px; height: 16px; flex-shrink: 0; }
-
         .dd-item.dd-danger { color: #c62828; }
-        .dd-item.dd-danger:hover { background: rgba(198,40,40,0.12); color: #e53935; }
         .dd-item.dd-danger svg { stroke: #c62828; }
+        .dd-item.dd-danger:hover { background: rgba(198,40,40,0.1); color: #e53935; }
 
         /* =============================================
-           HAMBURGER FULL PANEL (slides from bottom)
+           HAMBURGER PANEL (full list)
         ============================================= */
         #hamburger-overlay {
+            position: fixed; inset: 0; z-index: 56;
             background: rgba(0,0,0,0.65);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
-            position: fixed;
-            inset: 0;
-            z-index: 56;
             transition: opacity 0.3s ease;
         }
-
-        #hamburger-overlay.overlay-hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
+        #hamburger-overlay.overlay-hidden { opacity:0; pointer-events:none; }
 
         #hamburger-panel {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 57;
+            position: fixed; bottom:0; left:0; right:0; z-index:57;
             max-height: 88vh;
-            background: rgba(14, 14, 14, 0.99);
+            background: rgba(13,13,13,0.99);
             border: 1px solid rgba(255,255,255,0.07);
             border-bottom: none;
             border-radius: 28px 28px 0 0;
             box-shadow: 0 -8px 56px rgba(0,0,0,0.75);
             transform: translateY(100%);
-            transition: transform 0.42s cubic-bezier(0.32, 0.72, 0, 1);
+            transition: transform 0.42s cubic-bezier(0.32,0.72,0,1);
         }
-
-        #hamburger-panel.panel-open {
-            transform: translateY(0);
-        }
+        #hamburger-panel.panel-open { transform: translateY(0); }
 
         .drag-handle {
-            width: 44px;
-            height: 4px;
+            width: 44px; height: 4px;
             background: rgba(255,255,255,0.12);
             border-radius: 2px;
-            margin: 14px auto 10px;
+            margin: 14px auto 8px;
         }
+        .pan-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 4px 20px 14px;
+        }
+        .pan-brand { display:flex;align-items:center;gap:12px; }
+        .brand-logo-grad {
+            padding: 8px; border-radius: 12px;
+            background: linear-gradient(135deg, #c62828, #7f0000);
+        }
+        .brand-logo-grad svg { width:18px;height:18px;stroke:white; }
+        .pan-close-btn {
+            width:32px;height:32px;border-radius:10px;
+            background:rgba(255,255,255,0.05);border:none;
+            display:flex;align-items:center;justify-content:center;cursor:pointer;
+            transition: background 0.2s;
+        }
+        .pan-close-btn:hover { background:rgba(255,255,255,0.1); }
+        .pan-close-btn svg { width:16px;height:16px;stroke:#666; }
 
-        /* Ham panel nav items */
+        /* Ham items */
+        #ham-nav-list { padding:0 12px 28px; overflow-y:auto; max-height:calc(88vh - 120px); }
+        #ham-nav-list::-webkit-scrollbar { width:3px; }
+        #ham-nav-list::-webkit-scrollbar-thumb { background:#2a2a2a;border-radius:3px; }
+
         .ham-item {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 12px 16px;
-            border-radius: 14px;
-            cursor: pointer;
-            background: none;
-            border: none;
-            width: 100%;
+            display:flex;align-items:center;gap:14px;
+            padding:12px 14px; border-radius:14px;
+            cursor:pointer; background:none; border:none; width:100%;
             transition: all 0.2s ease;
             -webkit-tap-highlight-color: transparent;
         }
-
-        .ham-item:hover { background: rgba(255,255,255,0.04); transform: translateX(3px); }
-
-        .ham-item.ham-active { background: rgba(198,40,40,0.12); }
-        .ham-item.ham-active .ham-icon { background: rgba(198,40,40,0.2); }
-        .ham-item.ham-active .ham-icon svg { stroke: #c62828; }
-        .ham-item.ham-active .ham-label { color: white; font-weight: 700; }
-        .ham-item.ham-active .ham-arrow svg { stroke: #c62828; }
-
+        .ham-item:hover { background:rgba(255,255,255,0.04); transform:translateX(3px); }
         .ham-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            background: rgba(255,255,255,0.05);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            transition: background 0.2s;
+            width:40px;height:40px;border-radius:12px;
+            background:rgba(255,255,255,0.05);
+            display:flex;align-items:center;justify-content:center;flex-shrink:0;
         }
+        .ham-icon svg { stroke:#555;width:18px;height:18px; }
+        .ham-label { font-size:14px;font-weight:500;color:#999;flex:1;text-align:left; }
+        .ham-arrow svg { stroke:#2a2a2a;width:15px;height:15px; }
 
-        .ham-icon svg { stroke: #666; width: 18px; height: 18px; }
+        .ham-item.ham-active { background:rgba(198,40,40,0.1); }
+        .ham-item.ham-active .ham-icon { background:rgba(198,40,40,0.18); }
+        .ham-item.ham-active .ham-icon svg { stroke:#c62828; }
+        .ham-item.ham-active .ham-label { color:white;font-weight:700; }
+        .ham-item.ham-active .ham-arrow svg { stroke:#c62828; }
 
-        .ham-label {
-            font-size: 14px;
-            font-weight: 500;
-            color: #aaa;
-            flex: 1;
-            text-align: left;
-        }
-
-        .ham-arrow svg { stroke: #333; width: 16px; height: 16px; }
-
-        /* logout */
-        .ham-item.ham-logout .ham-icon { background: rgba(198,40,40,0.08); }
-        .ham-item.ham-logout .ham-icon svg { stroke: #c62828; }
-        .ham-item.ham-logout .ham-label { color: #c62828; }
-        .ham-item.ham-logout:hover { background: rgba(198,40,40,0.08); }
-
-        /* Scrollbar */
-        #ham-nav-list::-webkit-scrollbar { width: 3px; }
-        #ham-nav-list::-webkit-scrollbar-track { background: transparent; }
-        #ham-nav-list::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 3px; }
-
-        /* Brand logo gradient */
-        .brand-logo-grad { background: linear-gradient(135deg, #c62828, #7f0000); }
-
-        /* PROGRESS BAR for auto-hide countdown */
-        #nav-timer-bar {
-            height: 2px;
-            background: linear-gradient(90deg, #c62828, #ff5252);
-            border-radius: 0 2px 0 0;
-            transition: width 0.1s linear;
-            width: 100%;
-        }
-
-        #nav-timer-track {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: rgba(255,255,255,0.04);
-            border-radius: 2px 2px 0 0;
-            overflow: hidden;
-        }
+        .ham-item.ham-logout .ham-icon { background:rgba(198,40,40,0.08); }
+        .ham-item.ham-logout .ham-icon svg { stroke:#c62828; }
+        .ham-item.ham-logout .ham-label { color:#c62828; }
+        .ham-item.ham-logout:hover { background:rgba(198,40,40,0.07); }
+        .ham-sep { height:1px;background:rgba(255,255,255,0.05);margin:6px 4px; }
     </style>
     <script>
         tailwind.config = {
@@ -428,7 +402,7 @@
 
 <body class="bg-gray-50 text-gray-800 dark:bg-brand-black dark:text-gray-100 min-h-screen">
 
-    <!-- ===================== LOGIN ===================== -->
+    <!-- ==================== LOGIN ==================== -->
     <div id="login-screen" class="fixed inset-0 z-[100] flex items-center justify-center bg-brand-black">
         <div class="w-full max-w-md p-8 bg-brand-dark rounded-2xl border border-brand-border shadow-2xl">
             <div class="text-center mb-8">
@@ -461,16 +435,16 @@
         </div>
     </div>
 
-    <!-- ===================== DASHBOARD ===================== -->
-    <div id="dashboard-layout" class="hidden flex flex-col min-h-screen">
+    <!-- ==================== DASHBOARD ==================== -->
+    <div id="dashboard-layout" class="hidden flex min-h-screen">
 
-        <!-- CONTENT AREA -->
-        <main class="flex-1 w-full" style="height: 100vh;">
-            <div class="relative w-full h-full bg-gray-100 dark:bg-brand-black">
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 flex flex-col w-full">
+            <div class="flex-1 bg-gray-100 dark:bg-brand-black overflow-hidden relative" style="height:100vh;">
                 <!-- IFRAME -->
                 <iframe id="main-iframe" class="w-full h-full border-0 absolute inset-0" src=""></iframe>
 
-                <!-- USER MANAGER VIEW -->
+                <!-- GESTOR DE USUARIOS -->
                 <div id="user-manager-view" class="hidden absolute inset-0 bg-gray-100 dark:bg-brand-black p-8 overflow-y-auto">
                     <div class="max-w-4xl mx-auto">
                         <div class="flex justify-between items-center mb-8">
@@ -497,47 +471,47 @@
             </div>
         </main>
 
-        <!-- =============================================
-             FLOATING BUBBLE BOTTOM NAV WRAPPER
-        ============================================= -->
+        <!-- ======================================
+             FLOATING BUBBLE BOTTOM NAV
+        ====================================== -->
         <div id="bottom-nav-wrapper">
-            <div id="bottom-nav-bar">
-                <!-- Timer progress bar -->
-                <div id="nav-timer-track" style="position:absolute;top:0;left:0;right:0;height:2px;overflow:hidden;">
+            <div id="bottom-nav-bar" style="position:relative;">
+                <!-- Timer progress -->
+                <div id="nav-timer-track">
                     <div id="nav-timer-bar"></div>
                 </div>
 
-                <!-- Nav items injected here dynamically -->
-                <div id="bottom-nav-items" style="display:flex;align-items:flex-end;flex:1;gap:2px;overflow-x:auto;scrollbar-width:none;padding-bottom:0;">
-                </div>
+                <!-- Nav items (filled by JS) -->
+                <div id="bottom-nav-items"></div>
 
                 <!-- Divider -->
-                <div style="width:1px;height:36px;background:rgba(255,255,255,0.07);align-self:center;flex-shrink:0;margin:0 4px;"></div>
+                <div class="bar-divider"></div>
 
                 <!-- Profile pill -->
                 <button id="profile-pill-btn" onclick="toggleProfileDropdown()">
                     <div id="profile-avatar-bottom">FC</div>
-                    <div style="display:flex;flex-direction:column;align-items:flex-start;">
+                    <div>
                         <span id="user-display-name-bottom">...</span>
                         <span id="user-role-label-bottom">Rol</span>
                     </div>
-                    <i data-lucide="chevron-up" style="width:12px;height:12px;stroke:#888;"></i>
+                    <i data-lucide="chevron-up" style="width:11px;height:11px;stroke:#777;flex-shrink:0;"></i>
                 </button>
             </div>
         </div>
 
-        <!-- HAMBURGER FAB (shown when bar is hidden) -->
-        <button id="hamburger-fab" onclick="showNavBar()">
+        <!-- FAB (shown when bar is hidden) -->
+        <button id="hamburger-fab" id="hamburger-fab">
             <i data-lucide="layout-grid"></i>
         </button>
 
         <!-- PROFILE DROPDOWN -->
         <div id="profile-dropdown" class="dd-hidden">
-            <div style="padding:10px 12px 8px;border-bottom:1px solid rgba(255,255,255,0.07);margin-bottom:4px;">
-                <p id="profile-dd-name" style="font-size:13px;font-weight:700;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">–</p>
-                <p id="profile-dd-role" style="font-size:10px;color:#c62828;font-weight:700;text-transform:uppercase;">–</p>
+            <div class="dd-header">
+                <p id="profile-dd-name">–</p>
+                <p id="profile-dd-role">–</p>
             </div>
-            <button id="btn-user-mgmt" onclick="loadPage('Usuarios_Gestor','Gestión de Usuarios','users'); toggleProfileDropdown();"
+            <button id="btn-user-mgmt"
+                onclick="loadPage('Usuarios_Gestor','Gestión de Usuarios','users'); toggleProfileDropdown();"
                 class="dd-item hidden">
                 <i data-lucide="users"></i> Gestión Usuarios
             </button>
@@ -552,31 +526,28 @@
         <!-- HAMBURGER FULL PANEL -->
         <div id="hamburger-panel">
             <div class="drag-handle"></div>
-
-            <!-- Panel header -->
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 20px 14px;">
-                <div style="display:flex;align-items:center;gap:12px;">
-                    <div class="brand-logo-grad" style="padding:8px;border-radius:12px;">
-                        <i data-lucide="layout-grid" style="width:18px;height:18px;stroke:white;"></i>
+            <div class="pan-header">
+                <div class="pan-brand">
+                    <div class="brand-logo-grad">
+                        <i data-lucide="layout-grid"></i>
                     </div>
                     <div>
-                        <p style="font-size:15px;font-weight:700;color:white;letter-spacing:0.5px;">FAST <span style="color:#c62828;">CONTROL</span></p>
-                        <p style="font-size:10px;color:#555;">Navegación del sistema</p>
+                        <p style="font-size:15px;font-weight:700;color:white;letter-spacing:0.5px;margin:0;">
+                            FAST <span style="color:#c62828;">CONTROL</span>
+                        </p>
+                        <p style="font-size:10px;color:#444;margin:2px 0 0;">Navegación del sistema</p>
                     </div>
                 </div>
-                <button onclick="closeHamburgerPanel()"
-                    style="width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,0.05);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;">
-                    <i data-lucide="x" style="width:16px;height:16px;stroke:#666;"></i>
+                <button class="pan-close-btn" onclick="closeHamburgerPanel()">
+                    <i data-lucide="x"></i>
                 </button>
             </div>
-
-            <!-- Nav list -->
-            <div id="ham-nav-list" style="padding:0 12px 28px;overflow-y:auto;max-height:calc(88vh - 120px);"></div>
+            <div id="ham-nav-list"></div>
         </div>
 
     </div>
 
-    <!-- ================= MODALS ================= -->
+    <!-- ==================== MODALS ==================== -->
 
     <!-- MODAL NUEVO USUARIO -->
     <div id="user-modal" class="fixed inset-0 z-[110] bg-black/80 flex items-center justify-center hidden">
@@ -618,7 +589,7 @@
             <div class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Email</label>
-                    <input type="email" id="edit-user-email" placeholder="correo@empresa.com" disabled
+                    <input type="email" id="edit-user-email" disabled
                         class="w-full bg-brand-black border border-brand-border rounded-lg px-4 py-2.5 text-gray-500 focus:outline-none transition-all cursor-not-allowed opacity-60">
                     <p class="text-[10px] text-gray-500 mt-1">El email no puede ser modificado.</p>
                 </div>
@@ -656,11 +627,16 @@
         </div>
     </div>
 
-    <!-- ================= FIREBASE SCRIPTS ================= -->
+    <!-- ==================== FIREBASE ==================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInAnonymously, browserSessionPersistence, setPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut,
+                 createUserWithEmailAndPassword, signInAnonymously,
+                 browserSessionPersistence, setPersistence }
+            from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, getDocs,
+                 deleteDoc, updateDoc, addDoc, serverTimestamp }
+            from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBWu-ewWbQb9z3f2gS9zQFrArZr-KUb-ok",
@@ -673,16 +649,14 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
+        const db   = getFirestore(app);
 
         await setPersistence(auth, browserSessionPersistence);
 
         window.userRole = '';
         window.currentUserEmail = '';
 
-        // =============================================
-        // AUDITORIA
-        // =============================================
+        // ── AUDITORIA ──────────────────────────────────
         window.logAudit = async (accion, modulo, detalles = '') => {
             try {
                 const user = auth.currentUser;
@@ -696,23 +670,20 @@
                     accion, modulo, detalles,
                     userAgent:  navigator.userAgent.substring(0, 120)
                 });
-            } catch (e) {
-                console.warn('Auditoría:', e);
-            }
+            } catch (e) { console.warn('Auditoría:', e); }
         };
 
-        function getFirebasePassword(rawPassword) {
-            return rawPassword.length < 6 ? rawPassword + "_fastcontrol_secure_padding" : rawPassword;
+        function getFirebasePassword(p) {
+            return p.length < 6 ? p + '_fastcontrol_secure_padding' : p;
         }
 
-        // LOGIN
+        // ── LOGIN ──────────────────────────────────────
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('login-email').value.trim();
+            const email   = document.getElementById('login-email').value.trim();
             const rawPass = document.getElementById('login-pass').value;
-            const pass = getFirebasePassword(rawPass);
-            const errorLabel = document.getElementById('login-error');
-
+            const pass    = getFirebasePassword(rawPass);
+            const errEl   = document.getElementById('login-error');
             try {
                 await signInWithEmailAndPassword(auth, email, pass);
             } catch (error) {
@@ -722,25 +693,25 @@
                         fechaLocal: new Date().toLocaleString('es-NI', { timeZone: 'America/Managua', hour12: true }),
                         uid: 'N/A', email, rol: 'N/A',
                         accion: 'INICIO_SESION_FALLIDO', modulo: 'Autenticación',
-                        detalles: `Intento de acceso fallido con el correo: ${email}`,
+                        detalles: `Intento fallido: ${email}`,
                         userAgent: navigator.userAgent.substring(0, 120)
                     });
                 } catch (_) {}
 
-                if (email === "soporte@fastcontrolni.com" && rawPass === "1234") {
+                if (email === 'soporte@fastcontrolni.com' && rawPass === '1234') {
                     try {
                         const res = await createUserWithEmailAndPassword(auth, email, pass);
-                        await setDoc(doc(db, "users", res.user.uid), { email, role: 'admin' });
-                        window.showNotification("¡Usuario administrador configurado con éxito!");
+                        await setDoc(doc(db, 'users', res.user.uid), { email, role: 'admin' });
+                        window.showNotification('¡Administrador configurado!');
                         return;
-                    } catch (createErr) { console.error(createErr); }
+                    } catch (ce) { console.error(ce); }
                 }
-                errorLabel.classList.remove('hidden');
-                errorLabel.textContent = "Credenciales incorrectas o problemas de conexión.";
+                errEl.classList.remove('hidden');
+                errEl.textContent = 'Credenciales incorrectas o problemas de conexión.';
             }
         });
 
-        // AUTH STATE
+        // ── AUTH STATE ─────────────────────────────────
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 if (user.isAnonymous) {
@@ -749,76 +720,99 @@
                     document.getElementById('dashboard-layout').classList.add('hidden');
                     return;
                 }
-                const docSnap = await getDoc(doc(db, "users", user.uid));
-                if (docSnap.exists()) {
-                    window.userRole = docSnap.data().role;
+                const snap = await getDoc(doc(db, 'users', user.uid));
+                if (snap.exists()) {
+                    window.userRole        = snap.data().role;
                     window.currentUserEmail = user.email;
                     setupDashboard(user, window.userRole);
-                    await window.logAudit('INICIO_SESION', 'Autenticación', `El usuario inició sesión correctamente. Rol: ${window.userRole}`);
-                } else if (user.email === "soporte@fastcontrolni.com") {
-                    await setDoc(doc(db, "users", user.uid), { email: user.email, role: 'admin' });
+                    await window.logAudit('INICIO_SESION', 'Autenticación',
+                        `Sesión iniciada. Rol: ${window.userRole}`);
+                } else if (user.email === 'soporte@fastcontrolni.com') {
+                    await setDoc(doc(db, 'users', user.uid), { email: user.email, role: 'admin' });
                     window.userRole = 'admin';
                     window.currentUserEmail = user.email;
                     setupDashboard(user, 'admin');
-                    await window.logAudit('INICIO_SESION', 'Autenticación', 'Primer inicio de sesión del administrador del sistema.');
+                    await window.logAudit('INICIO_SESION', 'Autenticación', 'Primer inicio admin.');
                 }
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('dashboard-layout').classList.remove('hidden');
             } else {
                 document.getElementById('login-screen').classList.remove('hidden');
                 document.getElementById('dashboard-layout').classList.add('hidden');
-                try { await signInAnonymously(auth); } catch (e) {}
+                try { await signInAnonymously(auth); } catch (_) {}
             }
         });
 
+        // ── SETUP DASHBOARD ────────────────────────────
         function setupDashboard(user, role) {
             const userName = user.email.split('@')[0];
 
-            // Profile pill
             document.getElementById('user-display-name-bottom').textContent = userName;
-            document.getElementById('user-role-label-bottom').textContent = role;
-            document.getElementById('profile-avatar-bottom').textContent = userName.substring(0, 2).toUpperCase();
-            document.getElementById('profile-dd-name').textContent = userName;
-            document.getElementById('profile-dd-role').textContent = role;
+            document.getElementById('user-role-label-bottom').textContent   = role;
+            document.getElementById('profile-avatar-bottom').textContent    = userName.substring(0, 2).toUpperCase();
+            document.getElementById('profile-dd-name').textContent          = userName;
+            document.getElementById('profile-dd-role').textContent          = role;
 
-            // All nav items
             const allItems = [
-                { id: 'Base_de_Datos.html',       label: 'Base Datos',        icon: 'database',       roles: ['admin'] },
-                { id: 'Certificados.html',         label: 'Certificados',      icon: 'award',          roles: ['admin'] },
-                { id: 'Cotizaciones.html',         label: 'Cotizaciones',      icon: 'file-text',      roles: ['admin'] },
-                { id: 'Inventario.html',           label: 'Inventario',        icon: 'package',        roles: ['admin'] },
-                { id: 'kardex.html',               label: 'Kardex',            icon: 'trending-up',    roles: ['admin'] },
-                { id: 'OT.html',                   label: 'OT',                icon: 'wrench',         roles: ['admin'] },
-                { id: 'Reporte_de_Servicios.html', label: 'Reportes',          icon: 'bar-chart',      roles: ['admin', 'tecnico'] },
-                { id: 'Requisas.html',             label: 'Requisas',          icon: 'clipboard-list', roles: ['admin'] },
-                { id: 'Auditoria.html',            label: 'Auditoría',         icon: 'shield-alert',   roles: ['admin'] }
+                { id: 'Base_de_Datos.html',       label: 'Base Datos',  icon: 'database',       roles: ['admin'] },
+                { id: 'Certificados.html',         label: 'Certif.',     icon: 'award',          roles: ['admin'] },
+                { id: 'Cotizaciones.html',         label: 'Cotiz.',      icon: 'file-text',      roles: ['admin'] },
+                { id: 'Inventario.html',           label: 'Inventario',  icon: 'package',        roles: ['admin'] },
+                { id: 'kardex.html',               label: 'Kardex',      icon: 'trending-up',    roles: ['admin'] },
+                { id: 'OT.html',                   label: 'OT',          icon: 'wrench',         roles: ['admin'] },
+                { id: 'Reporte_de_Servicios.html', label: 'Reportes',    icon: 'bar-chart',      roles: ['admin', 'tecnico'] },
+                { id: 'Requisas.html',             label: 'Requisas',    icon: 'clipboard-list', roles: ['admin'] },
+                { id: 'Auditoria.html',            label: 'Auditoría',   icon: 'shield-alert',   roles: ['admin'] }
             ];
 
-            const visibleItems = allItems.filter(i => i.roles.includes(role));
-            window._navItems = visibleItems;
+            const items = allItems.filter(i => i.roles.includes(role));
 
-            // Build bottom bar items
+            // ── BUBBLE BAR ──
             const container = document.getElementById('bottom-nav-items');
             container.innerHTML = '';
-
-            visibleItems.forEach(item => {
+            items.forEach(item => {
                 const btn = document.createElement('button');
                 btn.className = 'bubble-btn';
-                btn.id = `bbtn-${item.id}`;
+                btn.id        = `bbtn-${item.id}`;
                 btn.innerHTML = `
                     <div class="bubble-icon-wrap">
                         <i data-lucide="${item.icon}"></i>
                     </div>
                     <span class="bubble-label">${item.label}</span>
                 `;
-                btn.onclick = () => window.loadPage(item.id, item.label, item.icon);
+                btn.addEventListener('click', () => window.loadPage(item.id, item.label, item.icon));
                 container.appendChild(btn);
             });
 
-            // Build hamburger panel items
-            buildHamPanel(visibleItems, role);
+            // ── HAM PANEL ──
+            const list = document.getElementById('ham-nav-list');
+            list.innerHTML = '';
+            items.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = 'ham-item';
+                btn.id        = `hambtn-${item.id}`;
+                btn.innerHTML = `
+                    <div class="ham-icon"><i data-lucide="${item.icon}"></i></div>
+                    <span class="ham-label">${item.label}</span>
+                    <div class="ham-arrow"><i data-lucide="chevron-right"></i></div>
+                `;
+                btn.addEventListener('click', () => {
+                    window.loadPage(item.id, item.label, item.icon);
+                    closeHamburgerPanel();
+                });
+                list.appendChild(btn);
+            });
+            const sep = document.createElement('div'); sep.className = 'ham-sep';
+            list.appendChild(sep);
+            const logoutBtn = document.createElement('button');
+            logoutBtn.className = 'ham-item ham-logout';
+            logoutBtn.innerHTML = `
+                <div class="ham-icon"><i data-lucide="log-out"></i></div>
+                <span class="ham-label">Cerrar Sesión</span>
+            `;
+            logoutBtn.addEventListener('click', () => window.logout());
+            list.appendChild(logoutBtn);
 
-            // Admin user mgmt
             if (role === 'admin') {
                 document.getElementById('btn-user-mgmt').classList.remove('hidden');
             }
@@ -832,51 +826,14 @@
                 window.loadPage('Reporte_de_Servicios.html', 'Reportes', 'bar-chart');
             }
 
-            // Start the auto-hide timer
+            // Start 5-second auto-hide timer
             window.startNavTimer();
         }
 
-        function buildHamPanel(items, role) {
-            const list = document.getElementById('ham-nav-list');
-            list.innerHTML = '';
-
-            items.forEach(item => {
-                const btn = document.createElement('button');
-                btn.className = 'ham-item';
-                btn.id = `hambtn-${item.id}`;
-                btn.innerHTML = `
-                    <div class="ham-icon"><i data-lucide="${item.icon}"></i></div>
-                    <span class="ham-label">${item.label}</span>
-                    <div class="ham-arrow"><i data-lucide="chevron-right"></i></div>
-                `;
-                btn.onclick = () => {
-                    window.loadPage(item.id, item.label, item.icon);
-                    closeHamburgerPanel();
-                };
-                list.appendChild(btn);
-            });
-
-            // Separator + logout
-            const sep = document.createElement('div');
-            sep.style.cssText = 'height:1px;background:rgba(255,255,255,0.05);margin:8px 4px;';
-            list.appendChild(sep);
-
-            const logoutBtn = document.createElement('button');
-            logoutBtn.className = 'ham-item ham-logout';
-            logoutBtn.innerHTML = `
-                <div class="ham-icon"><i data-lucide="log-out"></i></div>
-                <span class="ham-label">Cerrar Sesión</span>
-            `;
-            logoutBtn.onclick = () => window.logout();
-            list.appendChild(logoutBtn);
-
-            lucide.createIcons();
-        }
-
-        // LOAD PAGE
+        // ── LOAD PAGE ──────────────────────────────────
         window.loadPage = (id, title, icon) => {
-            const iframe = document.getElementById('main-iframe');
-            const userView = document.getElementById('user-manager-view');
+            const iframe    = document.getElementById('main-iframe');
+            const userView  = document.getElementById('user-manager-view');
 
             if (id === 'Usuarios_Gestor') {
                 iframe.classList.add('hidden');
@@ -888,15 +845,15 @@
                 iframe.src = id;
             }
 
-            // Update active states — bottom bar
+            // Active state — bubble bar
             document.querySelectorAll('.bubble-btn').forEach(b => b.classList.remove('bubble-active'));
-            const activeB = document.getElementById(`bbtn-${id}`);
-            if (activeB) activeB.classList.add('bubble-active');
+            const ab = document.getElementById(`bbtn-${id}`);
+            if (ab) ab.classList.add('bubble-active');
 
-            // Update active states — ham panel
+            // Active state — ham panel
             document.querySelectorAll('.ham-item').forEach(b => b.classList.remove('ham-active'));
-            const activeH = document.getElementById(`hambtn-${id}`);
-            if (activeH) activeH.classList.add('ham-active');
+            const ah = document.getElementById(`hambtn-${id}`);
+            if (ah) ah.classList.add('ham-active');
 
             lucide.createIcons();
 
@@ -904,34 +861,34 @@
                 window.logAudit('NAVEGACION', title, `Accedió al módulo: ${title}`);
             }
 
-            // Reset the nav timer so bar stays visible after navigation
+            // Reset timer on every navigation
             window.startNavTimer();
         };
 
-        // EMAIL SUGGESTIONS
+        // ── EMAIL SUGGESTIONS ──────────────────────────
         window.loadEmailSuggestions = async () => {
-            const datalist = document.getElementById('email-suggestions');
-            if (!datalist) return;
-            datalist.innerHTML = '';
+            const dl = document.getElementById('email-suggestions');
+            if (!dl) return;
+            dl.innerHTML = '';
             try {
-                const qs = await getDocs(collection(db, "users"));
+                const qs = await getDocs(collection(db, 'users'));
                 qs.forEach(d => {
                     const data = d.data();
                     if (data && data.email) {
                         const opt = document.createElement('option');
                         opt.value = data.email;
-                        datalist.appendChild(opt);
+                        dl.appendChild(opt);
                     }
                 });
             } catch (e) { console.error(e); }
         };
 
-        // USERS TABLE
+        // ── USERS TABLE ────────────────────────────────
         window.loadUsersTable = async () => {
             const tbody = document.getElementById('user-table-body');
             tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-400">Cargando...</td></tr>';
             try {
-                const qs = await getDocs(collection(db, "users"));
+                const qs = await getDocs(collection(db, 'users'));
                 tbody.innerHTML = '';
                 qs.forEach(d => {
                     const data = d.data();
@@ -940,13 +897,16 @@
                             <td class="p-4 text-white font-medium">${data.email}</td>
                             <td class="p-4 uppercase text-xs font-bold ${data.role === 'admin' ? 'text-brand-red' : 'text-blue-400'}">${data.role}</td>
                             <td class="p-4 text-right space-x-2">
-                                <button onclick="window.openEditUserModal('${d.id}','${data.email}','${data.role}')" class="text-gray-400 hover:text-white inline-flex p-1.5 rounded hover:bg-white/5" title="Editar">
+                                <button onclick="window.openEditUserModal('${d.id}','${data.email}','${data.role}')"
+                                    class="text-gray-400 hover:text-white inline-flex p-1.5 rounded hover:bg-white/5" title="Editar">
                                     <i data-lucide="edit-2" class="w-4 h-4"></i>
                                 </button>
-                                <button onclick="window.updateUserRole('${d.id}','${data.role}')" class="text-gray-400 hover:text-white inline-flex p-1.5 rounded hover:bg-white/5" title="Alternar Rol">
+                                <button onclick="window.updateUserRole('${d.id}','${data.role}')"
+                                    class="text-gray-400 hover:text-white inline-flex p-1.5 rounded hover:bg-white/5" title="Alternar Rol">
                                     <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                                 </button>
-                                <button onclick="window.deleteUserFromDb('${d.id}')" class="text-brand-red hover:text-red-500 inline-flex p-1.5 rounded hover:bg-red-950/20" title="Eliminar">
+                                <button onclick="window.deleteUserFromDb('${d.id}')"
+                                    class="text-brand-red hover:text-red-500 inline-flex p-1.5 rounded hover:bg-red-950/20" title="Eliminar">
                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                 </button>
                             </td>
@@ -954,38 +914,38 @@
                 });
                 lucide.createIcons();
             } catch (e) {
-                tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-brand-red">Error al cargar usuarios.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-brand-red">Error al cargar.</td></tr>';
             }
         };
 
         window.registerNewUser = async () => {
-            const email = document.getElementById('new-user-email').value.trim();
+            const email   = document.getElementById('new-user-email').value.trim();
             const rawPass = document.getElementById('new-user-pass').value;
-            const pass = getFirebasePassword(rawPass);
-            const role = document.getElementById('new-user-role').value;
-            if (!email || !rawPass) { window.showNotification("Completa todos los campos", true); return; }
+            const pass    = getFirebasePassword(rawPass);
+            const role    = document.getElementById('new-user-role').value;
+            if (!email || !rawPass) { window.showNotification('Completa todos los campos', true); return; }
             try {
                 const res = await createUserWithEmailAndPassword(auth, email, pass);
-                await setDoc(doc(db, "users", res.user.uid), { email, role });
-                await window.logAudit('CREAR_USUARIO', 'Gestión de Usuarios', `Usuario creado: ${email} (${role})`);
-                window.showNotification("Usuario guardado con éxito");
+                await setDoc(doc(db, 'users', res.user.uid), { email, role });
+                await window.logAudit('CREAR_USUARIO','Gestión de Usuarios',`Creado: ${email} (${role})`);
+                window.showNotification('Usuario guardado con éxito');
                 window.toggleUserModal();
                 window.loadUsersTable();
                 document.getElementById('new-user-email').value = '';
-                document.getElementById('new-user-pass').value = '';
-            } catch (e) { window.showNotification("Error: " + e.message, true); }
+                document.getElementById('new-user-pass').value  = '';
+            } catch (e) { window.showNotification('Error: ' + e.message, true); }
         };
 
         window.deleteUserFromDb = async (id) => {
             let email = id;
-            try { const s = await getDoc(doc(db,'users',id)); if(s.exists()) email = s.data().email||id; } catch(_){}
-            window.customConfirm("¿Eliminar acceso de este usuario?", async () => {
+            try { const s = await getDoc(doc(db,'users',id)); if(s.exists()) email=s.data().email||id; } catch(_){}
+            window.customConfirm('¿Eliminar acceso de este usuario?', async () => {
                 try {
-                    await deleteDoc(doc(db, "users", id));
+                    await deleteDoc(doc(db,'users',id));
                     await window.logAudit('ELIMINAR_USUARIO','Gestión de Usuarios',`Eliminado: ${email}`);
-                    window.showNotification("Usuario eliminado");
+                    window.showNotification('Usuario eliminado');
                     window.loadUsersTable();
-                } catch(e){ window.showNotification("Error: "+e.message,true); }
+                } catch(e){ window.showNotification('Error: '+e.message,true); }
             });
         };
 
@@ -994,17 +954,17 @@
             let email = id;
             try { const s = await getDoc(doc(db,'users',id)); if(s.exists()) email=s.data().email||id; } catch(_){}
             try {
-                await updateDoc(doc(db,"users",id),{role:newRole});
-                await window.logAudit('CAMBIAR_ROL','Gestión de Usuarios',`${email}: ${currentRole} → ${newRole}`);
-                window.showNotification(`Rol actualizado a ${newRole}`);
+                await updateDoc(doc(db,'users',id),{role:newRole});
+                await window.logAudit('CAMBIAR_ROL','Gestión de Usuarios',`${email}: ${currentRole}→${newRole}`);
+                window.showNotification(`Rol → ${newRole}`);
                 window.loadUsersTable();
-            } catch(e){ window.showNotification("Error: "+e.message,true); }
+            } catch(e){ window.showNotification('Error: '+e.message,true); }
         };
 
         window.logout = async () => {
             await window.logAudit('CIERRE_SESION','Autenticación','Cerró sesión manualmente.');
             document.getElementById('login-email').value = '';
-            document.getElementById('login-pass').value = '';
+            document.getElementById('login-pass').value  = '';
             document.getElementById('login-error').classList.add('hidden');
             window.currentUserEmail = '';
             window.userRole = '';
@@ -1012,15 +972,21 @@
         };
 
         window.showNotification = (msg, isError = false) => {
-            const toast = document.createElement('div');
-            toast.style.cssText = `position:fixed;bottom:90px;right:20px;z-index:200;padding:12px 20px;border-radius:14px;box-shadow:0 4px 24px rgba(0,0,0,0.4);color:white;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;transform:translateY(20px);opacity:0;transition:all 0.3s ease;background:${isError?'#c62828':'#16a34a'};`;
-            toast.innerHTML = `<div style="display:flex;align-items:center;gap:8px;"><i data-lucide="${isError?'alert-circle':'check-circle'}" style="width:18px;height:18px;"></i><span>${msg}</span></div>`;
-            document.body.appendChild(toast);
+            const t = document.createElement('div');
+            t.style.cssText = `position:fixed;bottom:90px;right:20px;z-index:200;padding:12px 20px;
+                border-radius:14px;color:white;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;
+                transform:translateY(20px);opacity:0;transition:all 0.3s ease;
+                background:${isError?'#c62828':'#16a34a'};
+                box-shadow:0 4px 20px rgba(0,0,0,0.35);`;
+            t.innerHTML = `<div style="display:flex;align-items:center;gap:8px;">
+                <i data-lucide="${isError?'alert-circle':'check-circle'}" style="width:18px;height:18px;"></i>
+                <span>${msg}</span></div>`;
+            document.body.appendChild(t);
             lucide.createIcons();
-            setTimeout(() => { toast.style.transform='translateY(0)'; toast.style.opacity='1'; }, 50);
+            setTimeout(() => { t.style.transform='translateY(0)'; t.style.opacity='1'; }, 50);
             setTimeout(() => {
-                toast.style.transform='translateY(20px)'; toast.style.opacity='0';
-                setTimeout(() => toast.remove(), 300);
+                t.style.transform='translateY(20px)'; t.style.opacity='0';
+                setTimeout(() => t.remove(), 300);
             }, 3000);
         };
 
@@ -1033,178 +999,119 @@
             document.getElementById('confirm-ok-btn').onclick = () => { onConfirm(); close(); };
         };
 
-        window.toggleUserModal = () => document.getElementById('user-modal').classList.toggle('hidden');
-        window.openEditUserModal = (userId, email, role) => {
+        window.toggleUserModal     = () => document.getElementById('user-modal').classList.toggle('hidden');
+        window.toggleEditUserModal = () => document.getElementById('edit-user-modal').classList.toggle('hidden');
+
+        window.openEditUserModal = (uid, email, role) => {
             document.getElementById('edit-user-email').value = email;
-            document.getElementById('edit-user-role').value = role;
-            window.currentEditUserId = userId;
+            document.getElementById('edit-user-role').value  = role;
+            window.currentEditUserId = uid;
             document.getElementById('edit-user-modal').classList.remove('hidden');
         };
-        window.toggleEditUserModal = () => document.getElementById('edit-user-modal').classList.toggle('hidden');
+
         window.saveUserChanges = async () => {
-            const userId = window.currentEditUserId;
+            const uid     = window.currentEditUserId;
             const newRole = document.getElementById('edit-user-role').value;
-            const email = document.getElementById('edit-user-email').value;
-            if (!userId || !newRole) { window.showNotification("Error: Datos incompletos", true); return; }
+            const email   = document.getElementById('edit-user-email').value;
+            if (!uid || !newRole) { window.showNotification('Datos incompletos', true); return; }
             try {
-                await updateDoc(doc(db,"users",userId),{role:newRole});
-                await window.logAudit('EDITAR_USUARIO','Gestión de Usuarios',`${email} → rol: ${newRole}`);
-                window.showNotification("Usuario actualizado");
+                await updateDoc(doc(db,'users',uid),{role:newRole});
+                await window.logAudit('EDITAR_USUARIO','Gestión de Usuarios',`${email} → ${newRole}`);
+                window.showNotification('Usuario actualizado');
                 window.toggleEditUserModal();
                 window.loadUsersTable();
-            } catch(e){ window.showNotification("Error: "+e.message,true); }
+            } catch(e){ window.showNotification('Error: '+e.message,true); }
         };
 
     </script>
 
-    <!-- ================= NAV BAR CONTROLS ================= -->
+    <!-- ==================== NAV CONTROLS ==================== -->
     <script>
-        /* ------------------------------------------------
-           AUTO-HIDE TIMER LOGIC
-           - Bar shows for 10 seconds
-           - Progress bar counts down visually
-           - Then bar slides down and FAB appears
-        ------------------------------------------------ */
-        let _navTimer     = null;
-        let _timerStart   = null;
-        const NAV_DURATION = 10000; // 10 seconds
+        /* ─── AUTO-HIDE TIMER (5 seconds) ─── */
+        var _navTimer   = null;
+        var _timerStart = null;
+        var NAV_MS      = 5000; // 5 seconds
 
-        window.startNavTimer = () => {
-            // Show the bar
-            showNavBar();
-
-            // Clear any existing timer
-            if (_navTimer) clearInterval(_navTimer);
-
+        window.startNavTimer = function() {
+            _showBar();
+            if (_navTimer) { clearInterval(_navTimer); _navTimer = null; }
             _timerStart = Date.now();
-            const timerBar = document.getElementById('nav-timer-bar');
+            var bar = document.getElementById('nav-timer-bar');
+            if (bar) bar.style.width = '100%';
 
-            // Animate the progress bar
-            _navTimer = setInterval(() => {
-                const elapsed = Date.now() - _timerStart;
-                const pct = Math.max(0, 100 - (elapsed / NAV_DURATION) * 100);
-                if (timerBar) timerBar.style.width = pct + '%';
-
-                if (elapsed >= NAV_DURATION) {
+            _navTimer = setInterval(function() {
+                var elapsed = Date.now() - _timerStart;
+                var pct     = Math.max(0, 100 - (elapsed / NAV_MS) * 100);
+                var b       = document.getElementById('nav-timer-bar');
+                if (b) b.style.width = pct + '%';
+                if (elapsed >= NAV_MS) {
                     clearInterval(_navTimer);
                     _navTimer = null;
-                    hideNavBar();
+                    _hideBar();
                 }
             }, 80);
         };
 
-        window.showNavBar = () => {
-            const bar = document.getElementById('bottom-nav-bar');
-            const fab = document.getElementById('hamburger-fab');
+        function _showBar() {
+            var bar = document.getElementById('bottom-nav-bar');
+            var fab = document.getElementById('hamburger-fab');
             if (bar) bar.classList.remove('nav-hidden');
             if (fab) fab.classList.remove('fab-visible');
-        };
-
-        function hideNavBar() {
-            const bar = document.getElementById('bottom-nav-bar');
-            const fab = document.getElementById('hamburger-fab');
-            if (bar) bar.classList.add('nav-hidden');
-            setTimeout(() => {
-                if (fab) fab.classList.add('fab-visible');
-            }, 200);
         }
 
-        /* ------------------------------------------------
-           HAMBURGER PANEL
-        ------------------------------------------------ */
-        window.openHamburgerPanel = () => {
+        function _hideBar() {
+            var bar = document.getElementById('bottom-nav-bar');
+            var fab = document.getElementById('hamburger-fab');
+            if (bar) bar.classList.add('nav-hidden');
+            setTimeout(function() {
+                if (fab) fab.classList.add('fab-visible');
+            }, 300);
+        }
+
+        /* FAB click: show bar + restart 5s timer */
+        document.addEventListener('DOMContentLoaded', function() {
+            var fab = document.getElementById('hamburger-fab');
+            if (fab) {
+                fab.addEventListener('click', function() {
+                    window.startNavTimer();
+                });
+            }
+        });
+
+        /* ─── HAMBURGER FULL PANEL ─── */
+        window.openHamburgerPanel = function() {
             document.getElementById('hamburger-overlay').classList.remove('overlay-hidden');
             document.getElementById('hamburger-panel').classList.add('panel-open');
         };
 
-        window.closeHamburgerPanel = () => {
+        window.closeHamburgerPanel = function() {
             document.getElementById('hamburger-panel').classList.remove('panel-open');
-            setTimeout(() => {
+            setTimeout(function() {
                 document.getElementById('hamburger-overlay').classList.add('overlay-hidden');
-            }, 380);
+            }, 400);
         };
 
-        /* Clicking FAB:
-           - If bar is hidden → show bar + start 10s timer
-           - If bar is visible → open full panel */
-        window.showNavBar = () => {
-            const bar = document.getElementById('bottom-nav-bar');
-            const fab = document.getElementById('hamburger-fab');
-            const isHidden = bar && bar.classList.contains('nav-hidden');
-
-            if (bar) bar.classList.remove('nav-hidden');
-            if (fab) fab.classList.remove('fab-visible');
-
-            return isHidden; // returns true if we just showed it
-        };
-
-        /* Override for FAB button click */
-        document.addEventListener('DOMContentLoaded', () => {
-            const fab = document.getElementById('hamburger-fab');
-            if (fab) {
-                fab.onclick = () => {
-                    const wasHidden = document.getElementById('bottom-nav-bar').classList.contains('nav-hidden');
-                    if (wasHidden) {
-                        // Just show the bar and restart timer
-                        showNavBar();
-                        startNavTimerOnly();
-                    } else {
-                        // Bar is visible → open full panel
-                        window.openHamburgerPanel();
-                    }
-                };
-            }
-        });
-
-        function startTimerBar() {
-            if (_navTimer) clearInterval(_navTimer);
-            _timerStart = Date.now();
-            const timerBar = document.getElementById('nav-timer-bar');
-            _navTimer = setInterval(() => {
-                const elapsed = Date.now() - _timerStart;
-                const pct = Math.max(0, 100 - (elapsed / NAV_DURATION) * 100);
-                if (timerBar) timerBar.style.width = pct + '%';
-                if (elapsed >= NAV_DURATION) {
-                    clearInterval(_navTimer);
-                    _navTimer = null;
-                    hideNavBar();
-                }
-            }, 80);
-        }
-
-        function startNavTimerOnly() {
-            startTimerBar();
-        }
-
-        window.startNavTimer = () => {
-            showNavBar();
-            startTimerBar();
-        };
-
-        /* ------------------------------------------------
-           PROFILE DROPDOWN
-        ------------------------------------------------ */
-        window.toggleProfileDropdown = () => {
-            const dd = document.getElementById('profile-dropdown');
-            const isHidden = dd.classList.contains('dd-hidden');
-            if (isHidden) {
+        /* ─── PROFILE DROPDOWN ─── */
+        window.toggleProfileDropdown = function() {
+            var dd = document.getElementById('profile-dropdown');
+            var hidden = dd.classList.contains('dd-hidden');
+            if (hidden) {
                 dd.classList.remove('dd-hidden');
-                setTimeout(() => {
-                    document.addEventListener('click', _closeDD, { once: true });
+                setTimeout(function() {
+                    document.addEventListener('click', _closeDDOutside, { once: true });
                 }, 10);
             } else {
                 dd.classList.add('dd-hidden');
             }
         };
 
-        function _closeDD(e) {
-            const dd = document.getElementById('profile-dropdown');
-            const btn = document.getElementById('profile-pill-btn');
-            if (!dd.contains(e.target) && btn && !btn.contains(e.target)) {
+        function _closeDDOutside(e) {
+            var dd  = document.getElementById('profile-dropdown');
+            var btn = document.getElementById('profile-pill-btn');
+            if (dd && btn && !dd.contains(e.target) && !btn.contains(e.target)) {
                 dd.classList.add('dd-hidden');
             }
         }
     </script>
 </body>
-
 </html>
