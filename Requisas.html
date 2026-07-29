@@ -939,6 +939,8 @@
           <div class="info-block" id="cliente-info-block" style="display:none;">
             <div class="info-row"><span class="info-label">Cliente:</span><span class="info-value"
                 id="inf-cliente">—</span></div>
+            <div class="info-row"><span class="info-label">Sucursal:</span><span class="info-value"
+                id="inf-sucursal">—</span></div>
             <div class="info-row"><span class="info-label">Dirección:</span><span class="info-value"
                 id="inf-direccion">—</span></div>
             <div class="info-row"><span class="info-label">Atención:</span><span class="info-value"
@@ -1203,6 +1205,7 @@
       document.getElementById('factura').value = otSeleccionada.numero_factura || '';
       document.getElementById('ot-list').classList.remove('open');
       document.getElementById('inf-cliente').textContent = otSeleccionada.cliente_nombre || '—';
+      document.getElementById('inf-sucursal').textContent = otSeleccionada.sucursal_nombre || '—';
       document.getElementById('inf-direccion').textContent = otSeleccionada.direccion || '—';
       document.getElementById('inf-atencion').textContent = otSeleccionada.atencion_de || otSeleccionada.contacto || '—';
       document.getElementById('inf-sector').textContent = otSeleccionada.sector || '—';
@@ -1386,6 +1389,7 @@
           orden_trabajo: otSeleccionada.numero_ot || otSeleccionada.id,
           factura: document.getElementById('factura').value.trim(),
           cliente: otSeleccionada.cliente_nombre || '',
+          sucursal_nombre: otSeleccionada.sucursal_nombre || '',
           direccion: otSeleccionada.direccion || '',
           atencion: otSeleccionada.atencion_de || otSeleccionada.contacto || '',
           sector: otSeleccionada.sector || '',
@@ -1542,7 +1546,7 @@
         doc.setFillColor(WH[0], WH[1], WH[2]);
         doc.setDrawColor(226, 232, 240);
         doc.setLineWidth(0.2);
-        doc.rect(11, my, 192.5, 16, 'FD');
+        doc.rect(11, my, 192.5, 20, 'FD');
 
         doc.setTextColor(R[0], R[1], R[2]);
         doc.setFont('helvetica', 'bold');
@@ -1557,19 +1561,21 @@
         doc.setFontSize(7);
         doc.setTextColor(MD[0], MD[1], MD[2]);
         doc.text('Cliente:', col1x, my + 9.5);
-        doc.text('Dirección:', col1x, my + 13.5);
+        doc.text('Sucursal:', col1x, my + 13.5);
+        doc.text('Dirección:', col1x, my + 17.5);
         doc.text('Atención:', col2x, my + 9.5);
         doc.text('Sector:', col2x, my + 13.5);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(DK[0], DK[1], DK[2]);
         doc.setFontSize(7.5);
         doc.text(doc.splitTextToSize(data.cliente || '—', 60)[0], col1x + 16, my + 9.5);
-        doc.text(doc.splitTextToSize(data.direccion || '—', 60)[0], col1x + 20, my + 13.5);
+        doc.text(doc.splitTextToSize(data.sucursal_nombre || '—', 60)[0], col1x + 18, my + 13.5);
+        doc.text(doc.splitTextToSize(data.direccion || '—', 60)[0], col1x + 20, my + 17.5);
         doc.text(doc.splitTextToSize(data.atencion || '—', 60)[0], col2x + 16, my + 9.5);
         doc.text(data.sector || '—', col2x + 14, my + 13.5);
 
         // ── TABLA DE QUÍMICOS ──
-        my += 19;
+        my += 23;
         doc.autoTable({
           startY: my,
           margin: { left: 11, right: 11 },
