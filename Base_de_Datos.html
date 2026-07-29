@@ -1048,6 +1048,53 @@
       }
     }
 
+    /* Sección dinámica de Sucursales (Módulo Clientes) */
+    .sucursal-row {
+      position: relative;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 14px 14px 4px 14px;
+      margin-bottom: 12px;
+      background-color: var(--bg-input);
+    }
+
+    .sucursal-row-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .sucursal-row-header span {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .btn-remove-sucursal {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      border-radius: 6px;
+      transition: var(--transition-smooth);
+    }
+
+    .btn-remove-sucursal:hover {
+      color: white;
+      background-color: var(--color-primary);
+    }
+
+    .sucursal-row .form-group {
+      margin-bottom: 10px;
+    }
+
  
     /* ==========================================================================
        ESTILOS PARA MODAL DE CONTRASEÑA (PASSWORD MODAL)
@@ -1328,11 +1375,6 @@
                   <input type="text" id="cliente-gerente" class="form-control" placeholder="Nombre del representante"
                     required>
                 </div>
-                <div class="form-group">
-                  <label for="cliente-direccion">Dirección Física *</label>
-                  <input type="text" id="cliente-direccion" class="form-control" placeholder="Dirección completa"
-                    required>
-                </div>
 
                 <div class="form-grid-2">
                   <div class="form-group">
@@ -1358,8 +1400,23 @@
                 </div>
               </div>
 
+              <!-- Sección dinámica de Sucursales -->
+              <div class="form-group" style="margin-top: 8px;">
+                <label style="display: flex; align-items: center; justify-content: space-between;">
+                  <span>Sucursales * (Casa Matriz y sucursales adicionales)</span>
+                </label>
+                <div id="sucursales-container"></div>
+                <button type="button" class="btn btn-secondary" id="btn-add-sucursal"
+                  onclick="addSucursalRow()" style="margin-top: 4px;">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span>Agregar sucursal</span>
+                </button>
+              </div>
+
               <div class="btn-group">
-                <button type="button" class="btn btn-secondary" onclick="resetForm('form-cliente')">Limpiar</button>
+                <button type="button" class="btn btn-secondary" id="btn-clear-cliente" onclick="resetForm('form-cliente')">Limpiar</button>
                 <button type="submit" class="btn btn-primary" id="btn-save-cliente">
                   <span>Guardar Cliente</span>
                 </button>
@@ -1670,7 +1727,7 @@
     <script type="module">
       // Importamos los SDKs modulares de Firebase vía CDN
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-      import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
       // 1. CONFIGURACIÓN CENTRALIZADA E INTEGRACIÓN DIRECTA DE LA URL
       // ==========================================================================
@@ -1768,6 +1825,11 @@
         const today = new Date().toISOString().split('T')[0];
         const fechaInput = document.getElementById("cliente-fecha");
         if (fechaInput) fechaInput.value = today;
+
+        // Dejar lista una fila de sucursal en blanco (Casa Matriz) para el alta de un nuevo cliente
+        if (document.getElementById("sucursales-container")) {
+          limpiarSucursales();
+        }
 
         // Verificar la URL de Sheets y sincronizar
         if (state.sheetsUrl && state.sheetsUrl !== "https://script.google.com/macros/s/AKfycbzmlsJAXpB" && state.sheetsUrl.includes("/macros/s/")) {
@@ -1905,6 +1967,111 @@
         });
       }
 
+      // --------------------------------------------------------------------
+      // Gestión dinámica de Sucursales (Casa Matriz + Sucursales adicionales)
+      // --------------------------------------------------------------------
+      let sucursalRowSeq = 0;
+
+      // Crea y agrega una fila de sucursal al formulario
+      window.addSucursalRow = function (data = {}) {
+        const container = document.getElementById("sucursales-container");
+        if (!container) return;
+
+        sucursalRowSeq += 1;
+        const rowId = `sucursal-row-${sucursalRowSeq}`;
+        const numero = container.children.length + 1;
+
+        const row = document.createElement("div");
+        row.className = "sucursal-row";
+        row.id = rowId;
+        row.innerHTML = `
+          <div class="sucursal-row-header">
+            <span>Sucursal ${numero}</span>
+            <button type="button" class="btn-remove-sucursal" title="Eliminar sucursal" onclick="removeSucursalRow('${rowId}')">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Nombre de la sucursal *</label>
+              <input type="text" class="form-control sucursal-nombre" placeholder="Ej: Casa Matriz" value="${escapeHtml(data.nombre || "")}">
+            </div>
+            <div class="form-group">
+              <label>Encargado</label>
+              <input type="text" class="form-control sucursal-encargado" placeholder="Nombre del encargado (Opcional)" value="${escapeHtml(data.encargado || "")}">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Dirección *</label>
+            <input type="text" class="form-control sucursal-direccion" placeholder="Dirección completa" value="${escapeHtml(data.direccion || "")}">
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="tel" class="form-control sucursal-telefono" placeholder="Teléfono de la sucursal (Opcional)" value="${escapeHtml(data.telefono || "")}">
+          </div>
+        `;
+        container.appendChild(row);
+      };
+
+      // Elimina una fila de sucursal del formulario (solo UI; se persiste al guardar el cliente)
+      window.removeSucursalRow = function (rowId) {
+        const row = document.getElementById(rowId);
+        if (row) row.remove();
+      };
+
+      // Vacía el contenedor de sucursales y deja una fila en blanco lista (Casa Matriz)
+      function limpiarSucursales() {
+        const container = document.getElementById("sucursales-container");
+        if (!container) return;
+        container.innerHTML = "";
+        addSucursalRow({ nombre: "Casa Matriz" });
+      }
+
+      // Carga las sucursales de un cliente en el formulario.
+      // Migra automáticamente clientes antiguos que solo tenían el campo plano "direccion".
+      function cargarSucursalesEnFormulario(cliente) {
+        const container = document.getElementById("sucursales-container");
+        if (!container) return;
+        container.innerHTML = "";
+
+        if (Array.isArray(cliente.sucursales) && cliente.sucursales.length > 0) {
+          cliente.sucursales.forEach(s => addSucursalRow(s));
+        } else {
+          // Migración: el cliente aún guarda "direccion" de forma plana (estructura antigua)
+          addSucursalRow({
+            nombre: "Principal",
+            direccion: cliente.direccion || "",
+            encargado: "",
+            telefono: ""
+          });
+        }
+      }
+
+      // Lee todas las filas de sucursales del formulario y arma el array a guardar en Firestore
+      function obtenerSucursalesDelFormulario() {
+        const container = document.getElementById("sucursales-container");
+        if (!container) return [];
+
+        const filas = Array.from(container.querySelectorAll(".sucursal-row"));
+        const sucursales = [];
+
+        filas.forEach(row => {
+          const nombre = row.querySelector(".sucursal-nombre")?.value.trim() || "";
+          const direccion = row.querySelector(".sucursal-direccion")?.value.trim() || "";
+          const encargado = row.querySelector(".sucursal-encargado")?.value.trim() || "";
+          const telefono = row.querySelector(".sucursal-telefono")?.value.trim() || "";
+
+          // Ignorar filas completamente vacías
+          if (!nombre && !direccion && !encargado && !telefono) return;
+
+          sucursales.push({ nombre, direccion, encargado, telefono });
+        });
+
+        return sucursales;
+      }
+
       // Guardar Cliente (Soporta Agregar y Editar) (Firestore + Google Sheets)
       window.handleSaveCliente = async function (event) {
         event.preventDefault();
@@ -1918,14 +2085,27 @@
         const sector = document.getElementById("cliente-sector").value.trim();
         const actividad = document.getElementById("cliente-actividad").value.trim();
         const gerente = document.getElementById("cliente-gerente").value.trim();
-        const direccion = document.getElementById("cliente-direccion").value.trim();
         const telefono = document.getElementById("cliente-telefono").value.trim();
         const emailInput = document.getElementById("cliente-email").value.trim();
         const rucInput = document.getElementById("cliente-ruc").value.trim();
         const fechaInput = document.getElementById("cliente-fecha").value;
+        const sucursales = obtenerSucursalesDelFormulario();
 
-        if (!nombre || !sector || !actividad || !gerente || !direccion || !telefono) {
+        if (!nombre || !sector || !actividad || !gerente || !telefono) {
           showToast("Rellena todos los campos obligatorios.", "error");
+          setButtonLoading(btn, false, originalText);
+          return;
+        }
+
+        if (sucursales.length === 0) {
+          showToast("Agrega al menos una sucursal (Casa Matriz).", "error");
+          setButtonLoading(btn, false, originalText);
+          return;
+        }
+
+        const sucursalIncompleta = sucursales.find(s => !s.nombre || !s.direccion);
+        if (sucursalIncompleta) {
+          showToast("Cada sucursal necesita al menos nombre y dirección.", "error");
           setButtonLoading(btn, false, originalText);
           return;
         }
@@ -1949,21 +2129,29 @@
           sector,
           actividad,
           gerente,
-          direccion,
           telefono,
           email,
           ruc,
-          fecha
+          fecha,
+          sucursales
         };
 
         try {
           const isSheetsConfigured = state.sheetsUrl && state.sheetsUrl.includes("/macros/s/");
           if (state.editingClienteDocId) {
             // 1. Actualizar en Firebase Firestore
-            await updateDoc(doc(db, "clientes", state.editingClienteDocId), newCliente);
+            const origCliente = state.clientes.find(c => c.docId === state.editingClienteDocId);
+
+            // Si el cliente tenía el campo antiguo "direccion" (estructura plana), se elimina
+            // porque su información ya quedó migrada dentro del array "sucursales".
+            const updatePayload = { ...newCliente };
+            if (origCliente && Object.prototype.hasOwnProperty.call(origCliente, "direccion")) {
+              updatePayload.direccion = deleteField();
+            }
+
+            await updateDoc(doc(db, "clientes", state.editingClienteDocId), updatePayload);
 
             // Registrar modificación detallada (qué campos cambiaron)
-            const origCliente = state.clientes.find(c => c.docId === state.editingClienteDocId);
             let changeDetail = "";
             if (origCliente) {
               const fields = {
@@ -1971,7 +2159,6 @@
                 sector: "Sector",
                 actividad: "Actividad",
                 gerente: "Gerente",
-                direccion: "Dirección",
                 telefono: "Teléfono",
                 email: "Correo",
                 ruc: "RUC/Cédula",
@@ -1984,6 +2171,11 @@
                 if (origVal !== newVal) {
                   diffs.push(`${label}: "${origVal}" → "${newVal}"`);
                 }
+              }
+              const origSucursales = JSON.stringify(origCliente.sucursales || []);
+              const newSucursales = JSON.stringify(newCliente.sucursales || []);
+              if (origSucursales !== newSucursales) {
+                diffs.push("Sucursales actualizadas");
               }
               changeDetail = diffs.length > 0 ? `Modificó cliente #${newCliente.id} (${newCliente.nombre}). Cambios: ${diffs.join(", ")}` : `Modificó cliente #${newCliente.id} (${newCliente.nombre}) sin cambios en campos`;
             } else {
@@ -2055,15 +2247,17 @@
         document.getElementById("cliente-sector").value = c.sector;
         document.getElementById("cliente-actividad").value = c.actividad;
         document.getElementById("cliente-gerente").value = c.gerente;
-        document.getElementById("cliente-direccion").value = c.direccion;
         document.getElementById("cliente-telefono").value = c.telefono;
         document.getElementById("cliente-email").value = c.email === "-" ? "" : c.email;
         document.getElementById("cliente-ruc").value = c.ruc === "-" ? "" : c.ruc;
         document.getElementById("cliente-fecha").value = c.fecha === "-" ? "" : c.fecha;
 
+        // Cargar sucursales (migra automáticamente clientes con "direccion" plana antigua)
+        cargarSucursalesEnFormulario(c);
+
         // Cambiar texto de los botones
         document.getElementById("btn-save-cliente").querySelector("span").textContent = "Actualizar Cliente";
-        const clearBtn = document.querySelector("#form-cliente .btn-secondary");
+        const clearBtn = document.getElementById("btn-clear-cliente");
         if (clearBtn) clearBtn.textContent = "Cancelar";
 
         showToast("Editando cliente #" + c.id, "info");
@@ -2128,6 +2322,15 @@
         tbody.innerHTML = "";
         clientesOrdenados.forEach(c => {
           const tr = document.createElement("tr");
+
+          // Dirección a mostrar: primera sucursal registrada, o el campo antiguo "direccion" (aún sin migrar)
+          const tieneSucursales = Array.isArray(c.sucursales) && c.sucursales.length > 0;
+          const direccionPrincipal = tieneSucursales ? (c.sucursales[0].direccion || "-") : (c.direccion || "-");
+          const totalSucursales = tieneSucursales ? c.sucursales.length : (c.direccion ? 1 : 0);
+          const sucursalesBadge = totalSucursales > 1
+            ? `<div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;"><span class="badge badge-primary">+${totalSucursales - 1} sucursal${totalSucursales - 1 > 1 ? 'es' : ''}</span></div>`
+            : "";
+
           tr.innerHTML = `
           <td data-label="ID" class="nowrap-column">
             <div class="cell-content">
@@ -2154,8 +2357,9 @@
           </td>
           <td data-label="Dirección">
             <div class="cell-content">
-              <div>${escapeHtml(c.direccion)}</div>
+              <div>${escapeHtml(direccionPrincipal)}</div>
               <div style="font-size: 0.8rem; color: var(--text-secondary);">Gte: ${escapeHtml(c.gerente)}</div>
+              ${sucursalesBadge}
             </div>
           </td>
           <td data-label="Fecha" class="nowrap-column">
@@ -3030,9 +3234,10 @@
               const span = saveBtn.querySelector("span");
               if (span) span.textContent = "Guardar Cliente";
             }
-            const clearBtn = document.querySelector("#form-cliente .btn-secondary");
+            const clearBtn = document.getElementById("btn-clear-cliente");
             if (clearBtn) clearBtn.textContent = "Limpiar";
             setTimeout(updateNextClientId, 50);
+            limpiarSucursales();
           }
           if (formId === 'form-servicio') {
             state.editingServicioDocId = null;
