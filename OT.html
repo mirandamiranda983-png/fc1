@@ -1324,6 +1324,14 @@
               </div>
             </div>
 
+            <!-- Selección de Sucursal (Carga dinámica según el cliente seleccionado) -->
+            <div class="form-group">
+              <label for="sucursal_select" style="margin-bottom: 0;">Sucursal</label>
+              <select id="sucursal_select" class="form-control">
+                <option value="">Principal / Sin sucursal</option>
+              </select>
+            </div>
+
             <!-- Selección de Servicio -->
             <div class="form-group">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
@@ -1427,7 +1435,7 @@
             <div class="form-group">
               <label for="observacion">Observaciones y Recomendaciones</label>
               <textarea id="observacion" rows="3" class="form-control" style="resize: none;"
-                placeholder="Detalle fallas encontradas, materiales, diagnósticos especiales..."></textarea>
+                placeholder="Detalle fallas encontradas, materiales, diagnósticos especiales...">Se recomienda al cliente cumplir y dar seguimiento a todas las recomendaciones brindadas por el técnico de servicio el día de la fumigación, ya que estas son fundamentales para garantizar la efectividad del tratamiento, prevenir futuras infestaciones y mantener un ambiente seguro e higiénico.</textarea>
             </div>
 
             <!-- Botones -->
@@ -1516,6 +1524,8 @@
                   <h4 class="invoice-section-title">DATOS DEL CLIENTE</h4>
                   <p style="color: #64748b; font-size: 0.7rem;">Cliente: <span id="preview-cliente-nombre"
                       style="font-weight: 700; color: #0f172a;">Seleccione un cliente...</span></p>
+                  <p style="color: #64748b; font-size: 0.7rem;">Sucursal: <span id="preview-sucursal"
+                      style="font-weight: 600; color: #334155;">Principal</span></p>
                   <p style="color: #64748b; font-size: 0.7rem;">Dirección: <span id="preview-direccion"
                       style="font-weight: 600; color: #334155;">--------</span></p>
                   <p style="color: #64748b; font-size: 0.7rem;">Atención de: <span id="preview-contacto"
@@ -1563,8 +1573,7 @@
               <!-- 5. Observaciones y Anotaciones -->
               <div>
                 <h4 class="invoice-section-title" style="margin-bottom: 6px;">OBSERVACIONES Y RECOMENDACIONES</h4>
-                <div class="invoice-observaciones-block" id="preview-observaciones">Sin observaciones registradas por el
-                  momento.</div>
+                <div class="invoice-observaciones-block" id="preview-observaciones">Se recomienda al cliente cumplir y dar seguimiento a todas las recomendaciones brindadas por el técnico de servicio el día de la fumigación, ya que estas son fundamentales para garantizar la efectividad del tratamiento, prevenir futuras infestaciones y mantener un ambiente seguro e higiénico.</div>
               </div>
 
               <!-- 6. Firmas de Autorización -->
@@ -1696,18 +1705,89 @@
       return cli.sector || cli.rubro || cli.area || cli.zona || cli.departamento || cli.categoria || '';
     }
 
-    function applyClientDataToForm(cli) {
-      const direccion = cli ? resolveClientAddress(cli) : '';
-      const atencion = cli ? resolveClientAttention(cli) : '';
+    // ===== SOPORTE DE SUCURSALES (no rompe clientes sin este campo) =====
+    // Cache de las sucursales del cliente actualmente seleccionado, para poder
+    // resolver la dirección/encargado cuando el usuario elige una en el <select>.
+    let currentClienteSucursales = [];
+
+    function resolveClientSucursales(cli) {
+      if (!cli) return [];
+      const s = cli.sucursales || cli.sucursal || cli.branches || [];
+      return Array.isArray(s) ? s : [];
+    }
+
+    function resolveSucursalNombre(suc) {
+      return suc.nombre || suc.nombre_sucursal || suc.name || 'Sucursal';
+    }
+
+    function resolveSucursalDireccion(suc) {
+      return suc.direccion || suc.direccion_servicio || suc.address || '';
+    }
+
+    function resolveSucursalEncargado(suc) {
+      return suc.encargado || suc.atencion_de || suc.contacto || suc.gerente || suc.responsable || '';
+    }
+
+    // Llena el <select> de sucursal según el cliente activo. Si el cliente no
+    // tiene sucursales, el select queda solo con "Principal / Sin sucursal" y
+    // el comportamiento existente (dirección/atención tomadas del cliente) no cambia.
+    function populateSucursalSelect(cli) {
+      const select = document.getElementById('sucursal_select');
+      if (!select) return;
+
+      currentClienteSucursales = resolveClientSucursales(cli);
+
+      select.innerHTML = '<option value="">Principal / Sin sucursal</option>';
+      currentClienteSucursales.forEach((suc, idx) => {
+        const opt = document.createElement('option');
+        opt.value = String(idx);
+        opt.textContent = resolveSucursalNombre(suc);
+        select.appendChild(opt);
+      });
+      select.value = '';
+    }
+
+    // Aplica al formulario/preview la dirección y persona que atiende que correspondan
+    // según la sucursal actualmente seleccionada (o los datos base del cliente si no
+    // hay sucursal elegida). NO toca el <select> de sucursal — se usa para refrescar
+    // datos (ej. al guardar o generar el PDF) sin perder la sucursal ya elegida.
+    function applySucursalOrBaseToForm(cli) {
+      const sucursalSelect = document.getElementById('sucursal_select');
+      const idx = sucursalSelect ? sucursalSelect.value : '';
+      const previewSucursal = document.getElementById('preview-sucursal');
+
+      if (idx !== '' && currentClienteSucursales[idx]) {
+        const suc = currentClienteSucursales[idx];
+        const direccion = resolveSucursalDireccion(suc) || (cli ? resolveClientAddress(cli) : '');
+        const encargado = resolveSucursalEncargado(suc) || (cli ? resolveClientAttention(cli) : '');
+
+        direccionInput.value = direccion;
+        contactoInput.value = encargado;
+        document.getElementById('preview-direccion').innerText = direccion || '--------';
+        document.getElementById('preview-contacto').innerText = encargado || '--------';
+        if (previewSucursal) previewSucursal.innerText = resolveSucursalNombre(suc);
+      } else {
+        const direccion = cli ? resolveClientAddress(cli) : '';
+        const atencion = cli ? resolveClientAttention(cli) : '';
+
+        direccionInput.value = direccion;
+        contactoInput.value = atencion;
+        document.getElementById('preview-direccion').innerText = direccion || '--------';
+        document.getElementById('preview-contacto').innerText = atencion || '--------';
+        if (previewSucursal) previewSucursal.innerText = 'Principal';
+      }
+
       const sector = cli ? resolveClientSector(cli) : '';
-
-      direccionInput.value = direccion;
-      contactoInput.value = atencion;
       sectorInput.value = sector;
-
-      document.getElementById('preview-direccion').innerText = direccion || '--------';
-      document.getElementById('preview-contacto').innerText = atencion || '--------';
       document.getElementById('preview-sector').innerText = sector || '--------';
+    }
+
+    function applyClientDataToForm(cli) {
+      // Cambio real de cliente: se recarga la lista de sucursales (vuelve a "Principal")
+      // y luego se aplican los datos base — comportamiento idéntico al anterior para
+      // clientes sin sucursales.
+      populateSucursalSelect(cli);
+      applySucursalOrBaseToForm(cli);
     }
 
     function resolveServiceName(srv) {
@@ -2229,6 +2309,16 @@
       document.getElementById('preview-sector').innerText = sectorInput.value || '--------';
     });
 
+    // Al elegir una sucursal (o volver a "Principal"), se actualiza dirección y
+    // persona que atiende sin perder los demás datos ya cargados del cliente.
+    const sucursalSelectInput = document.getElementById('sucursal_select');
+    if (sucursalSelectInput) {
+      sucursalSelectInput.addEventListener('change', () => {
+        const clienteObj = cacheClientes.find(c => String(c.id) === String(selectCliente.value));
+        applySucursalOrBaseToForm(clienteObj);
+      });
+    }
+
     // Tipo de servicio: events manejados por delegated listener en #tipo-servicio-container
 
     function triggerClienteChange() {
@@ -2299,7 +2389,7 @@
         return;
       }
 
-      applyClientDataToForm(clienteObj);
+      applySucursalOrBaseToForm(clienteObj);
 
       const cliente_nombre = clienteObj ? resolveClientName(clienteObj) : clienteInputVal;
       const cliente_telefono = clienteObj ? resolveClientPhone(clienteObj) : "--------";
@@ -2309,6 +2399,12 @@
       const servicio_descripcion = servicioObj ? resolveServiceDesc(servicioObj) : "Sin descripción";
       const tipoServicioSeleccionado = getSelectedTipoServicio();
 
+      // Sucursal: si el cliente no tiene sucursales, o no se eligió ninguna, se
+      // guarda "Principal" — comportamiento retrocompatible para OT antiguas.
+      const sucursal_nombre = document.getElementById('preview-sucursal')
+        ? (document.getElementById('preview-sucursal').innerText || 'Principal')
+        : 'Principal';
+
       const nuevaOrden = {
         numero_ot: numOtInput.value,
         numero_factura: numFacturaInput.value,
@@ -2317,6 +2413,7 @@
         cliente_nombre: cliente_nombre,
         cliente_telefono: cliente_telefono,
         cliente_correo: cliente_correo,
+        sucursal_nombre: sucursal_nombre,
         direccion: direccionInput.value,
         atencion_de: contactoInput.value,
         sector: sectorInput.value,
@@ -2387,12 +2484,17 @@
       document.getElementById('preview-tecnico').innerText = '--------';
       document.getElementById('preview-firma-tecnico').innerText = '--------';
       document.getElementById('preview-cliente-nombre').innerText = 'Seleccione un cliente...';
+      document.getElementById('preview-sucursal').innerText = 'Principal';
+      const sucursalSelectClear = document.getElementById('sucursal_select');
+      if (sucursalSelectClear) sucursalSelectClear.innerHTML = '<option value="">Principal / Sin sucursal</option>';
+      currentClienteSucursales = [];
       document.getElementById('preview-direccion').innerText = '--------';
       document.getElementById('preview-contacto').innerText = '--------';
       document.getElementById('preview-sector').innerText = '--------';
       document.getElementById('preview-servicio-nombre').innerText = 'Seleccione un servicio...';
       document.getElementById('preview-servicio-desc').innerText = 'La descripción registrada en Firebase aparecerá aquí automáticamente...';
-      document.getElementById('preview-observaciones').innerText = '-';
+      // form.reset() ya restauró el texto predeterminado editable de observaciones en el textarea
+      document.getElementById('preview-observaciones').innerText = observacionInput.value || '-';
       document.getElementById('preview-tipo-servicio').innerText = '--------';
 
       setDefaultDateTime();
@@ -2478,6 +2580,18 @@
       selectCliente.value = String(clienteId);
       selectServicio.value = String(servicioId);
       descServicioTextarea.value = encontrada.servicio_descripcion || '';
+
+      // Restaurar sucursal (OT antiguas sin este campo caen en "Principal" sin errores)
+      const clienteParaSucursales = cacheClientes.find(c => String(c.id) === String(clienteId));
+      populateSucursalSelect(clienteParaSucursales);
+      const sucursalGuardada = encontrada.sucursal_nombre || 'Principal';
+      const sucursalSelectEl = document.getElementById('sucursal_select');
+      if (sucursalSelectEl && sucursalGuardada !== 'Principal') {
+        const idxMatch = currentClienteSucursales.findIndex(s => resolveSucursalNombre(s) === sucursalGuardada);
+        sucursalSelectEl.value = idxMatch >= 0 ? String(idxMatch) : '';
+      }
+      const previewSucursalEl = document.getElementById('preview-sucursal');
+      if (previewSucursalEl) previewSucursalEl.innerText = sucursalGuardada;
 
       document.getElementById('preview-factura').innerText = getOrderIdentifier(encontrada) || '--------';
       document.getElementById('preview-numero-factura').innerText = getInvoiceNumber(encontrada) || '--------';
@@ -2577,10 +2691,13 @@
         const tecnicoVal = getSelectedTecnicos().join(' / ') || '--------';
         const clienteObj = cacheClientes.find(c => String(c.id) === String(selectCliente.value));
         const servicioObj = cacheServicios.find(s => String(s.id) === String(selectServicio.value));
-        applyClientDataToForm(clienteObj);
+        applySucursalOrBaseToForm(clienteObj);
 
         const clienteNombre = clienteObj ? resolveClientName(clienteObj) : 'Seleccione un cliente...';
         const servicioNombre = servicioObj ? resolveServiceName(servicioObj) : 'Seleccione un servicio...';
+        const sucursalVal = document.getElementById('preview-sucursal')
+          ? (document.getElementById('preview-sucursal').innerText || 'Principal')
+          : 'Principal';
 
         // Dynamic fits for PDF
         const hasObservaciones = observacionInput.value.trim().length > 0;
@@ -2679,8 +2796,8 @@
         doc.setDrawColor(...line);
         doc.setFillColor(248, 250, 252);
         doc.setLineWidth(0.3);
-        doc.roundedRect(15, 52, 185, 30, 2, 2, 'FD');
-        doc.line(107.5, 52, 107.5, 82);
+        doc.roundedRect(15, 52, 185, 36, 2, 2, 'FD');
+        doc.line(107.5, 52, 107.5, 88);
 
         doc.setTextColor(...primary);
         doc.setFont('helvetica', 'bold');
@@ -2689,8 +2806,8 @@
         doc.text("INFORMACIÓN DEL TRABAJO", 112.5, 57.5);
 
         // RENDER DATOS DEL CLIENTE WITH DYNAMIC WRAPPING SUPPORT FOR ADDRESS
-        const leftLabels = ["Cliente:", "Dirección:", "Atención de:", "Sector:"];
-        const leftValues = [clienteNombre, direccionVal, atencionVal, sectorVal];
+        const leftLabels = ["Cliente:", "Sucursal:", "Dirección:", "Atención de:", "Sector:"];
+        const leftValues = [clienteNombre, sucursalVal, direccionVal, atencionVal, sectorVal];
 
         let currentLeftY = 62.2;
         leftLabels.forEach((label, idx) => {
@@ -2704,8 +2821,8 @@
           doc.setFontSize(9);
 
           const value = leftValues[idx];
-          // Allow address (idx === 1) to wrap up to 2 lines, others 1 line
-          const maxLines = idx === 1 ? 2 : 1;
+          // Allow address (idx === 2, ahora que Sucursal ocupa el idx 1) to wrap up to 2 lines
+          const maxLines = idx === 2 ? 2 : 1;
           const wrappedLines = doc.splitTextToSize(value, 58).slice(0, maxLines);
 
           wrappedLines.forEach((lineText, lineIdx) => {
@@ -2735,9 +2852,9 @@
           doc.text(doc.splitTextToSize(value, 53).slice(0, 1)[0] || '', 133, y);
         });
 
-        // SERVICE TABLE - NO MIN-CELL-HEIGHT FOR SNUGNESS (STARTING AT Y = 86)
+        // SERVICE TABLE - NO MIN-CELL-HEIGHT FOR SNUGNESS (STARTING AT Y = 92, tras ampliar la caja de datos)
         doc.autoTable({
-          startY: 86,
+          startY: 92,
           margin: { left: 15, right: 15 },
           theme: 'grid',
           head: [["Servicio", "Descripción del Trabajo"]],
