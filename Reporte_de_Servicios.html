@@ -1304,6 +1304,10 @@
                 <label>Cliente</label>
                 <input type="text" id="cliente" readonly class="form-control" placeholder="Nombre de cliente...">
               </div>
+              <div class="form-group" id="sucursal_container" style="display:none; margin-bottom:0;">
+                <label>Sucursal</label>
+                <input type="text" id="sucursal_nombre" readonly class="form-control" placeholder="Cargado desde requisa...">
+              </div>
 
               <div class="form-grid-2">
                 <div class="form-group" style="margin-bottom:0;">
@@ -1530,6 +1534,8 @@
                 <div class="invoice-grid-col">
                   <h4 class="invoice-section-title">DATOS GENERALES</h4>
                   <p style="color: #64748b; font-size: 0.7rem;">Cliente: <span id="preview-cliente"
+                      style="font-weight: 700; color: #0f172a;">--------</span></p>
+                  <p id="preview-sucursal-container" style="color: #64748b; font-size: 0.7rem; display: none;">Sucursal: <span id="preview-sucursal"
                       style="font-weight: 700; color: #0f172a;">--------</span></p>
                   <p style="color: #64748b; font-size: 0.7rem;">Servicio: <span id="preview-servicio"
                       style="font-weight: 600; color: #334155;">--------</span></p>
@@ -1946,6 +1952,18 @@
       document.getElementById('numero_ot').value = ot ? (ot.numero_ot || '') : req.orden_trabajo;
       document.getElementById('cliente').value = ot ? (ot.cliente_nombre || '') : req.cliente;
 
+      const sucursalVal = req.sucursal_nombre || '';
+      const sucursalContainer = document.getElementById('sucursal_container');
+      if (sucursalContainer) {
+        if (sucursalVal) {
+          sucursalContainer.style.display = 'block';
+          document.getElementById('sucursal_nombre').value = sucursalVal;
+        } else {
+          sucursalContainer.style.display = 'none';
+          document.getElementById('sucursal_nombre').value = '';
+        }
+      }
+
       let fechaServ = '';
       let horaServ = '';
       if (ot && ot.fecha_hora) {
@@ -2115,6 +2133,19 @@
       document.getElementById('preview-requisa').innerText = reqNum;
       document.getElementById('preview-ot').innerText = otNum;
       document.getElementById('preview-cliente').innerText = clienteName;
+      
+      const sucursalInput = document.getElementById('sucursal_nombre');
+      const sucursalNameValue = sucursalInput ? sucursalInput.value : '';
+      const previewSucursalContainer = document.getElementById('preview-sucursal-container');
+      if (previewSucursalContainer) {
+        if (sucursalNameValue) {
+          previewSucursalContainer.style.display = 'block';
+          document.getElementById('preview-sucursal').innerText = sucursalNameValue;
+        } else {
+          previewSucursalContainer.style.display = 'none';
+        }
+      }
+
       document.getElementById('preview-servicio').innerText = servName;
       document.getElementById('preview-tecnico').innerText = tecName;
       document.getElementById('preview-firma-tecnico').innerText = tecName;
@@ -2256,6 +2287,9 @@
           return;
         }
 
+        const sucursalInput = document.getElementById('sucursal_nombre');
+        const sucursalNameVal = sucursalInput ? sucursalInput.value : '';
+
         const nuevoReporte = {
           numero_requisa: reqNum,
           numero_ot: otNum,
@@ -2272,6 +2306,10 @@
           lista_quimicos: chems,
           observaciones: obs
         };
+
+        if (sucursalNameVal) {
+          nuevoReporte.sucursal_nombre = sucursalNameVal;
+        }
 
         if (isConnected) {
           // A. Actualizar Inventario y crear movimientos por cada devuelto > 0
@@ -2361,6 +2399,10 @@
       `;
       document.getElementById('numero_ot').value = '';
       document.getElementById('cliente').value = '';
+      const sucursalInput = document.getElementById('sucursal_nombre');
+      if (sucursalInput) sucursalInput.value = '';
+      const sucursalContainer = document.getElementById('sucursal_container');
+      if (sucursalContainer) sucursalContainer.style.display = 'none';
       document.getElementById('fecha_servicio').value = '';
       document.getElementById('hora_servicio').value = '';
       document.getElementById('factura').value = '';
@@ -2432,6 +2474,7 @@
           numero_requisa: rep.numero_requisa,
           orden_trabajo: rep.numero_ot,
           cliente: rep.cliente,
+          sucursal_nombre: rep.sucursal_nombre || '',
           servicio_nombre: rep.servicio_nombre,
           lista_quimicos: rep.lista_quimicos.map(c => ({
             codigo: c.codigo,
@@ -2504,6 +2547,8 @@
       try {
         const otNum = document.getElementById('numero_ot').value || '--------';
         const clienteName = document.getElementById('cliente').value || '--------';
+        const sucursalInput = document.getElementById('sucursal_nombre');
+        const sucursalNamePDF = sucursalInput ? sucursalInput.value : '';
         const dateServ = document.getElementById('fecha_servicio').value || '--/--/----';
         const timeServ = document.getElementById('hora_servicio').value || '--:--';
         const factNum = document.getElementById('factura').value || '--------';
@@ -2572,11 +2617,13 @@
         doc.line(15, 47, 200, 47);
 
         // Caja de datos del cliente
+        let extraHeight = sucursalNamePDF ? 5 : 0;
+        
         doc.setDrawColor(...line);
         doc.setFillColor(248, 250, 252);
         doc.setLineWidth(0.3);
-        doc.roundedRect(15, 50, 185, 30, 2, 2, 'FD');
-        doc.line(107.5, 50, 107.5, 80);
+        doc.roundedRect(15, 50, 185, 30 + extraHeight, 2, 2, 'FD');
+        doc.line(107.5, 50, 107.5, 80 + extraHeight);
 
         doc.setTextColor(...primary);
         doc.setFont('helvetica', 'bold');
@@ -2589,17 +2636,31 @@
         doc.setTextColor(...slate);
         doc.setFontSize(8.5);
         doc.text("Cliente:", 20, 60);
-        doc.text("Servicio:", 20, 65);
-        doc.text("Técnico:", 20, 70);
-        doc.text("Factura:", 20, 75);
+        
+        let currentYLeft = 65;
+        if (sucursalNamePDF) {
+            doc.text("Sucursal:", 20, currentYLeft);
+            currentYLeft += 5;
+        }
+        
+        doc.text("Servicio:", 20, currentYLeft);
+        doc.text("Técnico:", 20, currentYLeft + 5);
+        doc.text("Factura:", 20, currentYLeft + 10);
 
         doc.setTextColor(...dark);
         doc.setFont('helvetica', 'bold');
         doc.text(doc.splitTextToSize(clienteName, 58).slice(0, 1)[0] || '', 40, 60);
+        
+        let currentYLeftVal = 65;
+        if (sucursalNamePDF) {
+            doc.text(doc.splitTextToSize(sucursalNamePDF, 58).slice(0, 1)[0] || '', 40, currentYLeftVal);
+            currentYLeftVal += 5;
+        }
+        
         doc.setFont('helvetica', 'normal');
-        doc.text(doc.splitTextToSize(servName, 58).slice(0, 1)[0] || '', 40, 65);
-        doc.text(doc.splitTextToSize(tecName, 58).slice(0, 1)[0] || '', 40, 70);
-        doc.text(factNum, 40, 75);
+        doc.text(doc.splitTextToSize(servName, 58).slice(0, 1)[0] || '', 40, currentYLeftVal);
+        doc.text(doc.splitTextToSize(tecName, 58).slice(0, 1)[0] || '', 40, currentYLeftVal + 5);
+        doc.text(factNum, 40, currentYLeftVal + 10);
 
         doc.setTextColor(...slate);
         doc.text("Fecha Serv:", 112.5, 60);
@@ -2618,8 +2679,8 @@
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(...primary);
         doc.setFontSize(9.5);
-        doc.text("PRODUCTOS APLICADOS", 15, 87);
-        doc.text("MÉTODOS UTILIZADOS", 112.5, 87);
+        doc.text("PRODUCTOS APLICADOS", 15, 87 + extraHeight);
+        doc.text("MÉTODOS UTILIZADOS", 112.5, 87 + extraHeight);
 
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(...dark);
@@ -2631,10 +2692,10 @@
         const wrappedMets = doc.splitTextToSize(metText, 85);
 
         let checkHeight = Math.max(wrappedProds.length, wrappedMets.length) * 4.2 + 2;
-        doc.text(wrappedProds, 15, 92.5);
-        doc.text(wrappedMets, 112.5, 92.5);
+        doc.text(wrappedProds, 15, 92.5 + extraHeight);
+        doc.text(wrappedMets, 112.5, 92.5 + extraHeight);
 
-        let startTableY = 92.5 + checkHeight + 4;
+        let startTableY = 92.5 + extraHeight + checkHeight + 4;
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(...primary);
         doc.setFontSize(9.5);
