@@ -1244,6 +1244,14 @@
               <div id="cliente_suggestions" class="autocomplete-suggestions"></div>
             </div>
 
+            <!-- Sucursal (se muestra solo si el cliente tiene sucursales registradas) -->
+            <div class="form-group" id="sucursal_wrapper" style="display: none;">
+              <label for="sucursal_select">Sucursal</label>
+              <select id="sucursal_select" class="form-control">
+                <option value="">Principal / Sin sucursal específica</option>
+              </select>
+            </div>
+
             <!-- RUC -->
             <div class="form-group">
               <label for="ruc">RUC del Cliente</label>
@@ -1455,6 +1463,8 @@
                   <h4 class="invoice-section-title">DATOS DEL CLIENTE</h4>
                   <p style="color: #64748b; font-size: 0.7rem;">Cliente: <span id="preview-cliente-nombre"
                       style="font-weight: 700; color: #0f172a;">Escriba un cliente...</span></p>
+                  <p id="preview-sucursal-row" style="color: #64748b; font-size: 0.7rem; display: none;">Sucursal: <span id="preview-sucursal-nombre"
+                      style="font-weight: 600; color: #334155;">--------</span></p>
                   <p style="color: #64748b; font-size: 0.7rem;">RUC: <span id="preview-ruc"
                       style="font-weight: 600; color: #334155;">--------</span></p>
                   <p style="color: #64748b; font-size: 0.7rem;">Dirección: <span id="preview-direccion"
@@ -1626,6 +1636,8 @@
     const rucInput = document.getElementById('ruc');
     const direccionInput = document.getElementById('direccion');
     const contactoInput = document.getElementById('contacto');
+    const sucursalWrapper = document.getElementById('sucursal_wrapper');
+    const sucursalSelect = document.getElementById('sucursal_select');
     const selectServicio = document.getElementById('servicio_select');
     const descServicioTextarea = document.getElementById('descripcion_servicio_display');
     const fechaInput = document.getElementById('fecha');
@@ -1654,6 +1666,88 @@
     function resolveClientAttention(cli) {
       return cli.gerente || cli.nombre_gerente || cli.gerente_general || cli.manager || cli.administrador || cli.atencion_de || cli.atencion || cli.atencion_a || cli.contacto_nombre || cli.nombre_contacto || cli.persona_contacto || cli.encargado || cli.representante || cli.contacto || '';
     }
+
+    // --- Soporte de Sucursales ---
+    // Devuelve el arreglo de sucursales del cliente sin importar el nombre de campo usado.
+    function resolveClientSucursales(cli) {
+      if (!cli) return [];
+      const arr = cli.sucursales || cli.branches || cli.sedes || [];
+      return Array.isArray(arr) ? arr : [];
+    }
+
+    function resolveSucursalNombre(suc, idx) {
+      return suc.nombre || suc.nombre_sucursal || suc.name || `Sucursal ${idx + 1}`;
+    }
+
+    function resolveSucursalDireccion(suc, cli) {
+      return suc.direccion || suc.address || suc.ubicacion || resolveClientAddress(cli);
+    }
+
+    function resolveSucursalEncargado(suc, cli) {
+      return suc.encargado || suc.gerente || suc.contacto || suc.atencion || resolveClientAttention(cli);
+    }
+
+    // Llena el select de sucursal según el cliente seleccionado. Si no tiene
+    // sucursales, se oculta el campo y se conserva el comportamiento anterior.
+    function populateSucursales(cli) {
+      const sucursales = resolveClientSucursales(cli);
+      sucursalSelect.innerHTML = '<option value="">Principal / Sin sucursal específica</option>';
+
+      if (sucursales.length > 0) {
+        sucursales.forEach((suc, idx) => {
+          const opt = document.createElement('option');
+          opt.value = idx;
+          opt.textContent = resolveSucursalNombre(suc, idx);
+          sucursalSelect.appendChild(opt);
+        });
+        sucursalWrapper.style.display = 'block';
+      } else {
+        sucursalWrapper.style.display = 'none';
+      }
+      sucursalSelect.value = '';
+      updatePreviewSucursal();
+    }
+
+    function updatePreviewSucursal() {
+      const row = document.getElementById('preview-sucursal-row');
+      const span = document.getElementById('preview-sucursal-nombre');
+      const sucursales = resolveClientSucursales(selectedClienteObj);
+      if (sucursales.length > 0) {
+        const idx = sucursalSelect.value;
+        const nombre = (idx !== '' && sucursales[idx]) ? resolveSucursalNombre(sucursales[idx], parseInt(idx)) : 'Principal';
+        span.innerText = nombre;
+        row.style.display = 'block';
+      } else {
+        row.style.display = 'none';
+      }
+    }
+
+    // Aplica la dirección/encargado de la sucursal elegida (o vuelve a los datos
+    // del cliente si se elige "Principal").
+    function applySucursalSeleccionada() {
+      if (!selectedClienteObj) return;
+      const sucursales = resolveClientSucursales(selectedClienteObj);
+      const idx = sucursalSelect.value;
+      let dirVal, attVal;
+
+      if (idx !== '' && sucursales[idx]) {
+        const suc = sucursales[idx];
+        dirVal = resolveSucursalDireccion(suc, selectedClienteObj);
+        attVal = resolveSucursalEncargado(suc, selectedClienteObj);
+      } else {
+        dirVal = resolveClientAddress(selectedClienteObj);
+        attVal = resolveClientAttention(selectedClienteObj);
+      }
+
+      direccionInput.value = dirVal;
+      contactoInput.value = attVal;
+      document.getElementById('preview-direccion').innerText = dirVal || '--------';
+      document.getElementById('preview-contacto').innerText = attVal || '--------';
+      updatePreviewSucursal();
+      if (typeof updatePreviewLayoutSnugness === 'function') updatePreviewLayoutSnugness();
+    }
+
+    sucursalSelect.addEventListener('change', applySucursalSeleccionada);
 
     function resolveServiceName(srv) {
       return srv.nombre || srv.nombre_servicio || srv.servicio || srv.name || srv.title || srv.servicename || 'Servicio Sin Nombre';
@@ -1820,7 +1914,13 @@
     function enableLocalSimulation() {
       cacheClientes = [
         { id: 'cli-demo1', nombre: 'Distribuidora Díaz', ruc: 'J0310000123456', direccion: 'Managua, Semáforos El Dorado 2c. al Lago', gerente: 'Lic. Marvin Díaz' },
-        { id: 'cli-demo2', nombre: 'Supermercado La Unión', ruc: 'J0310000987654', direccion: 'Carretera a Masaya Km 4.5', gerente: 'Ing. Elena Rostrán' }
+        {
+          id: 'cli-demo2', nombre: 'Supermercado La Unión', ruc: 'J0310000987654', direccion: 'Carretera a Masaya Km 4.5', gerente: 'Ing. Elena Rostrán',
+          sucursales: [
+            { nombre: 'Sucursal Masaya', direccion: 'Carretera a Masaya Km 4.5', encargado: 'Ing. Elena Rostrán' },
+            { nombre: 'Sucursal Granada', direccion: 'Km 45 Carretera Granada, frente al mercado', encargado: 'Lic. Roberto Salinas' }
+          ]
+        }
       ];
       cacheServicios = [
         { id: 'srv-demo1', nombre: 'Fumigación y Control de Plagas', descripcion: 'Tratamiento químico contra insectos rastreros y voladores. Incluye aspersión, termonebulización y colocación de gel atrayente en puntos críticos.' },
@@ -2054,6 +2154,9 @@
       document.getElementById('preview-direccion').innerText = dirVal || '--------';
       document.getElementById('preview-contacto').innerText = attVal || '--------';
 
+      // Sucursales: se cargan según el cliente elegido (si no tiene, el campo se oculta)
+      populateSucursales(cli);
+
       if (typeof updatePreviewLayoutSnugness === 'function') updatePreviewLayoutSnugness();
     }
 
@@ -2066,6 +2169,10 @@
       document.getElementById('preview-ruc').innerText = '--------';
       document.getElementById('preview-direccion').innerText = '--------';
       document.getElementById('preview-contacto').innerText = '--------';
+
+      sucursalSelect.innerHTML = '<option value="">Principal / Sin sucursal específica</option>';
+      sucursalWrapper.style.display = 'none';
+      document.getElementById('preview-sucursal-row').style.display = 'none';
     }
 
     // Añadir temporales interactivos
@@ -2434,10 +2541,22 @@
 
       const terminosFinal = getTerminosPagoValue();
 
+      // Sucursal: solo aplica si el cliente tiene sucursales registradas.
+      // Si no tiene, se guarda null para no forzar estructuras nuevas.
+      let sucursalNombre = null;
+      const sucursalesCliente = resolveClientSucursales(selectedClienteObj);
+      if (sucursalesCliente.length > 0) {
+        const sucIdx = sucursalSelect.value;
+        sucursalNombre = (sucIdx !== '' && sucursalesCliente[sucIdx])
+          ? resolveSucursalNombre(sucursalesCliente[sucIdx], parseInt(sucIdx))
+          : 'Principal';
+      }
+
       const nuevaCotizacion = {
         numero_cotizacion: numCot,
         cliente_id: selectedClienteObj ? selectedClienteObj.id : "cli-temp",
         cliente_nombre: cliName,
+        sucursal_nombre: sucursalNombre,
         ruc: rucVal,
         direccion: dirVal,
         contacto: contVal,
@@ -2617,6 +2736,17 @@
           gerente: encontrada.contacto
         };
 
+        // Restaurar sucursal (compatible con cotizaciones antiguas sin este campo)
+        populateSucursales(selectedClienteObj);
+        const sucursalesEdit = resolveClientSucursales(selectedClienteObj);
+        if (encontrada.sucursal_nombre && sucursalesEdit.length > 0) {
+          const matchIdx = sucursalesEdit.findIndex((s, i) => resolveSucursalNombre(s, i) === encontrada.sucursal_nombre);
+          sucursalSelect.value = matchIdx !== -1 ? matchIdx : '';
+        } else {
+          sucursalSelect.value = '';
+        }
+        updatePreviewSucursal();
+
         const container = document.getElementById('servicios-dinamicos-container');
         container.innerHTML = '';
 
@@ -2759,9 +2889,22 @@
 
       const terminosFinal = getTerminosPagoValue();
 
+      // Resolver sucursal para la cotización temporal
+      let sucursalNombreParaPDF = null;
+      if (typeof selectedClienteObj !== 'undefined' && selectedClienteObj) {
+        const sucursalesCliente = resolveClientSucursales(selectedClienteObj);
+        if (sucursalesCliente.length > 0) {
+          const sucIdx = sucursalSelect.value;
+          sucursalNombreParaPDF = (sucIdx !== '' && sucursalesCliente[sucIdx])
+            ? resolveSucursalNombre(sucursalesCliente[sucIdx], parseInt(sucIdx))
+            : 'Principal';
+        }
+      }
+
       const temporalCotData = {
         numero_cotizacion: parseInt(numCot),
         cliente_nombre: clienteInput.value,
+        sucursal_nombre: sucursalNombreParaPDF,
         ruc: rucInput.value,
         direccion: direccionInput.value,
         contacto: contactoInput.value,
@@ -2852,12 +2995,14 @@
         doc.setLineWidth(0.6);
         doc.line(15, 49, 200, 49);
 
-        // Bloque Datos Cliente / Datos Comerciales (Alto 30)
+        // Bloque Datos Cliente / Datos Comerciales
+        // Alto ampliado de 30 a 34.5 para dar cabida a la nueva fila "Sucursal"
+        const CLIENT_BOX_HEIGHT = 34.5;
         doc.setDrawColor(...line);
         doc.setFillColor(248, 250, 252);
         doc.setLineWidth(0.3);
-        doc.roundedRect(15, 52, 185, 30, 2, 2, 'FD');
-        doc.line(107.5, 52, 107.5, 82);
+        doc.roundedRect(15, 52, 185, CLIENT_BOX_HEIGHT, 2, 2, 'FD');
+        doc.line(107.5, 52, 107.5, 52 + CLIENT_BOX_HEIGHT);
 
         // Sección Cliente
         doc.setTextColor(...primary);
@@ -2865,9 +3010,10 @@
         doc.setFontSize(10);
         doc.text("DATOS DEL CLIENTE", 20, 57);
 
-        const leftLabels = ["Cliente:", "RUC:", "Dirección:", "Atención:"];
+        const leftLabels = ["Cliente:", "Sucursal:", "RUC:", "Dirección:", "Atención:"];
         const leftValues = [
           cot.cliente_nombre || '--------',
+          cot.sucursal_nombre || 'Principal',
           cot.ruc || '--------',
           cot.direccion || '--------',
           cot.contacto || '--------'
@@ -2885,7 +3031,7 @@
           doc.setFontSize(8.5);
 
           const value = leftValues[idx];
-          const maxLines = idx === 2 ? 2 : 1;
+          const maxLines = idx === 3 ? 2 : 1;
           const wrapped = doc.splitTextToSize(value, 58).slice(0, maxLines);
           wrapped.forEach((lineText, lineIdx) => {
             doc.text(lineText, 38, currentLeftY + lineIdx * 3.5);
@@ -2994,7 +3140,9 @@
 
         // Definir límites de la hoja
         const PAGE_HEIGHT = 279;
-        const TABLE_START_Y = 85;
+        // Se desplaza 4.5mm hacia abajo (antes 85) para respetar el bloque
+        // de datos del cliente ampliado por la fila de Sucursal.
+        const TABLE_START_Y = 89.5;
 
         // Calcular posiciones del pie de página de abajo hacia arriba
         const legalHeight = getLegalBlockHeight(doc);
