@@ -1,0 +1,2527 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Facturación FC</title>
+
+  <!-- Fuentes Modernas -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       SISTEMA DE DISEÑO & ESTILOS PREMIUM (VANILLA CSS - DYNAMIC LIGHT/DARK)
+       ========================================================================== */
+    :root {
+      /* MODO CLARO (Predeterminado - Blanco Premium) */
+      --bg-body: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-input: #f1f5f9;
+      --border-color: rgba(15, 23, 42, 0.08);
+      --text-primary: #0f172a;
+      --text-secondary: #64748b;
+
+      --bg-header: rgba(255, 255, 255, 0.85);
+      --bg-nav-tabs: rgba(241, 245, 249, 0.8);
+      --bg-pill: rgba(241, 245, 249, 0.8);
+      --bg-drawer: rgba(255, 255, 255, 0.98);
+      --bg-btn-secondary: rgba(15, 23, 42, 0.05);
+      --bg-btn-secondary-hover: rgba(15, 23, 42, 0.08);
+      --bg-th: rgba(15, 23, 42, 0.02);
+      --bg-tr-hover: rgba(15, 23, 42, 0.01);
+      --bg-btn-action: rgba(15, 23, 42, 0.02);
+      --bg-toast: rgba(255, 255, 255, 0.98);
+
+      --color-primary: #dc2626;
+      /* Rojo Fast Control */
+      --color-primary-hover: #b91c1c;
+      --color-success: #10b981;
+      /* Esmeralda */
+      --color-danger: #ef4444;
+      /* Rojo */
+      --color-warning: #f59e0b;
+      /* Ámbar */
+      --color-accent: #4b5563;
+      /* Gris Corporativo */
+
+      --shadow-premium: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
+      --font-title: 'Plus Jakarta Sans', sans-serif;
+      --font-body: 'Outfit', sans-serif;
+
+      --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body.dark-theme {
+      /* MODO OSCURO */
+      --bg-body: #0b0f19;
+      --bg-card: #151d30;
+      --bg-input: #1e293b;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+
+      --bg-header: rgba(21, 29, 48, 0.85);
+      --bg-nav-tabs: rgba(30, 41, 59, 0.6);
+      --bg-pill: rgba(30, 41, 59, 0.6);
+      --bg-drawer: rgba(15, 23, 42, 0.98);
+      --bg-btn-secondary: rgba(255, 255, 255, 0.05);
+      --bg-btn-secondary-hover: rgba(255, 255, 255, 0.1);
+      --bg-th: rgba(255, 255, 255, 0.02);
+      --bg-tr-hover: rgba(255, 255, 255, 0.01);
+      --bg-btn-action: rgba(255, 255, 255, 0.02);
+      --bg-toast: rgba(21, 29, 48, 0.95);
+
+      --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      overflow-x: hidden;
+      width: 100%;
+    }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Barra de Navegación */
+    header {
+      background: var(--bg-header);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 16px 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      transition: var(--transition-smooth);
+    }
+
+    body.dark-theme header {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .nav-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: nowrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.4rem;
+      color: white;
+      box-shadow: 0 0 15px rgba(220, 38, 38, 0.4);
+    }
+
+    .brand-text h1 {
+      font-family: var(--font-title);
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+
+    .brand-text span {
+      font-size: 0.75rem;
+      color: var(--color-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      display: block;
+    }
+
+    /* Tabs de Navegación (PC) */
+    .nav-tabs {
+      display: flex;
+      background: var(--bg-nav-tabs);
+      padding: 6px;
+      border-radius: 30px;
+      border: 1px solid var(--border-color);
+      gap: 4px;
+      transition: var(--transition-smooth);
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-family: var(--font-title);
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 8px 18px;
+      border-radius: 25px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition-smooth);
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+      background: var(--bg-btn-secondary);
+    }
+
+    .tab-btn.active {
+      color: white;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+      box-shadow: 0 4px 10px rgba(220, 38, 38, 0.25);
+    }
+
+    /* Indicadores y Menú de Cabecera */
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--color-warning);
+      display: inline-block;
+      box-shadow: 0 0 8px var(--color-warning);
+      transition: var(--transition-smooth);
+    }
+
+    .status-dot.success {
+      background-color: var(--color-success);
+      box-shadow: 0 0 8px var(--color-success);
+    }
+
+    .status-dot.danger {
+      background-color: var(--color-danger);
+      box-shadow: 0 0 8px var(--color-danger);
+    }
+
+    .status-dot.warning {
+      background-color: var(--color-warning);
+      box-shadow: 0 0 8px var(--color-warning);
+    }
+
+    .status-pill {
+      background: var(--bg-pill);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition-smooth);
+    }
+
+    .status-pill:hover {
+      border-color: rgba(220, 38, 38, 0.25);
+      color: var(--text-primary);
+    }
+
+    .btn-action {
+      background: var(--bg-btn-secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      cursor: pointer;
+      border-radius: 8px;
+      transition: var(--transition-smooth);
+    }
+
+    .btn-action:hover {
+      background: var(--bg-btn-secondary-hover);
+    }
+
+    @media (max-width: 768px) {
+      .status-pill span[id$="-text"] {
+        display: none;
+      }
+
+      .status-pill {
+        padding: 8px;
+        border-radius: 50%;
+      }
+
+      .status-group {
+        gap: 6px;
+      }
+    }
+
+    /* Menú Hamburguesa Móvil */
+    .menu-toggle {
+      display: none;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-smooth);
+      border: 1px solid var(--border-color);
+    }
+
+    .menu-toggle:hover {
+      background: var(--bg-btn-secondary-hover);
+    }
+
+    .mobile-menu-drawer {
+      display: none;
+      position: fixed;
+      top: 73px;
+      left: 0;
+      width: 100%;
+      background: var(--bg-drawer);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 16px;
+      z-index: 99;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      transition: background-color 0.3s ease;
+    }
+
+    body.dark-theme .mobile-menu-drawer {
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+
+    .mobile-menu-drawer.active {
+      display: flex;
+    }
+
+    .mobile-menu-btn {
+      background: var(--bg-btn-secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      font-family: var(--font-title);
+      font-size: 1.05rem;
+      font-weight: 600;
+      padding: 14px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+      transition: var(--transition-smooth);
+    }
+
+    .mobile-menu-btn.active {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+      color: white;
+      border-color: transparent;
+    }
+
+    @keyframes slideDown {
+      from {
+        transform: translateY(-20px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    /* Contenedor Principal */
+    main {
+      flex: 1;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    /* Pestañas de Contenido */
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Layout en Columnas */
+    .module-grid-invoice {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 32px;
+      align-items: start;
+    }
+
+    @media (min-width: 1024px) {
+      .module-grid-invoice {
+        grid-template-columns: minmax(0, 5.2fr) minmax(0, 6.8fr);
+      }
+    }
+
+    /* Tarjetas (Glassmorphism) */
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: var(--shadow-premium);
+      backdrop-filter: blur(10px);
+      transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(220, 38, 38, 0.3);
+    }
+
+    .card-title {
+      font-family: var(--font-title);
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+    }
+
+    .card-title svg {
+      color: var(--color-primary);
+    }
+
+    /* Formularios */
+    .form-group {
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    .form-control {
+      width: 100%;
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      padding: 10px 14px;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      transition: var(--transition-smooth);
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+      background-color: var(--bg-card);
+    }
+
+    .form-control:disabled,
+    .form-control[readonly] {
+      background-color: var(--bg-btn-secondary);
+      color: var(--text-secondary);
+      cursor: not-allowed;
+      border-style: dashed;
+    }
+
+    /* Input Prefix */
+    .input-prefix-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .input-prefix {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      font-family: monospace;
+      font-size: 0.95rem;
+      pointer-events: none;
+    }
+
+    .input-with-prefix {
+      padding-left: 36px;
+    }
+
+    /* Autocomplete de Clientes */
+    .autocomplete-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      box-shadow: var(--shadow-premium);
+      display: none;
+    }
+
+    .autocomplete-suggestion {
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border-color);
+      transition: var(--transition-smooth);
+    }
+
+    .autocomplete-suggestion:last-child {
+      border-bottom: none;
+    }
+
+    .autocomplete-suggestion:hover {
+      background: var(--bg-btn-secondary);
+      color: var(--color-primary);
+    }
+
+    /* Botones */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-family: var(--font-title);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      border: none;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+      color: white;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(220, 38, 38, 0.35);
+    }
+
+    .btn-secondary {
+      background: var(--bg-btn-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-btn-secondary-hover);
+      color: var(--text-primary);
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    /* Tablas Modernas */
+    .table-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .table-responsive {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-premium);
+      background: var(--bg-card);
+      overflow-x: auto;
+      overflow-y: hidden;
+      transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background: var(--bg-th);
+      color: var(--text-secondary);
+      font-family: var(--font-title);
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--border-color);
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    td {
+      padding: 12px 10px;
+      font-size: 0.9rem;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-primary);
+      transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: var(--bg-tr-hover);
+    }
+
+    .nowrap-column {
+      white-space: nowrap !important;
+    }
+
+    .btn-action-table {
+      background: var(--bg-btn-secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      transition: var(--transition-smooth);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-action-table:hover {
+      background: var(--color-primary);
+      color: white;
+      border-color: transparent;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-primary {
+      background: rgba(220, 38, 38, 0.1);
+      color: var(--color-primary);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-secondary);
+    }
+
+    /* Notificaciones Toast flotantes */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1010;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 380px;
+      width: calc(100% - 48px);
+    }
+
+    .toast {
+      background: var(--bg-toast);
+      border-left: 4px solid var(--color-primary);
+      border-top: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: var(--shadow-premium);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transform: translateX(120%);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      backdrop-filter: blur(10px);
+    }
+
+    .toast.show {
+      transform: translateX(0);
+    }
+
+    .toast.success {
+      border-left-color: var(--color-success);
+    }
+
+    .toast.warning {
+      border-left-color: var(--color-warning);
+    }
+
+    .toast.error {
+      border-left-color: var(--color-danger);
+    }
+
+    .toast-icon {
+      flex-shrink: 0;
+    }
+
+    .toast-content {
+      flex-grow: 1;
+    }
+
+    .toast-title {
+      font-family: var(--font-title);
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 2px;
+    }
+
+    .toast-message {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    /* Animación de carga para botones */
+    .spinner {
+      animation: rotate 2s linear infinite;
+      width: 18px;
+      height: 18px;
+      display: inline-block;
+    }
+
+    .spinner .path {
+      stroke: currentColor;
+      stroke-linecap: round;
+      animation: dash 1.5s ease-in-out infinite;
+    }
+
+    @keyframes rotate {
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes dash {
+      0% {
+        stroke-dasharray: 1, 150;
+        stroke-dashoffset: 0;
+      }
+
+      50% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -35;
+      }
+
+      100% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -124;
+      }
+    }
+
+    /* Control de iconos de tema */
+    body.dark-theme .theme-icon-sun {
+      display: block !important;
+    }
+
+    body.dark-theme .theme-icon-moon {
+      display: none !important;
+    }
+
+    body:not(.dark-theme) .theme-icon-sun {
+      display: none !important;
+    }
+
+    body:not(.dark-theme) .theme-icon-moon {
+      display: block !important;
+    }
+
+    @media (max-width: 768px) {
+      .invoice-paper {
+        min-height: auto !important;
+      }
+
+      header {
+        padding: 12px 16px;
+      }
+
+      .nav-tabs {
+        display: none;
+      }
+
+      .menu-toggle {
+        display: flex;
+      }
+
+      main {
+        padding: 20px 16px;
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+
+      .tab-content {
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .table-responsive {
+        border: none;
+        background: transparent;
+        box-shadow: none;
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      table,
+      thead,
+      tbody,
+      th,
+      td,
+      tr {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tr {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        margin-bottom: 16px;
+        padding: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+        box-sizing: border-box;
+      }
+
+      body.dark-theme tr {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      td {
+        border-bottom: none;
+        padding: 8px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.9rem;
+        gap: 12px;
+        text-align: right;
+        flex-wrap: wrap;
+        box-sizing: border-box;
+      }
+
+      td::before {
+        content: attr(data-label);
+        font-family: var(--font-title);
+        font-weight: 700;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        text-align: left;
+        flex-shrink: 1;
+        max-width: 40%;
+        word-break: break-word;
+        overflow-wrap: break-word;
+      }
+
+      td strong {
+        font-size: 1rem;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .module-grid-invoice {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 24px;
+        width: 100%;
+      }
+
+      .card {
+        max-width: 100%;
+        width: 100%;
+        margin: 0 auto;
+        overflow: hidden;
+        box-sizing: border-box;
+      }
+
+      .form-grid-2 {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .btn-group {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+    }
+
+    /* Estilos de la previsualización del papel */
+    .invoice-paper {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+      border: 1px solid rgba(15, 23, 42, 0.15);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      max-width: 650px;
+      margin: 0 auto;
+      width: 100%;
+      min-height: 838px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-sizing: border-box;
+    }
+
+    body.dark-theme .invoice-paper {
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .invoice-content {
+      font-size: 0.72rem;
+      line-height: 1.35;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+      justify-content: flex-start;
+    }
+
+    .invoice-content>div {
+      flex-shrink: 0;
+    }
+
+    .invoice-header-block {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid var(--color-primary);
+      padding-bottom: 14px;
+    }
+
+    .invoice-grid-block {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      background: #f8fafc;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .invoice-grid-col {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .invoice-grid-col:last-child {
+      border-left: 1px solid #e2e8f0;
+      padding-left: 16px;
+    }
+
+    .invoice-section-title {
+      font-family: var(--font-title);
+      font-weight: 700;
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      color: #dc2626;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .invoice-table-wrapper {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .invoice-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      table-layout: fixed;
+    }
+
+    .invoice-table th {
+      background: #0f172a !important;
+      color: #ffffff !important;
+      font-family: var(--font-title);
+      font-weight: 700;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      padding: 8px 10px;
+      border-bottom: none;
+    }
+
+    .invoice-table td {
+      padding: 7px 8px;
+      font-size: 0.7rem;
+      border-bottom: none;
+      color: #334155 !important;
+      background: #ffffff !important;
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .invoice-observaciones-block {
+      background: rgba(245, 158, 11, 0.04);
+      border: 1px solid rgba(245, 158, 11, 0.15);
+      border-radius: 8px;
+      padding: 10px;
+      min-height: 38px;
+      width: 100%;
+      color: #334155;
+      font-size: 0.72rem;
+      text-align: justify;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      box-sizing: border-box;
+    }
+
+    .invoice-footer-block {
+      display: none !important;
+    }
+
+    .observacion-row input {
+      flex: 1;
+    }
+  </style>
+
+  <style>
+    /* Estilos adicionales exclusivos del módulo de Facturación (líneas de detalle dinámicas) */
+    .item-row {
+      display: grid;
+      grid-template-columns: 64px 1fr 100px 100px 30px;
+      gap: 8px;
+      align-items: end;
+      margin-bottom: 10px;
+    }
+
+    .item-row .form-group {
+      margin-bottom: 0;
+    }
+
+    .item-row label {
+      font-size: 0.72rem;
+      margin-bottom: 4px;
+    }
+
+    .btn-delete-item {
+      background: none;
+      border: none;
+      color: var(--color-danger);
+      cursor: pointer;
+      font-size: 1.3rem;
+      font-weight: bold;
+      height: 42px;
+      transition: var(--transition-smooth);
+    }
+
+    .btn-delete-item:hover {
+      transform: scale(1.15);
+    }
+
+    .metodo-pago-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+
+    .metodo-pago-pill.active {
+      color: #dc2626;
+    }
+
+    @media (max-width: 640px) {
+      .item-row {
+        grid-template-columns: 1fr 1fr 30px;
+        grid-template-areas:
+          "cant precio del"
+          "desc desc desc"
+          "total total total";
+      }
+
+      .item-row .form-group:nth-child(1) {
+        grid-area: cant;
+      }
+
+      .item-row .form-group:nth-child(2) {
+        grid-area: desc;
+      }
+
+      .item-row .form-group:nth-child(3) {
+        grid-area: precio;
+      }
+
+      .item-row .form-group:nth-child(4) {
+        grid-area: total;
+      }
+
+      .item-row .btn-delete-item {
+        grid-area: del;
+        justify-self: end;
+      }
+    }
+  </style>
+
+  <!-- PDF Generation Dependencies -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+</head>
+
+<body>
+  <img id="company-logo" src="https://lh3.googleusercontent.com/d/1RPpzt0-f9zQS6JnU6urBO7OdgMdDUuH0"
+    crossorigin="anonymous" style="display: none;" alt="Logo Fast Control">
+
+  <!-- Script para prevenir parpadeo de tema -->
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem("theme") || "light";
+      if (savedTheme === "dark") {
+        document.body.classList.add("dark-theme");
+      }
+    })();
+  </script>
+
+  <!-- ==========================================================================
+       CABECERA Y BARRA DE NAVEGACIÓN
+       ========================================================================== -->
+  <header>
+    <div class="nav-container">
+      <a href="#" class="brand">
+        <div class="brand-logo">FAC</div>
+        <div class="brand-text">
+          <h1>Fast Control</h1>
+          <span>Facturación</span>
+        </div>
+      </a>
+
+      <!-- Pestañas Principales (Solo PC) -->
+      <nav class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('nueva-factura')">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Nueva Factura
+        </button>
+        <button class="tab-btn" onclick="switchTab('historial')">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          Historial
+        </button>
+      </nav>
+
+      <!-- Indicador de Conexión a Firebase -->
+      <div class="status-group">
+        <div class="status-pill" id="db-status-pill" title="Estado de Firebase Firestore">
+          <span class="status-dot warning" id="db-status-dot"></span>
+          <span id="db-status-text">Firestore: Conectando...</span>
+        </div>
+      </div>
+
+      <!-- Menú Móvil & Acciones -->
+      <div class="header-actions">
+        <!-- Conmutador de Tema Claro/Oscuro -->
+        <button id="theme-toggle" class="btn-action" onclick="toggleTheme()" title="Cambiar Tema"
+          style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+          <svg class="theme-icon-sun" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+          </svg>
+          <svg class="theme-icon-moon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        </button>
+        <button class="menu-toggle" onclick="toggleMobileMenu()" aria-label="Abrir Menú">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Menú Desplegable Móvil -->
+    <div class="mobile-menu-drawer" id="mobile-menu-drawer">
+      <button class="mobile-menu-btn active" onclick="handleMobileNav('nueva-factura')">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Nueva Factura
+      </button>
+      <button class="mobile-menu-btn" onclick="handleMobileNav('historial')">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+        Historial de Facturas
+      </button>
+    </div>
+  </header>
+
+  <!-- Contenedor para Notificaciones Emergentes -->
+  <div id="toast-container"></div>
+
+  <!-- Contenedor Principal -->
+  <main>
+
+    <!-- CONTENIDO: NUEVA FACTURA -->
+    <section id="tab-nueva-factura" class="tab-content active">
+      <div class="module-grid-invoice">
+
+        <!-- Formulario (Lado Izquierdo) -->
+        <div class="card">
+          <h2 class="card-title">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span>Datos de la Factura</span>
+          </h2>
+
+          <form id="factura-form" class="form-grid">
+            <!-- Número de Factura -->
+            <div class="form-group">
+              <label for="numero_factura">Número de Factura <span style="color: var(--color-danger);">*</span></label>
+              <div class="input-prefix-wrapper">
+                <span class="input-prefix">FAC </span>
+                <input type="text" id="numero_factura" required class="form-control input-with-prefix"
+                  placeholder="0001" title="Ingrese el número ya impreso en la factura física" autocomplete="off">
+              </div>
+            </div>
+
+            <!-- Selección / Autocompletado de Cliente -->
+            <div class="form-group autocomplete-wrapper">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label for="cliente_input" style="margin-bottom: 0;">Cliente <span
+                    style="color: var(--color-danger);">*</span></label>
+                <button type="button" onclick="promptQuickClient()"
+                  style="background: none; border: none; color: var(--color-primary); font-family: var(--font-title); font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 2px; transition: var(--transition-smooth);">
+                  <span style="font-size: 0.9rem;">+</span> Añadir temporal
+                </button>
+              </div>
+              <input type="text" id="cliente_input" required class="form-control"
+                placeholder="Escriba el nombre para buscar..." autocomplete="off">
+              <div id="cliente_suggestions" class="autocomplete-suggestions"></div>
+            </div>
+
+            <!-- Sucursal (se muestra solo si el cliente tiene sucursales registradas) -->
+            <div class="form-group" id="sucursal_wrapper" style="display: none;">
+              <label for="sucursal_select">Sucursal</label>
+              <select id="sucursal_select" class="form-control">
+                <option value="">Principal / Sin sucursal específica</option>
+              </select>
+            </div>
+
+            <!-- RUC -->
+            <div class="form-group">
+              <label for="ruc">Número de RUC</label>
+              <input type="text" id="ruc" class="form-control" placeholder="Se autocompleta desde cliente">
+            </div>
+
+            <!-- Dirección -->
+            <div class="form-group">
+              <label for="direccion">Dirección</label>
+              <input type="text" id="direccion" class="form-control" placeholder="Se autocompleta desde cliente">
+            </div>
+
+            <!-- Fecha -->
+            <div class="form-group">
+              <label for="fecha">Fecha <span style="color: var(--color-danger);">*</span></label>
+              <input type="date" id="fecha" required class="form-control">
+            </div>
+
+            <!-- Método de Pago -->
+            <div class="form-group">
+              <label for="metodo_pago">Método de Pago <span style="color: var(--color-danger);">*</span></label>
+              <select id="metodo_pago" required class="form-control">
+                <option value="CONTADO">Contado</option>
+                <option value="CREDITO">Crédito</option>
+              </select>
+            </div>
+
+            <!-- Detalle de Factura (Dinámico) -->
+            <div class="form-group">
+              <label>Detalle de Factura <span style="color: var(--color-danger);">*</span></label>
+              <div class="items-header-row" style="display: grid; grid-template-columns: 64px 1fr 100px 100px 30px; gap: 8px; margin-bottom: 6px;">
+                <span style="font-size: 0.72rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">Cant.</span>
+                <span style="font-size: 0.72rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">Descripción</span>
+                <span style="font-size: 0.72rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">P. Unit.</span>
+                <span style="font-size: 0.72rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">Total</span>
+                <span></span>
+              </div>
+              <div id="items-container">
+                <div class="item-row" data-index="0">
+                  <div class="form-group">
+                    <input type="number" class="form-control item-cantidad" min="1" step="1" value="1">
+                  </div>
+                  <div class="form-group">
+                    <input type="text" class="form-control item-descripcion" placeholder="Escriba para buscar un servicio..." required autocomplete="off">
+                    <div class="autocomplete-suggestions item-descripcion-suggestions"></div>
+                  </div>
+                  <div class="form-group">
+                    <input type="number" step="0.01" class="form-control item-precio" placeholder="0.00">
+                  </div>
+                  <div class="form-group">
+                    <input type="text" class="form-control item-total" readonly value="0.00">
+                  </div>
+                  <button type="button" class="btn-delete-item" title="Eliminar línea" style="visibility: hidden;">&times;</button>
+                </div>
+              </div>
+              <button type="button" id="btn-add-linea" class="btn btn-secondary" style="padding: 8px 12px; font-size: 0.85rem; width: auto; margin-top: 4px;">
+                + Agregar línea
+              </button>
+            </div>
+
+            <!-- Total General -->
+            <div class="form-group">
+              <label for="total_general">Total General (C$)</label>
+              <input type="text" id="total_general" readonly class="form-control"
+                style="font-weight: 700; font-size: 1.05rem;" value="0.00">
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="btn-group">
+              <button type="submit" id="btn-save" class="btn btn-primary">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+                <span>Guardar Factura</span>
+              </button>
+              <button type="button" onclick="clearForm()" class="btn btn-secondary">Limpiar</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Previsualización del Documento (Lado Derecho) -->
+        <div class="card" style="display: flex; flex-direction: column;">
+          <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 12px;">
+            <div>
+              <h2 class="card-title" style="border: none; margin: 0; padding: 0;">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>Previsualización de Factura</span>
+              </h2>
+              <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">Formato media carta (8.5 x 5.5 in).</p>
+            </div>
+            <button onclick="printInvoice()" class="btn btn-primary"
+              style="width: auto; padding: 8px 16px; font-size: 0.85rem; height: 38px;">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>Descargar PDF</span>
+            </button>
+          </div>
+
+          <!-- Hoja Física -->
+          <div class="invoice-paper" id="invoice-preview-container">
+            <div id="invoice-preview" class="invoice-content">
+
+              <!-- Cabecera -->
+              <div class="invoice-header-block">
+                <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px;">
+                  <h3 style="font-weight: 800; font-size: 1.4rem; color: #0f172a; margin: 0; font-family: var(--font-title);">Fast Control</h3>
+                  <p style="font-size: 0.72rem; color: #475569; font-style: italic; font-weight: 600; margin: 0;">Manejo Integrado De Plagas</p>
+                  <p style="font-size: 0.65rem; color: #64748b; margin: 0;">RUC: 0012704961001T</p>
+                  <p style="font-size: 0.65rem; color: #64748b; margin: 0;">Bº Naciones Unidas, Terminal ruta 165, 1c. al sur, 1c. al este</p>
+                  <p style="font-size: 0.65rem; color: #64748b; margin: 0;">Tel: 2253-7290 / Cel: 7894-4984 / 8947-9506</p>
+                  <p style="font-size: 0.65rem; color: #64748b; margin: 0; margin-bottom: 8px;">info@fastcontrolni.com</p>
+                  <h4 style="font-weight: 800; font-size: 1.15rem; letter-spacing: 0.05em; text-transform: uppercase; margin: 0; color: #dc2626; font-family: var(--font-title);">FACTURA</h4>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-start; text-align: right;">
+                  <img src="https://lh3.googleusercontent.com/d/1RPpzt0-f9zQS6JnU6urBO7OdgMdDUuH0"
+                    alt="Logo Fast Control" style="max-height: 52px; width: auto; object-fit: contain; margin-bottom: 6px;">
+                  <div style="text-align: right;">
+                    <p style="font-size: 0.6rem; font-weight: 700; color: #dc2626; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">Número de Factura</p>
+                    <p id="preview-factura-numero" style="font-size: 1rem; font-weight: 800; color: #0f172a; font-family: monospace;">FAC - ----</p>
+                  </div>
+                  <p style="font-size: 0.6rem; color: #94a3b8; margin-top: 4px;">Fecha: <span id="preview-fecha">--/--/----</span></p>
+                  <div style="margin-top: 6px; display: flex; gap: 12px;">
+                    <span class="metodo-pago-pill" id="preview-pill-contado">☐ Contado</span>
+                    <span class="metodo-pago-pill" id="preview-pill-credito">☐ Crédito</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Datos Cliente / Detalle -->
+              <div class="invoice-grid-block">
+                <div class="invoice-grid-col">
+                  <h4 class="invoice-section-title">CLIENTE</h4>
+                  <p style="color: #64748b; font-size: 0.7rem;">Cliente: <span id="preview-cliente-nombre" style="font-weight: 700; color: #0f172a;">Escriba un cliente...</span></p>
+                  <p id="preview-sucursal-row" style="color: #64748b; font-size: 0.7rem; display: none;">Sucursal: <span id="preview-sucursal-nombre" style="font-weight: 600; color: #334155;">--------</span></p>
+                  <p style="color: #64748b; font-size: 0.7rem;">RUC Nº: <span id="preview-ruc" style="font-weight: 600; color: #334155;">--------</span></p>
+                  <p style="color: #64748b; font-size: 0.7rem;">Dirección: <span id="preview-direccion" style="font-weight: 600; color: #334155;">--------</span></p>
+                </div>
+                <div class="invoice-grid-col">
+                  <h4 class="invoice-section-title">DETALLE</h4>
+                  <p style="color: #64748b; font-size: 0.7rem;">Día: <span id="preview-dia" style="font-weight: 600; color: #334155;">--</span>
+                    &nbsp;Mes: <span id="preview-mes" style="font-weight: 600; color: #334155;">--</span>
+                    &nbsp;Año: <span id="preview-anio" style="font-weight: 600; color: #334155;">----</span></p>
+                  <p style="color: #64748b; font-size: 0.7rem;">Método de Pago: <span id="preview-metodo-pago" style="font-weight: 700; color: #0f172a;">CONTADO</span></p>
+                </div>
+              </div>
+
+              <!-- Tabla de Ítems -->
+              <div>
+                <h4 class="invoice-section-title" style="margin-bottom: 8px;">DETALLE DE PRODUCTOS / SERVICIOS</h4>
+                <div class="invoice-table-wrapper">
+                  <table class="invoice-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 12%;">Cant.</th>
+                        <th style="width: 48%;">Descripción</th>
+                        <th style="width: 20%; text-align: right;">P. Unit.</th>
+                        <th style="width: 20%; text-align: right;">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody id="preview-items-tbody">
+                      <tr>
+                        <td colspan="4" style="text-align: center; font-style: italic; color: #94a3b8;">Agregue líneas al detalle...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Total -->
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; display: flex; justify-content: flex-end; align-items: center;">
+                <div style="text-align: right;">
+                  <span class="invoice-section-title" style="margin: 0; display: block;">TOTAL</span>
+                  <span id="preview-total-general" style="font-weight: 800; font-size: 1.1rem; color: #dc2626; font-family: monospace;">C$ 0.00</span>
+                </div>
+              </div>
+
+              <!-- Bloque Legal (Pagaré) -->
+              <div class="invoice-legal-block"
+                style="border-top: 1px solid #cbd5e1; padding-top: 10px; font-size: 0.63rem; color: #475569; display: flex; flex-direction: column; gap: 4px; line-height: 1.3; width: 100%; margin-top: auto;">
+                <p style="text-align: justify;">Por el presente pagaré a Fast Control, o a su orden el valor indicado de esta factura. En caso de falta de pago en la fecha indicada, reconoceré a mi acreedor el 2% de interés mensual sobre saldo, sin necesidad de requerimiento judicial o extrajudicial. En caso de emisión de cheque con fondos insuficientes, se cobrará lo estipulado por el banco más un 50% del mismo, en concepto de gastos administrativos.</p>
+                <p style="text-align: justify;">Nota: Esta factura está sujeta a mantenimiento de valor con respecto al dólar, según artículo 16 de la ley monetaria vigente.</p>
+                <p style="text-align: justify;"><strong>Favor emitir cheque a nombre de:</strong> Josue Miranda Rosales</p>
+              </div>
+
+              <!-- Firmas -->
+              <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                <div style="text-align: center; font-size: 0.65rem; color: #475569;">
+                  <div style="border-top: 1px solid #94a3b8; width: 140px; margin-bottom: 4px;"></div>
+                  CLIENTE FIRMA
+                </div>
+                <div style="text-align: center; font-size: 0.65rem; color: #475569;">
+                  <div style="border-top: 1px solid #94a3b8; width: 140px; margin-bottom: 4px;"></div>
+                  FAST CONTROL
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CONTENIDO: HISTORIAL -->
+    <section id="tab-historial" class="tab-content">
+      <div class="card">
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 12px;">
+          <h2 class="card-title" style="border: none; margin: 0; padding: 0;">
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <span>Historial de Facturas</span>
+          </h2>
+          <span class="badge badge-primary" id="facturas-count">0 Facturas</span>
+        </div>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th class="nowrap-column">Número</th>
+                <th>Cliente</th>
+                <th class="nowrap-column">Fecha</th>
+                <th class="nowrap-column">Total</th>
+                <th class="nowrap-column">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="facturas-table-body">
+              <tr>
+                <td colspan="5" class="empty-state">Conectando a base de datos Firebase...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer
+    style="margin-top: auto; border-top: 1px solid var(--border-color); background: var(--bg-card); padding: 16px 24px; text-align: center; font-size: 0.8rem; color: var(--text-secondary); transition: var(--transition-smooth);">
+    <p>&copy; FAST CONTROL 2026 - Módulo de Facturación</p>
+  </footer>
+</body>
+  <!-- Firebase SDK Modules (v10.8.0) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, doc, addDoc, getDoc, updateDoc, onSnapshot, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Configuración de Firebase (misma base de datos usada por Cotizaciones)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBWu-ewWbQb9z3f2gS9zQFrArZr-KUb-ok",
+      authDomain: "pos-vbd.firebaseapp.com",
+      projectId: "pos-vbd",
+      storageBucket: "pos-vbd.firebasestorage.app",
+      messagingSenderId: "491489024859",
+      appId: "1:491489024859:web:4c2448b8882c0099b6587e",
+      measurementId: "G-0NB1C3TJT7"
+    };
+
+    let app, db;
+    let isConnected = false;
+
+    let loadedClientes = false;
+    let loadedFacturas = false;
+    let firebaseTimeout = null;
+
+    let cacheClientes = [];
+    let cacheFacturas = [];
+    let cacheServicios = [];
+    let loadedServicios = false;
+
+    // Componentes del DOM
+    const numFacturaInput = document.getElementById('numero_factura');
+    const clienteInput = document.getElementById('cliente_input');
+    const clienteSuggestions = document.getElementById('cliente_suggestions');
+    const rucInput = document.getElementById('ruc');
+    const direccionInput = document.getElementById('direccion');
+    const sucursalWrapper = document.getElementById('sucursal_wrapper');
+    const sucursalSelect = document.getElementById('sucursal_select');
+    const fechaInput = document.getElementById('fecha');
+    const metodoPagoSelect = document.getElementById('metodo_pago');
+    const totalGeneralInput = document.getElementById('total_general');
+    const itemsContainer = document.getElementById('items-container');
+    const btnAddLinea = document.getElementById('btn-add-linea');
+
+    let selectedClienteObj = null;
+
+    // ---------- Helpers de compatibilidad de campos de cliente (reutilizados de Cotizaciones) ----------
+    function resolveClientName(cli) {
+      return cli.nombre || cli.nombre_cliente || cli.name || cli.cliente || cli.nombrecompleto || cli.fullname || cli.razon_social || cli.razonsocial || 'Cliente Sin Nombre';
+    }
+
+    function resolveClientAddress(cli) {
+      return cli.direccion || cli.direccion_servicio || cli.direccion_fiscal || cli.address || cli.ubicacion || cli.domicilio || cli.dir || '';
+    }
+
+    function resolveClientRuc(cli) {
+      return cli.ruc || cli.identificacion || cli.nit || 'Sin RUC';
+    }
+
+    // ---------- Helpers de compatibilidad de campos de servicio (colección "servicios") ----------
+    function resolveServicioNombre(srv) {
+      return srv.servicio || srv.nombre || srv.descripcion || srv.name || 'Servicio Sin Nombre';
+    }
+
+    function resolveServicioPrecio(srv) {
+      const p = srv.precio_unitario ?? srv.precio ?? srv.costo ?? srv.valor;
+      const num = parseFloat(p);
+      return isNaN(num) ? null : num;
+    }
+
+    function resolveClientSucursales(cli) {
+      if (!cli) return [];
+      const arr = cli.sucursales || cli.branches || cli.sedes || [];
+      return Array.isArray(arr) ? arr : [];
+    }
+
+    function resolveSucursalNombre(suc, idx) {
+      return suc.nombre || suc.nombre_sucursal || suc.name || `Sucursal ${idx + 1}`;
+    }
+
+    function resolveSucursalDireccion(suc, cli) {
+      return suc.direccion || suc.address || suc.ubicacion || resolveClientAddress(cli);
+    }
+
+    // Llena el select de sucursal según el cliente seleccionado
+    function populateSucursales(cli) {
+      const sucursales = resolveClientSucursales(cli);
+      sucursalSelect.innerHTML = '<option value="">Principal / Sin sucursal específica</option>';
+
+      if (sucursales.length > 0) {
+        sucursales.forEach((suc, idx) => {
+          const opt = document.createElement('option');
+          opt.value = idx;
+          opt.textContent = resolveSucursalNombre(suc, idx);
+          sucursalSelect.appendChild(opt);
+        });
+        sucursalWrapper.style.display = 'block';
+      } else {
+        sucursalWrapper.style.display = 'none';
+      }
+      sucursalSelect.value = '';
+      updatePreviewSucursal();
+    }
+
+    function updatePreviewSucursal() {
+      const row = document.getElementById('preview-sucursal-row');
+      const span = document.getElementById('preview-sucursal-nombre');
+      const sucursales = resolveClientSucursales(selectedClienteObj);
+      if (sucursales.length > 0) {
+        const idx = sucursalSelect.value;
+        const nombre = (idx !== '' && sucursales[idx]) ? resolveSucursalNombre(sucursales[idx], parseInt(idx)) : 'Principal';
+        span.innerText = nombre;
+        row.style.display = 'block';
+      } else {
+        row.style.display = 'none';
+      }
+    }
+
+    function applySucursalSeleccionada() {
+      if (!selectedClienteObj) return;
+      const sucursales = resolveClientSucursales(selectedClienteObj);
+      const idx = sucursalSelect.value;
+      let dirVal;
+
+      if (idx !== '' && sucursales[idx]) {
+        dirVal = resolveSucursalDireccion(sucursales[idx], selectedClienteObj);
+      } else {
+        dirVal = resolveClientAddress(selectedClienteObj);
+      }
+
+      direccionInput.value = dirVal;
+      document.getElementById('preview-direccion').innerText = dirVal || '--------';
+      updatePreviewSucursal();
+    }
+
+    sucursalSelect.addEventListener('change', applySucursalSeleccionada);
+
+    // ---------- Ciclo de vida ----------
+    window.onload = async function () {
+      setDefaultDate();
+      updateMetodoPagoPreview();
+
+      btnAddLinea.addEventListener('click', () => addItemRow());
+      attachItemRowEvents(itemsContainer.querySelector('.item-row'));
+      recalcTotals();
+
+      startFirebaseTimeout();
+
+      try {
+        app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+
+        if (db) {
+          isConnected = true;
+          updateDbStatusIndicator("warning", "Firestore: Conectando...");
+          listenToFirebaseCollections();
+        } else {
+          throw new Error("No se pudo obtener la base de datos Firestore.");
+        }
+      } catch (error) {
+        console.error("Error al inicializar Firebase:", error);
+        handleFirebaseFailure("Error de inicialización");
+      }
+    };
+
+    function startFirebaseTimeout() {
+      firebaseTimeout = setTimeout(() => {
+        if (!loadedClientes || !loadedFacturas) {
+          console.warn("Firebase tardó demasiado. Activando modo simulación local offline...");
+          handleFirebaseFailure("Tiempo de espera agotado");
+        }
+      }, 4000);
+    }
+
+    function handleFirebaseFailure(reason) {
+      if (isConnected || document.getElementById("db-status-text").textContent.includes("Conectando")) {
+        isConnected = false;
+        clearTimeout(firebaseTimeout);
+        updateDbStatusIndicator("danger", `Firestore: Offline (${reason})`);
+        showToast("No se pudo conectar a Firebase. Cargando base de datos local temporal.", "warning");
+        enableLocalSimulation();
+      }
+    }
+
+    function updateDbStatusIndicator(type, text) {
+      const dot = document.getElementById("db-status-dot");
+      const label = document.getElementById("db-status-text");
+      if (dot && label) {
+        dot.className = `status-dot ${type}`;
+        label.textContent = text;
+      }
+    }
+
+    function listenToFirebaseCollections() {
+      // Clientes (colección ya existente, reutilizada)
+      onSnapshot(collection(db, "clientes"), (snapshot) => {
+        loadedClientes = true;
+        cacheClientes = [];
+        snapshot.forEach((d) => cacheClientes.push({ id: d.id, ...d.data() }));
+        checkConnectionSuccess();
+      }, (error) => {
+        console.error("Falla al escuchar clientes:", error);
+        handleFirebaseFailure("Permisos de Clientes denegados");
+      });
+
+      // Servicios (para autocompletado del campo Descripción)
+      onSnapshot(collection(db, "servicios"), (snapshot) => {
+        loadedServicios = true;
+        cacheServicios = [];
+        snapshot.forEach((d) => cacheServicios.push({ id: d.id, ...d.data() }));
+      }, (error) => {
+        console.error("Falla al escuchar servicios:", error);
+      });
+
+      // Facturas
+      onSnapshot(collection(db, "facturas"), (snapshot) => {
+        loadedFacturas = true;
+        cacheFacturas = [];
+        snapshot.forEach((d) => cacheFacturas.push({ id: d.id, ...d.data() }));
+        updateFacturasTabla(cacheFacturas);
+        checkConnectionSuccess();
+      }, (error) => {
+        console.error("Falla al escuchar facturas:", error);
+        handleFirebaseFailure("Permisos de Facturas denegados");
+      });
+    }
+
+    function checkConnectionSuccess() {
+      if (loadedClientes && loadedFacturas) {
+        clearTimeout(firebaseTimeout);
+        updateDbStatusIndicator("success", "Firestore: Conectado");
+      }
+    }
+
+    function enableLocalSimulation() {
+      cacheClientes = [
+        { id: 'cli-demo1', nombre: 'Distribuidora Díaz', ruc: 'J0310000123456', direccion: 'Managua, Semáforos El Dorado 2c. al Lago' },
+        {
+          id: 'cli-demo2', nombre: 'Supermercado La Unión', ruc: 'J0310000987654', direccion: 'Carretera a Masaya Km 4.5',
+          sucursales: [
+            { nombre: 'Sucursal Masaya', direccion: 'Carretera a Masaya Km 4.5' },
+            { nombre: 'Sucursal Granada', direccion: 'Km 45 Carretera Granada, frente al mercado' }
+          ]
+        }
+      ];
+      cacheFacturas = [];
+      cacheServicios = [
+        { id: 'srv-demo1', servicio: 'Mantenimiento preventivo de equipo', precio_unitario: 500 },
+        { id: 'srv-demo2', servicio: 'Instalación de cámara de seguridad', precio_unitario: 1200 },
+        { id: 'srv-demo3', servicio: 'Soporte técnico mensual', precio_unitario: 800 }
+      ];
+      updateFacturasTabla(cacheFacturas);
+    }
+
+    // ---------- Autocompletado de Clientes ----------
+    clienteInput.addEventListener('input', () => {
+      const query = clienteInput.value.toLowerCase().trim();
+      clienteSuggestions.innerHTML = '';
+
+      if (!query) {
+        clienteSuggestions.style.display = 'none';
+        selectedClienteObj = null;
+        clearClienteFields();
+        return;
+      }
+
+      const filtered = cacheClientes.filter(cli => resolveClientName(cli).toLowerCase().includes(query));
+
+      if (filtered.length === 0) {
+        clienteSuggestions.style.display = 'none';
+        return;
+      }
+
+      filtered.forEach(cli => {
+        const div = document.createElement('div');
+        div.className = 'autocomplete-suggestion';
+        div.textContent = resolveClientName(cli);
+        div.addEventListener('click', () => selectCliente(cli));
+        clienteSuggestions.appendChild(div);
+      });
+
+      clienteSuggestions.style.display = 'block';
+    });
+
+    document.addEventListener('click', (e) => {
+      if (e.target !== clienteInput && e.target !== clienteSuggestions) {
+        clienteSuggestions.style.display = 'none';
+      }
+    });
+
+    function selectCliente(cli) {
+      selectedClienteObj = cli;
+      clienteInput.value = resolveClientName(cli);
+      clienteSuggestions.style.display = 'none';
+
+      const rucVal = resolveClientRuc(cli);
+      const dirVal = resolveClientAddress(cli);
+
+      rucInput.value = rucVal;
+      direccionInput.value = dirVal;
+
+      document.getElementById('preview-cliente-nombre').innerText = resolveClientName(cli);
+      document.getElementById('preview-ruc').innerText = rucVal;
+      document.getElementById('preview-direccion').innerText = dirVal || '--------';
+
+      populateSucursales(cli);
+    }
+
+    function clearClienteFields() {
+      rucInput.value = '';
+      direccionInput.value = '';
+
+      document.getElementById('preview-cliente-nombre').innerText = 'Escriba un cliente...';
+      document.getElementById('preview-ruc').innerText = '--------';
+      document.getElementById('preview-direccion').innerText = '--------';
+
+      sucursalSelect.innerHTML = '<option value="">Principal / Sin sucursal específica</option>';
+      sucursalWrapper.style.display = 'none';
+      document.getElementById('preview-sucursal-row').style.display = 'none';
+    }
+
+    window.promptQuickClient = function () {
+      const nombre = prompt("Nombre del cliente nuevo o temporal:");
+      if (!nombre) return;
+      const ruc = prompt("RUC del cliente (Opcional):", "");
+      const direccion = prompt("Dirección (Opcional):", "");
+
+      const nuevoCli = {
+        id: "cli-temp-" + Date.now(),
+        nombre: nombre,
+        ruc: ruc || "Sin RUC",
+        direccion: direccion || ""
+      };
+
+      cacheClientes.push(nuevoCli);
+      selectCliente(nuevoCli);
+      showToast("Cliente temporal agregado", "success");
+    };
+
+    // ---------- Fecha ----------
+    function setDefaultDate() {
+      const hoy = new Date();
+      const yyyy = hoy.getFullYear();
+      const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+      const dd = String(hoy.getDate()).padStart(2, '0');
+      fechaInput.value = `${yyyy}-${mm}-${dd}`;
+      updatePreviewFecha();
+    }
+
+    function updatePreviewFecha() {
+      const parts = fechaInput.value.split('-');
+      if (parts.length === 3) {
+        document.getElementById('preview-fecha').innerText = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        document.getElementById('preview-dia').innerText = parts[2];
+        document.getElementById('preview-mes').innerText = parts[1];
+        document.getElementById('preview-anio').innerText = parts[0];
+      }
+    }
+
+    fechaInput.addEventListener('change', updatePreviewFecha);
+
+    // ---------- Método de Pago ----------
+    function updateMetodoPagoPreview() {
+      const val = metodoPagoSelect.value;
+      document.getElementById('preview-metodo-pago').innerText = val === 'CREDITO' ? 'CRÉDITO' : 'CONTADO';
+
+      const pillContado = document.getElementById('preview-pill-contado');
+      const pillCredito = document.getElementById('preview-pill-credito');
+      pillContado.classList.toggle('active', val === 'CONTADO');
+      pillCredito.classList.toggle('active', val === 'CREDITO');
+      pillContado.innerText = val === 'CONTADO' ? '☑ Contado' : '☐ Contado';
+      pillCredito.innerText = val === 'CREDITO' ? '☑ Crédito' : '☐ Crédito';
+    }
+
+    metodoPagoSelect.addEventListener('change', updateMetodoPagoPreview);
+
+    // ---------- Detalle de Factura (líneas dinámicas) ----------
+    window.addItemRow = function () {
+      const idx = itemsContainer.querySelectorAll('.item-row').length;
+      const div = document.createElement('div');
+      div.className = 'item-row';
+      div.setAttribute('data-index', idx);
+      div.innerHTML = `
+        <div class="form-group">
+          <input type="number" class="form-control item-cantidad" min="1" step="1" value="1">
+        </div>
+        <div class="form-group">
+          <input type="text" class="form-control item-descripcion" placeholder="Escriba para buscar un servicio..." required autocomplete="off">
+          <div class="autocomplete-suggestions item-descripcion-suggestions"></div>
+        </div>
+        <div class="form-group">
+          <input type="number" step="0.01" class="form-control item-precio" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <input type="text" class="form-control item-total" readonly value="0.00">
+        </div>
+        <button type="button" class="btn-delete-item" title="Eliminar línea">&times;</button>
+      `;
+      itemsContainer.appendChild(div);
+      attachItemRowEvents(div);
+      reindexItemRows();
+      recalcTotals();
+    };
+
+    function attachItemRowEvents(row) {
+      if (!row) return;
+      const cant = row.querySelector('.item-cantidad');
+      const precio = row.querySelector('.item-precio');
+      const delBtn = row.querySelector('.btn-delete-item');
+
+      cant.addEventListener('input', () => recalcTotals());
+      precio.addEventListener('input', () => recalcTotals());
+
+      delBtn.addEventListener('click', () => {
+        const rows = itemsContainer.querySelectorAll('.item-row');
+        if (rows.length <= 1) {
+          showToast("Debe haber al menos una línea en el detalle.", "warning");
+          return;
+        }
+        row.remove();
+        reindexItemRows();
+        recalcTotals();
+      });
+    }
+
+    function reindexItemRows() {
+      const rows = itemsContainer.querySelectorAll('.item-row');
+      rows.forEach((row, idx) => {
+        row.setAttribute('data-index', idx);
+        const delBtn = row.querySelector('.btn-delete-item');
+        delBtn.style.visibility = rows.length <= 1 ? 'hidden' : 'visible';
+      });
+    }
+
+    function recalcTotals() {
+      const rows = itemsContainer.querySelectorAll('.item-row');
+      let totalGeneral = 0;
+      const previewTbody = document.getElementById('preview-items-tbody');
+      previewTbody.innerHTML = '';
+      let hasAny = false;
+
+      rows.forEach(row => {
+        const cant = parseFloat(row.querySelector('.item-cantidad').value) || 0;
+        const precio = parseFloat(row.querySelector('.item-precio').value) || 0;
+        const desc = row.querySelector('.item-descripcion').value.trim();
+        const totalLinea = cant * precio;
+        row.querySelector('.item-total').value = totalLinea.toFixed(2);
+        totalGeneral += totalLinea;
+
+        if (desc || precio > 0) {
+          hasAny = true;
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="vertical-align: top;">${cant}</td>
+            <td style="vertical-align: top;">${escapeHTML(desc) || '<span style="color:#94a3b8;font-style:italic;">Sin descripción</span>'}</td>
+            <td style="text-align: right; vertical-align: top; font-family: monospace;">C$ ${precio.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+            <td style="text-align: right; vertical-align: top; font-family: monospace; font-weight: 700;">C$ ${totalLinea.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+          `;
+          previewTbody.appendChild(tr);
+        }
+      });
+
+      if (!hasAny) {
+        previewTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; font-style: italic; color: #94a3b8;">Agregue líneas al detalle...</td></tr>`;
+      }
+
+      totalGeneralInput.value = totalGeneral.toFixed(2);
+      document.getElementById('preview-total-general').innerText = `C$ ${totalGeneral.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    // Delegar eventos de descripción (input dinámico) para actualizar la previsualización
+    itemsContainer.addEventListener('input', (e) => {
+      if (e.target.classList.contains('item-descripcion')) {
+        recalcTotals();
+        handleServicioAutocomplete(e.target);
+      }
+    });
+
+    // ---------- Autocompletado de Descripción (colección "servicios", campo "servicio") ----------
+    function handleServicioAutocomplete(inputEl) {
+      const wrapper = inputEl.closest('.form-group');
+      const suggestionsBox = wrapper ? wrapper.querySelector('.item-descripcion-suggestions') : null;
+      if (!suggestionsBox) return;
+
+      const query = inputEl.value.toLowerCase().trim();
+      suggestionsBox.innerHTML = '';
+
+      if (!query) {
+        suggestionsBox.style.display = 'none';
+        return;
+      }
+
+      const filtered = cacheServicios.filter(srv => resolveServicioNombre(srv).toLowerCase().includes(query));
+
+      if (filtered.length === 0) {
+        suggestionsBox.style.display = 'none';
+        return;
+      }
+
+      filtered.forEach(srv => {
+        const div = document.createElement('div');
+        div.className = 'autocomplete-suggestion';
+        div.textContent = resolveServicioNombre(srv);
+        div.addEventListener('mousedown', (ev) => {
+          ev.preventDefault();
+          selectServicioParaFila(inputEl, srv);
+        });
+        suggestionsBox.appendChild(div);
+      });
+
+      suggestionsBox.style.display = 'block';
+    }
+
+    function selectServicioParaFila(inputEl, srv) {
+      inputEl.value = resolveServicioNombre(srv);
+
+      const wrapper = inputEl.closest('.form-group');
+      const suggestionsBox = wrapper ? wrapper.querySelector('.item-descripcion-suggestions') : null;
+      if (suggestionsBox) {
+        suggestionsBox.innerHTML = '';
+        suggestionsBox.style.display = 'none';
+      }
+
+      const row = inputEl.closest('.item-row');
+      const precio = resolveServicioPrecio(srv);
+      if (row && precio !== null) {
+        const precioInput = row.querySelector('.item-precio');
+        if (precioInput) precioInput.value = precio;
+      }
+
+      recalcTotals();
+    }
+
+    document.addEventListener('click', (e) => {
+      document.querySelectorAll('.item-descripcion-suggestions').forEach(box => {
+        const wrapper = box.closest('.form-group');
+        const inputEl = wrapper ? wrapper.querySelector('.item-descripcion') : null;
+        if (e.target !== inputEl && !box.contains(e.target)) {
+          box.style.display = 'none';
+        }
+      });
+    });
+
+    // ---------- Numeración Manual de Facturas ----------
+    // El número de factura ya NO se autogenera: el usuario lo digita porque
+    // corresponde a una factura física previamente impresa.
+    function updatePreviewNumeroFactura() {
+      const numTexto = numFacturaInput.value.trim();
+      document.getElementById('preview-factura-numero').innerText = numTexto ? `FAC - ${numTexto}` : 'FAC - ----';
+    }
+    numFacturaInput.addEventListener('input', updatePreviewNumeroFactura);
+
+    // Verifica si un numero_factura ya existe (en Firebase si hay conexión, o en el caché local si no la hay)
+    async function existeNumeroFacturaDuplicado(numeroFactura) {
+      if (isConnected) {
+        try {
+          const q = query(collection(db, "facturas"), where("numero_factura", "==", numeroFactura));
+          const snapshot = await getDocs(q);
+          return !snapshot.empty;
+        } catch (e) {
+          console.error("Falla al validar numero de factura contra Firebase:", e);
+          // Ante la duda, también se valida contra el caché local como respaldo.
+          return cacheFacturas.some(f => String(f.numero_factura).trim() === numeroFactura);
+        }
+      }
+      return cacheFacturas.some(f => String(f.numero_factura).trim() === numeroFactura);
+    }
+
+    // ---------- Recolección de datos del formulario ----------
+    function collectItemsFromForm() {
+      const rows = itemsContainer.querySelectorAll('.item-row');
+      const items = [];
+      rows.forEach(row => {
+        const cantidad = parseFloat(row.querySelector('.item-cantidad').value) || 0;
+        const descripcion = row.querySelector('.item-descripcion').value.trim();
+        const precio_unitario = parseFloat(row.querySelector('.item-precio').value) || 0;
+        const total = cantidad * precio_unitario;
+        if (descripcion || precio_unitario > 0) {
+          items.push({ cantidad, descripcion, precio_unitario, total });
+        }
+      });
+      return items;
+    }
+
+    function buildFacturaObject() {
+      const numFac = numFacturaInput.value.trim();
+      const items = collectItemsFromForm();
+      const totalGeneral = items.reduce((acc, it) => acc + it.total, 0);
+
+      let sucursalNombre = null;
+      const sucursalesCliente = resolveClientSucursales(selectedClienteObj);
+      if (sucursalesCliente.length > 0) {
+        const sucIdx = sucursalSelect.value;
+        sucursalNombre = (sucIdx !== '' && sucursalesCliente[sucIdx])
+          ? resolveSucursalNombre(sucursalesCliente[sucIdx], parseInt(sucIdx))
+          : 'Principal';
+      }
+
+      return {
+        numero_factura: numFac,
+        cliente_id: selectedClienteObj ? selectedClienteObj.id : "cli-temp",
+        cliente_nombre: clienteInput.value.trim(),
+        sucursal_nombre: sucursalNombre,
+        ruc: rucInput.value.trim(),
+        direccion: direccionInput.value.trim(),
+        fecha: fechaInput.value,
+        metodo_pago: metodoPagoSelect.value,
+        items: items,
+        total_general: totalGeneral,
+        fecha_creacion: new Date().toISOString()
+      };
+    }
+
+    // ---------- Envío / Guardado del formulario ----------
+    document.getElementById('factura-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const items = collectItemsFromForm();
+      if (items.length === 0) {
+        showToast("Agregue al menos una línea con descripción o precio.", "error");
+        return;
+      }
+      if (!clienteInput.value.trim()) {
+        showToast("Por favor seleccione o escriba un cliente.", "error");
+        return;
+      }
+
+      const numeroFacturaTexto = numFacturaInput.value.trim();
+      if (!numeroFacturaTexto) {
+        showToast("Debe ingresar el número de factura.", "error");
+        numFacturaInput.focus();
+        return;
+      }
+
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.disabled = true;
+
+      try {
+        const yaExiste = await existeNumeroFacturaDuplicado(numeroFacturaTexto);
+        if (yaExiste) {
+          showToast("Este número de factura ya está registrado", "error");
+          numFacturaInput.focus();
+          return;
+        }
+
+        const nuevaFactura = buildFacturaObject();
+
+        // Descarga inmediata del PDF (sin número de factura, ya viene impreso en el papel físico)
+        generarFacturaPDF(nuevaFactura);
+
+        if (isConnected) {
+          await addDoc(collection(db, "facturas"), nuevaFactura);
+          console.log("Factura guardada en Firebase");
+        } else {
+          cacheFacturas.unshift(nuevaFactura);
+          updateFacturasTabla(cacheFacturas);
+        }
+
+        showToast("Factura procesada y PDF descargado", "success");
+        clearForm();
+      } catch (err) {
+        console.error("Error al guardar factura:", err);
+        showToast("Error al guardar la factura: " + err.message, "error");
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    });
+
+    // ---------- Limpieza del Formulario ----------
+    window.clearForm = function () {
+      document.getElementById('factura-form').reset();
+      selectedClienteObj = null;
+
+      clearClienteFields();
+      metodoPagoSelect.value = "CONTADO";
+      updateMetodoPagoPreview();
+
+      itemsContainer.innerHTML = `
+        <div class="item-row" data-index="0">
+          <div class="form-group"><input type="number" class="form-control item-cantidad" min="1" step="1" value="1"></div>
+          <div class="form-group"><input type="text" class="form-control item-descripcion" placeholder="Escriba para buscar un servicio..." required autocomplete="off"><div class="autocomplete-suggestions item-descripcion-suggestions"></div></div>
+          <div class="form-group"><input type="number" step="0.01" class="form-control item-precio" placeholder="0.00"></div>
+          <div class="form-group"><input type="text" class="form-control item-total" readonly value="0.00"></div>
+          <button type="button" class="btn-delete-item" title="Eliminar línea" style="visibility: hidden;">&times;</button>
+        </div>
+      `;
+      attachItemRowEvents(itemsContainer.querySelector('.item-row'));
+
+      numFacturaInput.value = '';
+      document.getElementById('preview-factura-numero').innerText = 'FAC - ----';
+
+      setDefaultDate();
+      recalcTotals();
+    };
+
+    // ---------- Historial ----------
+    function updateFacturasTabla(facturas) {
+      const tableBody = document.getElementById('facturas-table-body');
+      const countBadge = document.getElementById('facturas-count');
+      countBadge.innerText = `${facturas.length} Facturas`;
+
+      tableBody.innerHTML = '';
+
+      if (facturas.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" class="empty-state">No se encontraron facturas guardadas.</td></tr>`;
+        return;
+      }
+
+      const sorted = [...facturas].sort((a, b) => new Date(b.fecha_creacion || 0) - new Date(a.fecha_creacion || 0));
+
+      sorted.forEach(fac => {
+        const numTexto = String(fac.numero_factura || '').trim();
+        const totalFormat = `C$ ${(fac.total_general || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td data-label="Número" class="nowrap-column" style="font-weight: 700; color: var(--color-primary);">FAC-${escapeHTML(numTexto)}</td>
+          <td data-label="Cliente" style="font-weight: 500;">${escapeHTML(fac.cliente_nombre)}</td>
+          <td data-label="Fecha" class="nowrap-column" style="font-family: monospace; font-size: 0.85rem;">${fac.fecha}</td>
+          <td data-label="Total" class="nowrap-column" style="font-weight: 700; color: var(--color-primary);">${totalFormat}</td>
+          <td data-label="Acciones" class="nowrap-column">
+            <button onclick="verFactura('${encodeURIComponent(numTexto)}')" class="btn-action-table" title="Ver / Cargar">Ver</button>
+            <button onclick="descargarFacturaPDF('${encodeURIComponent(numTexto)}')" class="btn-action-table" title="Descargar PDF" style="margin-left: 6px;">PDF</button>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    window.verFactura = function (numStrEncoded) {
+      const numStr = decodeURIComponent(numStrEncoded);
+      const encontrada = cacheFacturas.find(f => String(f.numero_factura).trim() === numStr);
+      if (!encontrada) return;
+
+      clearForm();
+
+      numFacturaInput.value = numStr;
+      clienteInput.value = encontrada.cliente_nombre;
+      rucInput.value = encontrada.ruc || '';
+      direccionInput.value = encontrada.direccion || '';
+      fechaInput.value = encontrada.fecha || '';
+      metodoPagoSelect.value = encontrada.metodo_pago || 'CONTADO';
+
+      selectedClienteObj = cacheClientes.find(c => c.id === encontrada.cliente_id) || {
+        id: encontrada.cliente_id,
+        nombre: encontrada.cliente_nombre,
+        ruc: encontrada.ruc,
+        direccion: encontrada.direccion
+      };
+
+      populateSucursales(selectedClienteObj);
+      const sucursalesEdit = resolveClientSucursales(selectedClienteObj);
+      if (encontrada.sucursal_nombre && sucursalesEdit.length > 0) {
+        const matchIdx = sucursalesEdit.findIndex((s, i) => resolveSucursalNombre(s, i) === encontrada.sucursal_nombre);
+        sucursalSelect.value = matchIdx !== -1 ? matchIdx : '';
+      }
+      applySucursalSeleccionada();
+
+      document.getElementById('preview-cliente-nombre').innerText = encontrada.cliente_nombre;
+      document.getElementById('preview-ruc').innerText = encontrada.ruc || '--------';
+      document.getElementById('preview-direccion').innerText = encontrada.direccion || '--------';
+      updatePreviewFecha();
+      updateMetodoPagoPreview();
+
+      itemsContainer.innerHTML = '';
+      (encontrada.items || []).forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'item-row';
+        div.setAttribute('data-index', idx);
+        div.innerHTML = `
+          <div class="form-group"><input type="number" class="form-control item-cantidad" min="1" step="1" value="${item.cantidad}"></div>
+          <div class="form-group"><input type="text" class="form-control item-descripcion" value="${escapeHTML(item.descripcion)}" autocomplete="off"><div class="autocomplete-suggestions item-descripcion-suggestions"></div></div>
+          <div class="form-group"><input type="number" step="0.01" class="form-control item-precio" value="${item.precio_unitario}"></div>
+          <div class="form-group"><input type="text" class="form-control item-total" readonly value="${(item.total || 0).toFixed(2)}"></div>
+          <button type="button" class="btn-delete-item" title="Eliminar línea">&times;</button>
+        `;
+        itemsContainer.appendChild(div);
+        attachItemRowEvents(div);
+      });
+      if ((encontrada.items || []).length === 0) addItemRow();
+
+      reindexItemRows();
+      recalcTotals();
+      updatePreviewNumeroFactura();
+
+      showToast(`Factura FAC-${numStr} cargada en el formulario`, "success");
+      switchTab('nueva-factura');
+    };
+
+    window.descargarFacturaPDF = function (numStrEncoded) {
+      const numStr = decodeURIComponent(numStrEncoded);
+      const encontrada = cacheFacturas.find(f => String(f.numero_factura).trim() === numStr);
+      if (encontrada) generarFacturaPDF(encontrada);
+    };
+
+    window.printInvoice = function () {
+      const items = collectItemsFromForm();
+      if (!clienteInput.value.trim() || items.length === 0) {
+        showToast("Complete al menos el cliente y una línea de detalle antes de generar el PDF.", "warning");
+        return;
+      }
+      generarFacturaPDF(buildFacturaObject());
+    };
+
+    // ---------- Generación de PDF (media carta 8.5 x 5.5 in — solo texto, sin diseño gráfico) ----------
+    window.generarFacturaPDF = function (fac) {
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        showToast("La librería de generación PDF no está lista.", "error");
+        return;
+      }
+
+      try {
+        const { jsPDF } = window.jspdf;
+        // Página en mm (8.5 x 5.5 in = 215.9 x 139.7 mm) para posicionar en milímetros exactos.
+        const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [215.9, 139.7] });
+
+        const parts = (fac.fecha || '').split('-');
+        const anio = parts.length === 3 ? parts[0] : '';
+        const mes = parts.length === 3 ? parts[1] : '';
+        const dia = parts.length === 3 ? parts[2] : '';
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+
+        // Cliente (con sucursal a continuación del nombre, si existe)
+        let clienteTexto = fac.cliente_nombre || '';
+        if (fac.sucursal_nombre) {
+          clienteTexto += ` - ${fac.sucursal_nombre}`;
+        }
+        doc.text(clienteTexto, 32, 29);
+
+        // RUC
+        doc.text(fac.ruc || '', 32, 37);
+
+        // Dirección
+        doc.text(fac.direccion || '', 40, 42);
+
+        // Fecha: día, mes y año como números independientes
+        doc.text(dia, 165, 43);
+        doc.text(mes, 182, 43);
+        doc.text(anio, 197, 43);
+
+        // Detalle de items: primera fila a 55mm, cada fila siguiente +7mm
+        (fac.items || []).forEach((item, idx) => {
+          const yRow = 55 + (idx * 7);
+          doc.text(String(item.cantidad), 17, yRow);
+          doc.text(item.descripcion || '', 35, yRow);
+          doc.text(`C$ ${(item.precio_unitario || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 163, yRow);
+          doc.text(`C$ ${(item.total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 188, yRow);
+        });
+
+        // Total general
+        doc.text(`C$ ${(fac.total_general || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 190, 112);
+
+        const clienteNombrePDF = (fac.cliente_nombre || 'Cliente').replace(/[/\\?%*:|"<>]/g, '-').trim();
+        const numeroArchivo = String(fac.numero_factura || '').replace(/[/\\?%*:|"<>]/g, '-').trim();
+        doc.save(`FAC ${clienteNombrePDF}${numeroArchivo ? ' - ' + numeroArchivo : ''}.pdf`);
+        showToast("PDF generado exitosamente", "success");
+      } catch (err) {
+        console.error("Error al generar PDF de factura:", err);
+        showToast("Falla al generar PDF: " + err.message, "error");
+      }
+    };
+
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>'"]/g,
+        tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+      );
+    }
+  </script>
+
+  <!-- Script Auxiliar (Navegación, Tema, Notificaciones) -->
+  <script>
+    window.switchTab = function (tabName) {
+      document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+      document.querySelectorAll(".mobile-menu-btn").forEach(btn => btn.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active"));
+
+      const pcBtn = Array.from(document.querySelectorAll(".tab-btn")).find(btn =>
+        btn.getAttribute("onclick").includes(`'${tabName}'`)
+      );
+      if (pcBtn) pcBtn.classList.add("active");
+
+      const mobBtn = Array.from(document.querySelectorAll(".mobile-menu-btn")).find(btn =>
+        btn.getAttribute("onclick").includes(`'${tabName}'`)
+      );
+      if (mobBtn) mobBtn.classList.add("active");
+
+      const activeContent = document.getElementById(`tab-${tabName}`);
+      if (activeContent) activeContent.classList.add("active");
+    };
+
+    window.toggleMobileMenu = function () {
+      const drawer = document.getElementById("mobile-menu-drawer");
+      if (drawer) drawer.classList.toggle("active");
+    };
+
+    window.handleMobileNav = function (tabName) {
+      switchTab(tabName);
+      toggleMobileMenu();
+    };
+
+    window.toggleTheme = function () {
+      const isDark = document.body.classList.toggle("dark-theme");
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+      showToast(isDark ? "Modo oscuro activado" : "Modo claro activado", "info");
+    };
+
+    window.showToast = function (message, type = "success") {
+      const container = document.getElementById("toast-container");
+      if (!container) return;
+
+      const toast = document.createElement("div");
+      toast.className = `toast ${type}`;
+
+      let iconSvg = "";
+      if (type === "success") {
+        iconSvg = `<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+      } else if (type === "warning" || type === "info") {
+        iconSvg = `<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+      } else if (type === "error") {
+        iconSvg = `<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+      }
+
+      const title = type.charAt(0).toUpperCase() + type.slice(1);
+
+      toast.innerHTML = `
+        <div class="toast-icon">${iconSvg}</div>
+        <div class="toast-content">
+          <div class="toast-title">${title}</div>
+          <div class="toast-message">${message}</div>
+        </div>
+      `;
+
+      container.appendChild(toast);
+
+      setTimeout(() => toast.classList.add("show"), 50);
+      setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => toast.remove(), 400);
+      }, 4000);
+    };
+  </script>
+
+</html>
