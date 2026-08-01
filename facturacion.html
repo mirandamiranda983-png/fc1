@@ -2408,26 +2408,27 @@
         if (fac.sucursal_nombre) {
           clienteTexto += ` - ${fac.sucursal_nombre}`;
         }
-        doc.text(clienteTexto, 32, 29);
+        doc.text(clienteTexto, 36, 33);
 
         // RUC
-        doc.text(fac.ruc || '', 32, 37);
+        doc.text(fac.ruc || '', 32, 41);
 
         // Dirección
-        doc.text(fac.direccion || '', 40, 42);
+        doc.text(fac.direccion || '', 40, 46);
 
         // Fecha: día, mes y año como números independientes
-        doc.text(dia, 165, 43);
-        doc.text(mes, 182, 43);
-        doc.text(anio, 197, 43);
+        doc.text(dia, 169, 40);
+        doc.text(mes, 186, 40);
+        doc.text(anio, 201, 40);
 
-        // Detalle de items: primera fila a 55mm, cada fila siguiente +7mm
+        // Detalle de items: primera fila (Cant./Desc. a 59mm, P.Unit./Total a 55mm), cada fila siguiente +7mm
         (fac.items || []).forEach((item, idx) => {
-          const yRow = 55 + (idx * 7);
-          doc.text(String(item.cantidad), 17, yRow);
-          doc.text(item.descripcion || '', 35, yRow);
-          doc.text(`C$ ${(item.precio_unitario || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 163, yRow);
-          doc.text(`C$ ${(item.total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 188, yRow);
+          const yCantDesc = 59 + (idx * 7);
+          const yPrecioTotal = 55 + (idx * 7);
+          doc.text(String(item.cantidad), 20, yCantDesc);
+          doc.text(item.descripcion || '', 35, yCantDesc);
+          doc.text(`C$ ${(item.precio_unitario || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 163, yPrecioTotal);
+          doc.text(`C$ ${(item.total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 188, yPrecioTotal);
         });
 
         // Total general
