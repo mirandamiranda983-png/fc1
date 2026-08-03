@@ -702,6 +702,107 @@
       color: var(--color-primary);
     }
 
+    .badge-success {
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--color-success);
+    }
+
+    .badge-danger {
+      background: rgba(239, 68, 68, 0.12);
+      color: var(--color-danger);
+    }
+
+    .btn-anular {
+      border-color: rgba(239, 68, 68, 0.3);
+      color: var(--color-danger);
+    }
+
+    .btn-anular:hover {
+      background: var(--color-danger);
+      color: white;
+      border-color: transparent;
+    }
+
+    /* Modal: Anular Factura */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(4px);
+      z-index: 1200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-premium);
+      padding: 28px;
+      max-width: 460px;
+      width: 100%;
+    }
+
+    .modal-title {
+      font-family: var(--font-title);
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+      color: var(--text-primary);
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 80px;
+      font-family: var(--font-body);
+    }
+
+    .reporte-resumen-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .reporte-resumen-card {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+
+    .reporte-resumen-label {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+
+    .reporte-resumen-count {
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .reporte-resumen-total {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    @media (max-width: 640px) {
+      .reporte-resumen-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .empty-state {
       text-align: center;
       padding: 40px;
@@ -1175,6 +1276,8 @@
   <!-- PDF Generation Dependencies -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+  <!-- Excel Export Dependency (Reporte de Facturación) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 
 <body>
@@ -1219,6 +1322,13 @@
               d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
           Historial
+        </button>
+        <button class="tab-btn" onclick="switchTab('reportes')">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          Reportes
         </button>
       </nav>
 
@@ -1269,6 +1379,13 @@
             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
         </svg>
         Historial de Facturas
+      </button>
+      <button class="mobile-menu-btn" onclick="handleMobileNav('reportes')">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        Reportes
       </button>
     </div>
   </header>
@@ -1552,6 +1669,12 @@
           <span class="badge badge-primary" id="facturas-count">0 Facturas</span>
         </div>
 
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="historial-buscador">Buscar por número de factura o cliente</label>
+          <input type="text" id="historial-buscador" class="form-control" placeholder="Ej: 001234 o Juan Pérez"
+            oninput="filtrarHistorial()">
+        </div>
+
         <div class="table-responsive">
           <table>
             <thead>
@@ -1560,15 +1683,101 @@
                 <th>Cliente</th>
                 <th class="nowrap-column">Fecha</th>
                 <th class="nowrap-column">Total</th>
+                <th class="nowrap-column">Estado</th>
                 <th class="nowrap-column">Acciones</th>
               </tr>
             </thead>
             <tbody id="facturas-table-body">
               <tr>
-                <td colspan="5" class="empty-state">Conectando a base de datos Firebase...</td>
+                <td colspan="6" class="empty-state">Conectando a base de datos Firebase...</td>
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTENIDO: REPORTES -->
+    <section id="tab-reportes" class="tab-content">
+      <div class="card">
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 12px;">
+          <h2 class="card-title" style="border: none; margin: 0; padding: 0;">
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <span>Reporte de Facturación</span>
+          </h2>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="reporte-fecha-desde">Periodo Desde</label>
+            <input type="date" id="reporte-fecha-desde" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="reporte-fecha-hasta">Periodo Hasta</label>
+            <input type="date" id="reporte-fecha-hasta" class="form-control">
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="reporte-cliente">Cliente</label>
+            <select id="reporte-cliente" class="form-control">
+              <option value="">Todos los clientes</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="reporte-estado">Estado</label>
+            <select id="reporte-estado" class="form-control">
+              <option value="">Todas (Activas y Anuladas)</option>
+              <option value="activa">Solo Activas</option>
+              <option value="anulada">Solo Anuladas</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="btn-group" style="grid-template-columns: 1fr; margin-bottom: 24px;">
+          <button type="button" class="btn btn-primary" onclick="generarReporte()">Generar Reporte</button>
+        </div>
+
+        <div class="reporte-resumen-grid" id="reporte-resumen" style="display: none;">
+          <div class="reporte-resumen-card">
+            <div class="reporte-resumen-label">Facturas Activas</div>
+            <div class="reporte-resumen-count" style="color: var(--color-success);" id="resumen-activas-count">0</div>
+            <div class="reporte-resumen-total">Total: <span id="resumen-activas-total">C$ 0.00</span></div>
+          </div>
+          <div class="reporte-resumen-card">
+            <div class="reporte-resumen-label">Facturas Anuladas</div>
+            <div class="reporte-resumen-count" style="color: var(--color-danger);" id="resumen-anuladas-count">0</div>
+            <div class="reporte-resumen-total">Total: <span id="resumen-anuladas-total">C$ 0.00</span></div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th class="nowrap-column">Número</th>
+                <th>Cliente</th>
+                <th class="nowrap-column">Fecha</th>
+                <th class="nowrap-column">Estado</th>
+                <th class="nowrap-column">Total</th>
+              </tr>
+            </thead>
+            <tbody id="reporte-table-body">
+              <tr>
+                <td colspan="5" class="empty-state">Seleccione los filtros y presione "Generar Reporte".</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="btn-group" id="reporte-export-buttons" style="display: none; margin-top: 20px;">
+          <button type="button" class="btn btn-secondary" onclick="exportarReporteExcel()">Descargar Excel</button>
+          <button type="button" class="btn btn-secondary" onclick="exportarReportePDF()">Descargar PDF</button>
         </div>
       </div>
     </section>
@@ -1580,6 +1789,31 @@
     style="margin-top: auto; border-top: 1px solid var(--border-color); background: var(--bg-card); padding: 16px 24px; text-align: center; font-size: 0.8rem; color: var(--text-secondary); transition: var(--transition-smooth);">
     <p>&copy; FAST CONTROL 2026 - Módulo de Facturación</p>
   </footer>
+
+  <!-- Modal: Anular Factura -->
+  <div class="modal-overlay" id="modal-anular-overlay">
+    <div class="modal-card">
+      <h3 class="modal-title">Anular Factura <span id="anular-factura-numero"></span></h3>
+      <div class="form-group">
+        <label for="anular-motivo">Motivo de la anulación <span style="color: var(--color-danger);">*</span></label>
+        <textarea id="anular-motivo" class="form-control" rows="3"
+          placeholder="Explique el motivo por el cual se anula esta factura..."></textarea>
+      </div>
+      <div class="form-group">
+        <label for="anular-reemplazo">Número de factura que la reemplaza (si aplica)</label>
+        <input type="text" id="anular-reemplazo" class="form-control" placeholder="Ej: 001234">
+      </div>
+      <div class="form-group">
+        <label for="anular-password">Contraseña de autorización <span style="color: var(--color-danger);">*</span></label>
+        <input type="password" id="anular-password" class="form-control" placeholder="Ingrese la contraseña" autocomplete="off">
+      </div>
+      <div class="btn-group">
+        <button type="button" class="btn btn-secondary" onclick="cerrarModalAnular()">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="btn-confirmar-anular"
+          onclick="confirmarAnulacion()">Confirmar Anulación</button>
+      </div>
+    </div>
+  </div>
 </body>
   <!-- Firebase SDK Modules (v10.8.0) -->
   <script type="module">
@@ -1608,6 +1842,8 @@
     let cacheFacturas = [];
     let cacheServicios = [];
     let loadedServicios = false;
+    let facturaAAnular = null;
+    let reporteDataActual = [];
 
     // Componentes del DOM
     const numFacturaInput = document.getElementById('numero_factura');
@@ -1690,8 +1926,12 @@
       if (sucursales.length > 0) {
         const idx = sucursalSelect.value;
         const nombre = (idx !== '' && sucursales[idx]) ? resolveSucursalNombre(sucursales[idx], parseInt(idx)) : 'Principal';
-        span.innerText = nombre;
-        row.style.display = 'block';
+        if (nombre.trim().toLowerCase() === 'principal') {
+          row.style.display = 'none';
+        } else {
+          span.innerText = nombre;
+          row.style.display = 'block';
+        }
       } else {
         row.style.display = 'none';
       }
@@ -2278,20 +2518,47 @@
     function updateFacturasTabla(facturas) {
       const tableBody = document.getElementById('facturas-table-body');
       const countBadge = document.getElementById('facturas-count');
-      countBadge.innerText = `${facturas.length} Facturas`;
+      const buscador = document.getElementById('historial-buscador');
+      const termino = buscador ? buscador.value.trim().toLowerCase() : '';
+
+      let facturasFiltradas = facturas;
+      if (termino) {
+        facturasFiltradas = facturas.filter(f => {
+          const numTexto = String(f.numero_factura || '').toLowerCase();
+          const clienteTexto = (f.cliente_nombre || '').toLowerCase();
+          return numTexto.includes(termino) || clienteTexto.includes(termino);
+        });
+      }
+
+      countBadge.innerText = `${facturasFiltradas.length} Facturas`;
 
       tableBody.innerHTML = '';
 
-      if (facturas.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="5" class="empty-state">No se encontraron facturas guardadas.</td></tr>`;
+      if (facturasFiltradas.length === 0) {
+        const mensaje = termino ? 'No se encontraron facturas que coincidan con la búsqueda.' : 'No se encontraron facturas guardadas.';
+        tableBody.innerHTML = `<tr><td colspan="6" class="empty-state">${mensaje}</td></tr>`;
         return;
       }
 
-      const sorted = [...facturas].sort((a, b) => new Date(b.fecha_creacion || 0) - new Date(a.fecha_creacion || 0));
+      const sorted = [...facturasFiltradas].sort((a, b) => new Date(b.fecha_creacion || 0) - new Date(a.fecha_creacion || 0));
 
       sorted.forEach(fac => {
         const numTexto = String(fac.numero_factura || '').trim();
         const totalFormat = `C$ ${(fac.total_general || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+        const estaAnulada = fac.estado === 'anulada';
+
+        let estadoHTML;
+        if (estaAnulada) {
+          let tituloAnulacion = fac.motivo_anulacion ? `Motivo: ${fac.motivo_anulacion}` : '';
+          if (fac.factura_reemplazo) tituloAnulacion += `${tituloAnulacion ? ' | ' : ''}Reemplazada por FAC-${fac.factura_reemplazo}`;
+          estadoHTML = `<span class="badge badge-danger" title="${escapeHTML(tituloAnulacion)}">Anulada</span>`;
+        } else {
+          estadoHTML = `<span class="badge badge-success">Activa</span>`;
+        }
+
+        const btnAnular = estaAnulada
+          ? ''
+          : `<button onclick="abrirModalAnular('${encodeURIComponent(numTexto)}')" class="btn-action-table btn-anular" title="Anular Factura" style="margin-left: 6px;">Anular</button>`;
 
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -2299,14 +2566,245 @@
           <td data-label="Cliente" style="font-weight: 500;">${escapeHTML(fac.cliente_nombre)}</td>
           <td data-label="Fecha" class="nowrap-column" style="font-family: monospace; font-size: 0.85rem;">${fac.fecha}</td>
           <td data-label="Total" class="nowrap-column" style="font-weight: 700; color: var(--color-primary);">${totalFormat}</td>
+          <td data-label="Estado" class="nowrap-column">${estadoHTML}</td>
           <td data-label="Acciones" class="nowrap-column">
             <button onclick="verFactura('${encodeURIComponent(numTexto)}')" class="btn-action-table" title="Ver / Cargar">Ver</button>
             <button onclick="descargarFacturaPDF('${encodeURIComponent(numTexto)}')" class="btn-action-table" title="Descargar PDF" style="margin-left: 6px;">PDF</button>
+            ${btnAnular}
           </td>
         `;
         tableBody.appendChild(row);
       });
     }
+
+    window.filtrarHistorial = function () {
+      updateFacturasTabla(cacheFacturas);
+    };
+
+    // ---------- Anulación de Facturas ----------
+    window.abrirModalAnular = function (numStrEncoded) {
+      const numStr = decodeURIComponent(numStrEncoded);
+      const encontrada = cacheFacturas.find(f => String(f.numero_factura).trim() === numStr);
+      if (!encontrada) return;
+
+      facturaAAnular = encontrada;
+      document.getElementById('anular-factura-numero').innerText = `FAC-${numStr}`;
+      document.getElementById('anular-motivo').value = '';
+      document.getElementById('anular-reemplazo').value = '';
+      document.getElementById('anular-password').value = '';
+      document.getElementById('modal-anular-overlay').classList.add('active');
+    };
+
+    window.cerrarModalAnular = function () {
+      document.getElementById('modal-anular-overlay').classList.remove('active');
+      facturaAAnular = null;
+    };
+
+    window.confirmarAnulacion = async function () {
+      if (!facturaAAnular) return;
+
+      const motivo = document.getElementById('anular-motivo').value.trim();
+      const reemplazo = document.getElementById('anular-reemplazo').value.trim();
+      const password = document.getElementById('anular-password').value;
+
+      if (!motivo) {
+        showToast("Debe especificar el motivo de la anulación.", "error");
+        return;
+      }
+
+      if (password !== "FC@2022") {
+        showToast("Contraseña de autorización incorrecta.", "error");
+        return;
+      }
+
+      const btn = document.getElementById('btn-confirmar-anular');
+      if (btn) btn.disabled = true;
+
+      try {
+        const datosAnulacion = {
+          estado: 'anulada',
+          motivo_anulacion: motivo,
+          factura_reemplazo: reemplazo || null,
+          fecha_anulacion: new Date().toISOString()
+        };
+
+        if (isConnected && facturaAAnular.id) {
+          await updateDoc(doc(db, "facturas", facturaAAnular.id), datosAnulacion);
+        } else {
+          const idx = cacheFacturas.findIndex(f => String(f.numero_factura).trim() === String(facturaAAnular.numero_factura).trim());
+          if (idx !== -1) {
+            cacheFacturas[idx] = { ...cacheFacturas[idx], ...datosAnulacion };
+            updateFacturasTabla(cacheFacturas);
+          }
+        }
+
+        showToast(`Factura FAC-${facturaAAnular.numero_factura} anulada correctamente`, "success");
+        cerrarModalAnular();
+      } catch (err) {
+        console.error("Error al anular factura:", err);
+        showToast("Error al anular la factura: " + err.message, "error");
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    };
+
+    // ---------- Reporte de Facturación ----------
+    function populateReporteClienteFilter() {
+      const select = document.getElementById('reporte-cliente');
+      if (!select) return;
+      const valorActual = select.value;
+      const nombres = Array.from(new Set(cacheFacturas.map(f => (f.cliente_nombre || '').trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+      select.innerHTML = '<option value="">Todos los clientes</option>' +
+        nombres.map(n => `<option value="${escapeHTML(n)}">${escapeHTML(n)}</option>`).join('');
+      select.value = valorActual;
+    }
+
+    window.generarReporte = function () {
+      populateReporteClienteFilter();
+
+      const desde = document.getElementById('reporte-fecha-desde').value;
+      const hasta = document.getElementById('reporte-fecha-hasta').value;
+      const clienteFiltro = document.getElementById('reporte-cliente').value;
+      const estadoFiltro = document.getElementById('reporte-estado').value;
+
+      let datos = [...cacheFacturas];
+      if (desde) datos = datos.filter(f => f.fecha && f.fecha >= desde);
+      if (hasta) datos = datos.filter(f => f.fecha && f.fecha <= hasta);
+      if (clienteFiltro) datos = datos.filter(f => (f.cliente_nombre || '').trim() === clienteFiltro);
+      if (estadoFiltro) datos = datos.filter(f => (f.estado === 'anulada' ? 'anulada' : 'activa') === estadoFiltro);
+
+      datos.sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
+      reporteDataActual = datos;
+
+      const tbody = document.getElementById('reporte-table-body');
+      tbody.innerHTML = '';
+
+      if (datos.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No se encontraron facturas con los filtros seleccionados.</td></tr>`;
+      } else {
+        datos.forEach(f => {
+          const esAnulada = f.estado === 'anulada';
+          const estadoTxt = esAnulada ? 'Anulada' : 'Activa';
+          const badgeClase = esAnulada ? 'badge-danger' : 'badge-success';
+          const totalFmt = `C$ ${(f.total_general || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td class="nowrap-column" style="font-weight: 700; color: var(--color-primary);">FAC-${escapeHTML(String(f.numero_factura || ''))}</td>
+            <td>${escapeHTML(f.cliente_nombre || '')}</td>
+            <td class="nowrap-column" style="font-family: monospace; font-size: 0.85rem;">${f.fecha || ''}</td>
+            <td class="nowrap-column"><span class="badge ${badgeClase}">${estadoTxt}</span></td>
+            <td class="nowrap-column" style="font-weight: 700;">${totalFmt}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      }
+
+      const activas = datos.filter(f => f.estado !== 'anulada');
+      const anuladas = datos.filter(f => f.estado === 'anulada');
+      const totalActivas = activas.reduce((acc, f) => acc + (f.total_general || 0), 0);
+      const totalAnuladas = anuladas.reduce((acc, f) => acc + (f.total_general || 0), 0);
+
+      document.getElementById('resumen-activas-count').innerText = activas.length;
+      document.getElementById('resumen-activas-total').innerText = `C$ ${totalActivas.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+      document.getElementById('resumen-anuladas-count').innerText = anuladas.length;
+      document.getElementById('resumen-anuladas-total').innerText = `C$ ${totalAnuladas.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+      document.getElementById('reporte-resumen').style.display = 'grid';
+
+      document.getElementById('reporte-export-buttons').style.display = datos.length > 0 ? 'grid' : 'none';
+    };
+
+    window.exportarReporteExcel = function () {
+      if (!reporteDataActual.length) {
+        showToast("Genere el reporte antes de exportar.", "warning");
+        return;
+      }
+      if (!window.XLSX) {
+        showToast("La librería de exportación a Excel no está lista.", "error");
+        return;
+      }
+
+      try {
+        const filas = reporteDataActual.map(f => ({
+          "Número": `FAC-${f.numero_factura || ''}`,
+          "Cliente": f.cliente_nombre || '',
+          "Fecha": f.fecha || '',
+          "Estado": f.estado === 'anulada' ? 'Anulada' : 'Activa',
+          "Motivo Anulación": f.motivo_anulacion || '',
+          "Factura Reemplazo": f.factura_reemplazo ? `FAC-${f.factura_reemplazo}` : '',
+          "Método de Pago": f.metodo_pago || '',
+          "Total": f.total_general || 0
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(filas);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Reporte");
+        XLSX.writeFile(wb, `Reporte_Facturacion_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        showToast("Reporte Excel generado exitosamente", "success");
+      } catch (err) {
+        console.error("Error al exportar Excel:", err);
+        showToast("Falla al generar Excel: " + err.message, "error");
+      }
+    };
+
+    window.exportarReportePDF = function () {
+      if (!reporteDataActual.length) {
+        showToast("Genere el reporte antes de exportar.", "warning");
+        return;
+      }
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        showToast("La librería de generación PDF no está lista.", "error");
+        return;
+      }
+
+      try {
+        const { jsPDF } = window.jspdf;
+        const pdfDoc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'letter' });
+
+        pdfDoc.setFontSize(14);
+        pdfDoc.text("Reporte de Facturación", 14, 15);
+
+        pdfDoc.setFontSize(9);
+        const desde = document.getElementById('reporte-fecha-desde').value || 'Sin definir';
+        const hasta = document.getElementById('reporte-fecha-hasta').value || 'Sin definir';
+        const cliente = document.getElementById('reporte-cliente').value || 'Todos';
+        const estado = document.getElementById('reporte-estado').value;
+        const estadoTexto = estado === 'activa' ? 'Solo Activas' : (estado === 'anulada' ? 'Solo Anuladas' : 'Todas');
+        pdfDoc.text(`Periodo: ${desde} a ${hasta}    Cliente: ${cliente}    Estado: ${estadoTexto}`, 14, 21);
+
+        const filas = reporteDataActual.map(f => [
+          `FAC-${f.numero_factura || ''}`,
+          f.cliente_nombre || '',
+          f.fecha || '',
+          f.estado === 'anulada' ? 'Anulada' : 'Activa',
+          `C$ ${(f.total_general || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+        ]);
+
+        pdfDoc.autoTable({
+          head: [["Número", "Cliente", "Fecha", "Estado", "Total"]],
+          body: filas,
+          startY: 26,
+          styles: { fontSize: 8 },
+          headStyles: { fillColor: [220, 38, 38] }
+        });
+
+        const activas = reporteDataActual.filter(f => f.estado !== 'anulada');
+        const anuladas = reporteDataActual.filter(f => f.estado === 'anulada');
+        const totalActivas = activas.reduce((acc, f) => acc + (f.total_general || 0), 0);
+        const totalAnuladas = anuladas.reduce((acc, f) => acc + (f.total_general || 0), 0);
+
+        const finalY = pdfDoc.lastAutoTable.finalY + 8;
+        pdfDoc.setFontSize(9);
+        pdfDoc.text(`Facturas activas: ${activas.length}   Total activas: C$ ${totalActivas.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 14, finalY);
+        pdfDoc.text(`Facturas anuladas: ${anuladas.length}   Total anuladas: C$ ${totalAnuladas.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 14, finalY + 6);
+
+        pdfDoc.save(`Reporte_Facturacion_${new Date().toISOString().slice(0, 10)}.pdf`);
+        showToast("Reporte PDF generado exitosamente", "success");
+      } catch (err) {
+        console.error("Error al exportar PDF:", err);
+        showToast("Falla al generar PDF: " + err.message, "error");
+      }
+    };
 
     window.verFactura = function (numStrEncoded) {
       const numStr = decodeURIComponent(numStrEncoded);
@@ -2403,9 +2901,9 @@
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
 
-        // Cliente (con sucursal a continuación del nombre, si existe)
+        // Cliente (con sucursal a continuación del nombre, si existe y no es "Principal")
         let clienteTexto = fac.cliente_nombre || '';
-        if (fac.sucursal_nombre) {
+        if (fac.sucursal_nombre && fac.sucursal_nombre.trim().toLowerCase() !== 'principal') {
           clienteTexto += ` - ${fac.sucursal_nombre}`;
         }
         doc.text(clienteTexto, 36, 31);
