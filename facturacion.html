@@ -1814,6 +1814,132 @@
       </div>
     </div>
   </div>
+
+  <!-- ==================== CORRECTOR ORTOGRÁFICO IA ==================== -->
+<script>
+/**
+ * FAST CONTROL – Integración con corrector ortográfico IA
+ * Pegar este bloque justo antes de </body> en cada módulo.
+ * 
+ * Cómo funciona:
+ *  - Cuando el usuario hace clic en "Revisar ortografía" en el menú principal (index.html),
+ *    este script recopila el texto de todos los campos del módulo y lo envía para revisión.
+ *  - Los campos con errores se resaltan en rojo con un tooltip explicativo.
+ */
+
+(function() {
+
+    // Colores de resaltado
+    var COLOR_ERROR   = '#ff5252';
+    var COLOR_NORMAL  = '';  // o el borde original de tus inputs
+
+    // Guardar estilos originales para restaurarlos
+    var originalStyles = new WeakMap();
+
+    // ── Resaltar campos con errores ──────────────────
+    function highlightErrors(matches) {
+        // Primero restauramos todos
+        clearHighlights();
+
+        if (!matches || matches.length === 0) return;
+
+        // Obtenemos todos los inputs/textareas del módulo
+        var campos = document.querySelectorAll('input[type="text"], input:not([type]), textarea');
+
+        campos.forEach(function(campo) {
+            var val = campo.value || '';
+            if (!val.trim()) return;
+
+            // Verificamos si algún error corresponde a texto en este campo
+            var tieneError = matches.some(function(m) {
+                var palabra = m.context.text.substring(m.context.offset, m.context.offset + m.context.length);
+                return val.includes(palabra);
+            });
+
+            if (tieneError) {
+                // Guardar estilo original
+                if (!originalStyles.has(campo)) {
+                    originalStyles.set(campo, {
+                        border: campo.style.border,
+                        outline: campo.style.outline,
+                        boxShadow: campo.style.boxShadow
+                    });
+                }
+                // Aplicar resaltado de error
+                campo.style.border      = '2px solid ' + COLOR_ERROR;
+                campo.style.outline     = 'none';
+                campo.style.boxShadow   = '0 0 0 3px rgba(255,82,82,0.2)';
+                campo.title             = '⚠️ Posible error ortográfico detectado';
+            }
+        });
+    }
+
+    // ── Restaurar estilos originales ─────────────────
+    function clearHighlights() {
+        var campos = document.querySelectorAll('input[type="text"], input:not([type]), textarea');
+        campos.forEach(function(campo) {
+            if (originalStyles.has(campo)) {
+                var orig = originalStyles.get(campo);
+                campo.style.border    = orig.border;
+                campo.style.outline   = orig.outline;
+                campo.style.boxShadow = orig.boxShadow;
+                campo.title           = '';
+                originalStyles.delete(campo);
+            }
+        });
+    }
+
+    // ── Recopilar texto de los campos ────────────────
+    function getModuleText() {
+        var campos = document.querySelectorAll('input[type="text"], input:not([type]), textarea');
+        var textos = [];
+        campos.forEach(function(campo) {
+            if (campo.value && campo.value.trim()) {
+                textos.push(campo.value.trim());
+            }
+        });
+        return textos.join('. ');
+    }
+
+    // ── Escuchar mensajes del index.html padre ────────
+    window.addEventListener('message', function(event) {
+        // Solo aceptamos mensajes del padre (index.html)
+        if (!event.data || typeof event.data !== 'object') return;
+
+        // El padre pide el texto del módulo
+        if (event.data.type === 'SPELL_REQUEST_TEXT') {
+            var texto = getModuleText();
+            event.source.postMessage({
+                type: 'SPELL_TEXT',
+                text: texto
+            }, event.origin || '*');
+        }
+
+        // El padre envía los resultados del corrector
+        if (event.data.type === 'SPELL_RESULTS') {
+            if (event.data.matches && event.data.matches.length > 0) {
+                highlightErrors(event.data.matches);
+            } else {
+                clearHighlights();
+            }
+        }
+
+        // El padre pide limpiar resaltados
+        if (event.data.type === 'SPELL_CLEAR') {
+            clearHighlights();
+        }
+    });
+
+    // Limpiar resaltados cuando el usuario empiece a escribir
+    document.addEventListener('input', function(e) {
+        if (e.target.matches('input, textarea')) {
+            clearHighlights();
+        }
+    });
+
+})();
+</script>
+<!-- =============================================================== -->
 </body>
   <!-- Firebase SDK Modules (v10.8.0) -->
   <script type="module">
