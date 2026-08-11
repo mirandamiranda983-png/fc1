@@ -3047,8 +3047,8 @@
 
         // Detalle de items: primera fila (Cant./Desc. a 59mm, P.Unit./Total a 55mm), cada fila siguiente +7mm
         (fac.items || []).forEach((item, idx) => {
-          const yCantDesc = 56 + (idx * 10.7);
-          const yPrecioTotal = 55 + (idx * 10.7);
+          const yCantDesc = 58 + (idx * 6.7);
+          const yPrecioTotal = 57 + (idx * 6.7);
           doc.text(String(item.cantidad), 23, yCantDesc);
           doc.text(item.descripcion || '', 35, yCantDesc);
           doc.text(`C$ ${(item.precio_unitario || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 163, yPrecioTotal);
