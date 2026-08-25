@@ -2996,8 +2996,8 @@
         doc.line(15, 49, 200, 49);
 
         // Bloque Datos Cliente / Datos Comerciales
-        // Alto ampliado de 30 a 34.5 para dar cabida a la nueva fila "Sucursal"
-        const CLIENT_BOX_HEIGHT = 34.5;
+        // Alto ampliado para dar cabida a la nueva fila "Sucursal" y nombres largos
+        const CLIENT_BOX_HEIGHT = 45.0;
         doc.setDrawColor(...line);
         doc.setFillColor(248, 250, 252);
         doc.setLineWidth(0.3);
@@ -3031,7 +3031,7 @@
           doc.setFontSize(8.5);
 
           const value = leftValues[idx];
-          const maxLines = idx === 3 ? 2 : 1;
+          const maxLines = (idx === 0 || idx === 3) ? 2 : 1;
           const wrapped = doc.splitTextToSize(value, 58).slice(0, maxLines);
           wrapped.forEach((lineText, lineIdx) => {
             doc.text(lineText, 38, currentLeftY + lineIdx * 3.5);
