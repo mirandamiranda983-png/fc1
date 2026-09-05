@@ -1241,6 +1241,75 @@
       color: #dc2626;
     }
 
+    /* Interruptor: mostrar/ocultar sucursal en el PDF */
+    .sucursal-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .sucursal-toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .switch-toggle {
+      position: relative;
+      display: inline-block;
+      width: 34px;
+      height: 19px;
+      flex-shrink: 0;
+    }
+
+    .switch-toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .switch-slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: #cbd5e1;
+      border-radius: 999px;
+      transition: var(--transition-smooth);
+    }
+
+    .switch-slider::before {
+      content: "";
+      position: absolute;
+      height: 14px;
+      width: 14px;
+      left: 2.5px;
+      bottom: 2.5px;
+      background-color: #fff;
+      border-radius: 50%;
+      transition: var(--transition-smooth);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    }
+
+    .switch-toggle input:checked + .switch-slider {
+      background-color: var(--color-primary);
+    }
+
+    .switch-toggle input:checked + .switch-slider::before {
+      transform: translateX(15px);
+    }
+
+    .switch-toggle input:disabled + .switch-slider {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     @media (max-width: 640px) {
       .item-row {
         grid-template-columns: 1fr 1fr 30px;
@@ -1438,7 +1507,16 @@
 
             <!-- Sucursal (se muestra solo si el cliente tiene sucursales registradas) -->
             <div class="form-group" id="sucursal_wrapper" style="display: none;">
-              <label for="sucursal_select">Sucursal</label>
+              <div class="sucursal-toggle-row">
+                <label for="sucursal_select" style="margin-bottom: 0;">Sucursal</label>
+                <label class="sucursal-toggle-label" for="sucursal_toggle">
+                  Mostrar en PDF
+                  <span class="switch-toggle">
+                    <input type="checkbox" id="sucursal_toggle" checked>
+                    <span class="switch-slider"></span>
+                  </span>
+                </label>
+              </div>
               <select id="sucursal_select" class="form-control">
                 <option value="">Principal / Sin sucursal específica</option>
               </select>
@@ -1979,6 +2057,7 @@
     const direccionInput = document.getElementById('direccion');
     const sucursalWrapper = document.getElementById('sucursal_wrapper');
     const sucursalSelect = document.getElementById('sucursal_select');
+    const sucursalToggle = document.getElementById('sucursal_toggle');
     const fechaInput = document.getElementById('fecha');
     const metodoPagoSelect = document.getElementById('metodo_pago');
     const totalGeneralInput = document.getElementById('total_general');
@@ -2042,6 +2121,7 @@
         sucursalWrapper.style.display = 'none';
       }
       sucursalSelect.value = '';
+      sucursalToggle.checked = true;
       updatePreviewSucursal();
     }
 
@@ -2049,7 +2129,7 @@
       const row = document.getElementById('preview-sucursal-row');
       const span = document.getElementById('preview-sucursal-nombre');
       const sucursales = resolveClientSucursales(selectedClienteObj);
-      if (sucursales.length > 0) {
+      if (sucursales.length > 0 && sucursalToggle.checked) {
         const idx = sucursalSelect.value;
         const nombre = (idx !== '' && sucursales[idx]) ? resolveSucursalNombre(sucursales[idx], parseInt(idx)) : 'Principal';
         if (nombre.trim().toLowerCase() === 'principal') {
@@ -2081,6 +2161,7 @@
     }
 
     sucursalSelect.addEventListener('change', applySucursalSeleccionada);
+    sucursalToggle.addEventListener('change', updatePreviewSucursal);
 
     // ---------- Ciclo de vida ----------
     window.onload = async function () {
@@ -2263,6 +2344,7 @@
 
       sucursalSelect.innerHTML = '<option value="">Principal / Sin sucursal específica</option>';
       sucursalWrapper.style.display = 'none';
+      sucursalToggle.checked = true;
       document.getElementById('preview-sucursal-row').style.display = 'none';
     }
 
@@ -2536,7 +2618,8 @@
 
       let sucursalNombre = null;
       const sucursalesCliente = resolveClientSucursales(selectedClienteObj);
-      if (sucursalesCliente.length > 0) {
+      const mostrarSucursal = sucursalesCliente.length > 0 ? sucursalToggle.checked : true;
+      if (sucursalesCliente.length > 0 && mostrarSucursal) {
         const sucIdx = sucursalSelect.value;
         sucursalNombre = (sucIdx !== '' && sucursalesCliente[sucIdx])
           ? resolveSucursalNombre(sucursalesCliente[sucIdx], parseInt(sucIdx))
@@ -2548,6 +2631,7 @@
         cliente_id: selectedClienteObj ? selectedClienteObj.id : "cli-temp",
         cliente_nombre: clienteInput.value.trim(),
         sucursal_nombre: sucursalNombre,
+        mostrar_sucursal: mostrarSucursal,
         ruc: rucInput.value.trim(),
         direccion: direccionInput.value.trim(),
         fecha: fechaInput.value,
@@ -2955,6 +3039,7 @@
 
       populateSucursales(selectedClienteObj);
       const sucursalesEdit = resolveClientSucursales(selectedClienteObj);
+      sucursalToggle.checked = encontrada.mostrar_sucursal !== false;
       if (encontrada.sucursal_nombre && sucursalesEdit.length > 0) {
         const matchIdx = sucursalesEdit.findIndex((s, i) => resolveSucursalNombre(s, i) === encontrada.sucursal_nombre);
         sucursalSelect.value = matchIdx !== -1 ? matchIdx : '';
