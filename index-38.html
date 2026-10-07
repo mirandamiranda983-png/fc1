@@ -10,6 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
@@ -92,6 +93,22 @@
         .stock-low { background: #ffedd5; color: #ea580c; }
         .stock-ok { background: #f0fdf4; color: #16a34a; }
 
+        /* ===== RESPONSIVO ===== */
+        html, body { height: 100%; }
+        body { height: 100dvh; }
+        #mainApp { height: 100dvh; }
+        .module-card > header { height: auto !important; min-height: 5rem; flex-wrap: wrap; padding-top: .75rem; padding-bottom: .75rem; }
+        #mod-pos > header { flex-wrap: nowrap; }
+        [id$="Modal"]:not(#cierreModal):not(#accountModal) > .relative.z-10 { max-height: 92dvh; overflow-y: auto; }
+        #mod-expenses .overflow-hidden { overflow-x: auto; }
+        #mod-expenses table { min-width: 560px; }
+        @media (max-width: 640px) {
+            .module-card .p-8 { padding: 1rem !important; }
+            .module-card .px-8 { padding-left: 1rem !important; padding-right: 1rem !important; }
+            #categoryFilters { padding-top: .5rem; padding-bottom: .5rem; }
+            .module-card header h2 { font-size: 1rem; }
+            #toast-container { right: 10px; top: 10px; width: calc(100% - 20px); }
+        }
         #sidebar { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         @media (max-width: 1024px) {
             #cartSidebar { 
@@ -338,7 +355,7 @@
                         <button onclick="generateInventoryReport('stockFrom', 'stockTo')" class="bg-slate-900 text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 hover:bg-slate-800 transition-all shadow-lg">
                             <i class="fas fa-file-export"></i> PDF
                         </button>
-                        <div class="relative w-64 ml-2">
+                        <div class="relative w-full sm:w-64 sm:ml-2">
                             <i class="fas fa-filter absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                             <input type="text" id="stockFilter" placeholder="Filtrar por nombre o código..." class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
                         </div>
@@ -452,24 +469,44 @@
                     </div>
                 </header>
                 <div class="p-8 overflow-y-auto flex-1 bg-slate-50/50">
-                    <div id="salesSummary" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"></div>
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                        <div class="lg:col-span-2 bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm relative overflow-hidden group">
-                            <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-50/50 rounded-bl-full -mr-20 -mt-20 group-hover:scale-110 transition-transform duration-500 pointer-events-none"></div>
-                            <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 relative z-10 flex items-center gap-2"><i class="fas fa-chart-area text-indigo-500"></i> Tendencia de Ingresos</h3>
-                            <div class="h-72 relative z-10">
-                                <canvas id="salesChart"></canvas>
-                            </div>
+                    <div id="salesSummary" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"></div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                        <div class="lg:col-span-2 bg-white p-6 md:p-8 rounded-[2rem] border border-slate-100 shadow-sm">
+                            <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2"><i class="fas fa-chart-column text-indigo-500"></i> Ventas y gastos por día</h3>
+                            <div class="h-72 relative"><canvas id="salesChart"></canvas></div>
                         </div>
-                        <div class="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col">
+                        <div class="bg-white p-6 md:p-8 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col">
                             <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2"><i class="fas fa-star text-amber-400"></i> Top Productos</h3>
-                            <div id="topProductsList" class="flex-1 flex flex-col gap-4 overflow-y-auto pr-2"></div>
+                            <div id="topProductsList" class="flex-1 flex flex-col gap-4 overflow-y-auto pr-2 max-h-72"></div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-white p-6 md:p-8 rounded-[2rem] border border-slate-100 shadow-sm">
+                            <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2"><i class="fas fa-chart-pie text-emerald-500"></i> Métodos de pago</h3>
+                            <div class="h-64 relative"><canvas id="methodChart"></canvas><p id="methodEmpty" class="hidden absolute inset-0 items-center justify-center text-xs font-bold text-slate-400">Sin ventas en el periodo</p></div>
+                        </div>
+                        <div id="pnlCard" class="lg:col-span-2 bg-white p-6 md:p-8 rounded-[2rem] border border-slate-100 shadow-sm">
+                            <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2"><i class="fas fa-scale-balanced text-indigo-500"></i> Resultado del periodo</h3>
+                            <div id="pnlContent" class="space-y-3 text-sm"></div>
                         </div>
                     </div>
 
-                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-6">Historial de Transacciones</h3>
-                    <div id="salesList" class="space-y-4"></div>
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+                        <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest">Historial de movimientos</h3>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div id="historyFilters" class="flex gap-1 bg-white p-1 rounded-xl border border-slate-200"></div>
+                            <input type="text" id="historySearch" placeholder="Buscar ticket, cliente..." class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-indigo-500 w-48">
+                        </div>
+                    </div>
+                    <div class="data-table-container overflow-x-auto">
+                        <table class="data-table min-w-[820px]">
+                            <thead><tr><th>Fecha</th><th>Movimiento</th><th>Detalle</th><th>Usuario</th><th>Pago</th><th>Estado</th><th class="text-right">Monto</th><th class="text-right">Acciones</th></tr></thead>
+                            <tbody id="historyBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="historyEmpty" class="hidden text-center py-12 text-slate-400 text-xs font-bold uppercase">Sin movimientos en este periodo</div>
+                    <button id="historyMore" onclick="historyLimit+=25;renderHistory()" class="hidden mx-auto mt-4 px-6 py-3 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase text-slate-500 hover:bg-slate-50">Ver más</button>
                 </div>
             </section>
 
@@ -492,6 +529,10 @@
                         <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden relative">
                             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Gastos del Mes</p>
                             <p id="totalMonthlyExpenses" class="text-2xl font-black text-red-500 tracking-tighter">C$0.00</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden relative">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Gastos de Hoy</p>
+                            <p id="totalTodayExpenses" class="text-2xl font-black text-red-500 tracking-tighter">C$0.00</p>
                         </div>
                     </div>
                     <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
@@ -660,8 +701,9 @@
                 <div>
                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Nivel de Acceso</label>
                     <select id="uRole" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm appearance-none">
-                        <option value="vendedor">Vendedor / Operativo</option>
-                        <option value="admin">Administrador / Gerente</option>
+                        <option value="vendedor">Vendedor</option>
+                        <option value="responsable">Responsable</option>
+                        <option value="admin">Administrador</option>
                     </select>
                 </div>
                 <div>
@@ -693,14 +735,7 @@
                         </button>
                     </div>
                     <p id="customerDebtInfo" class="hidden text-[10px] font-bold text-red-500 mt-2 ml-1 uppercase tracking-wider"></p>
-                </div>
-
-                <div id="fiadoContainer" class="hidden mb-4 p-4 bg-amber-50 rounded-2xl border border-amber-100 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <i class="fas fa-hand-holding-dollar text-amber-600"></i>
-                        <span class="text-xs font-black text-amber-900 uppercase">¿Es Venta al Crédito (Fiado)?</span>
-                    </div>
-                    <input type="checkbox" id="isFiado" class="w-6 h-6 rounded-lg text-amber-600 focus:ring-amber-500 border-amber-300">
+                    <p id="creditWarn" class="hidden text-[10px] font-bold text-amber-600 mt-2 ml-1 uppercase tracking-wider">Seleccione un cliente para vender a crédito</p>
                 </div>
 
                 <div class="bg-slate-50 rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-100 mb-6 font-mono text-[10px] sm:text-[11px] text-slate-600 space-y-2">
@@ -757,6 +792,26 @@
                     </div>
                 </div>
 
+                <div id="cashSection" class="mb-6 p-4 bg-emerald-50 rounded-2xl border border-emerald-100 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label class="text-[10px] font-black text-emerald-800 uppercase tracking-widest">Efectivo recibido</label>
+                        <button type="button" onclick="setExactCash()" class="text-[10px] font-black text-emerald-700 bg-white border border-emerald-200 px-3 py-1 rounded-lg uppercase">Exacto</button>
+                    </div>
+                    <input type="number" id="cashReceived" step="0.01" min="0" inputmode="decimal" placeholder="0.00" oninput="updateCashChange()" class="w-full bg-white border border-emerald-200 rounded-2xl p-4 text-center font-black text-xl outline-none focus:ring-2 focus:ring-emerald-500">
+                    <div class="grid grid-cols-5 gap-2">
+                                                <button type="button" onclick="setCashAmount(50)" class="py-2 bg-white border border-emerald-200 rounded-xl text-[11px] font-black text-emerald-700">50</button>
+                        <button type="button" onclick="setCashAmount(100)" class="py-2 bg-white border border-emerald-200 rounded-xl text-[11px] font-black text-emerald-700">100</button>
+                        <button type="button" onclick="setCashAmount(200)" class="py-2 bg-white border border-emerald-200 rounded-xl text-[11px] font-black text-emerald-700">200</button>
+                        <button type="button" onclick="setCashAmount(500)" class="py-2 bg-white border border-emerald-200 rounded-xl text-[11px] font-black text-emerald-700">500</button>
+                        <button type="button" onclick="setCashAmount(1000)" class="py-2 bg-white border border-emerald-200 rounded-xl text-[11px] font-black text-emerald-700">1000</button>
+                    </div>
+                    <div class="flex justify-between items-end pt-2 border-t border-emerald-100">
+                        <span class="text-[10px] font-black text-emerald-800 uppercase">Vuelto</span>
+                        <span id="cashChange" class="text-2xl font-black text-slate-400">C$0.00</span>
+                    </div>
+                    <p id="cashWarn" class="hidden text-[11px] font-black text-red-500 uppercase text-center"></p>
+                </div>
+
                 <div class="space-y-3">
                     <button id="confirmCheckoutBtn" onclick="confirmCheckout()" class="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-3">
                         <i class="fas fa-check-circle"></i> Confirmar y Descargar
@@ -804,7 +859,7 @@
     </div>
 
     <!-- MODAL ABONOS -->
-    <div id="abonoModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4">
+    <div id="abonoModal" class="hidden fixed inset-0 z-[220] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onclick="closeAbonoModal()"></div>
         <div class="bg-white rounded-[2.5rem] w-full max-w-sm relative z-10 shadow-2xl overflow-hidden animate-slide-up">
             <div class="p-8 text-center">
@@ -848,11 +903,54 @@
         </div>
     </div>
 
+    <!-- VISTA PREVIA PDF -->
+    <div id="pdfPreviewModal" class="hidden fixed inset-0 z-[400] bg-slate-900/85 backdrop-blur-sm flex-col">
+        <div class="bg-white px-3 sm:px-6 py-3 flex flex-wrap items-center gap-2 justify-between border-b border-slate-200">
+            <h3 id="pdfPreviewTitle" class="font-black text-sm text-slate-900 uppercase truncate min-w-0 flex-1"></h3>
+            <div class="flex gap-2 shrink-0">
+                <button onclick="printPreviewPdf()" class="px-4 py-2.5 bg-slate-900 text-white rounded-xl text-[11px] font-black uppercase"><i class="fas fa-print mr-1"></i>Imprimir</button>
+                <button onclick="downloadPreviewPdf()" class="px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-[11px] font-black uppercase"><i class="fas fa-download mr-1"></i>Descargar</button>
+                <button onclick="closePdfPreview()" class="w-10 h-10 bg-slate-100 text-slate-500 rounded-xl"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+        <div id="pdfPreviewBody" class="flex-1 overflow-auto p-3 sm:p-6 flex flex-col items-center gap-4"></div>
+    </div>
+
+    <!-- MODAL ESTADO DE CUENTA -->
+    <div id="accountModal" class="hidden fixed inset-0 z-[200] overflow-y-auto bg-slate-900/70 backdrop-blur-md">
+        <div class="min-h-screen flex items-center justify-center p-4">
+            <div class="bg-white rounded-[1.5rem] md:rounded-[2.5rem] w-full max-w-3xl relative shadow-2xl overflow-hidden">
+                <div class="p-6 md:p-8 border-b border-slate-100 flex justify-between items-start">
+                    <div>
+                        <h3 id="accName" class="text-lg font-black text-slate-900 uppercase tracking-tight"></h3>
+                        <p id="accPhone" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1"></p>
+                    </div>
+                    <button onclick="closeAccountModal()" class="w-8 h-8 text-slate-400 hover:text-slate-900"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="p-6 md:p-8 space-y-6">
+                    <div id="accSummary" class="grid grid-cols-3 gap-3"></div>
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="downloadCustomerStatement()" class="flex-1 min-w-[200px] py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[11px]"><i class="fas fa-file-pdf mr-2"></i>Descargar recibo de cuenta</button>
+                        <button id="accAbonoBtn" onclick="showAbonoModal(currentAccountId)" class="flex-1 min-w-[160px] py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest text-[11px]"><i class="fas fa-hand-holding-dollar mr-2"></i>Registrar abono</button>
+                    </div>
+                    <div>
+                        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Compras a crédito</h4>
+                        <div id="accSales" class="space-y-2"></div>
+                    </div>
+                    <div>
+                        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Abonos realizados</h4>
+                        <div id="accPays" class="space-y-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL CLIENTE moved to end -->
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, doc, addDoc, onSnapshot, getDocs, setDoc, updateDoc, deleteDoc, query, where, writeBatch, limit, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, addDoc, onSnapshot, getDocs, setDoc, updateDoc, deleteDoc, query, where, writeBatch, limit, orderBy, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBWu-ewWbQb9z3f2gS9zQFrArZr-KUb-ok",
@@ -878,6 +976,76 @@
         let selectedCategory = 'TODO';
         let selectedPaymentMethod = 'EFECTIVO';
 
+        // ===== ROLES Y PERMISOS =====
+        const ROLE_LABELS = { admin: 'Administrador', responsable: 'Responsable', vendedor: 'Vendedor' };
+        const MODULE_ACCESS = {
+            pos: ['admin','responsable','vendedor'], stock: ['admin','responsable','vendedor'],
+            customers: ['admin','responsable','vendedor'], history: ['admin','responsable','vendedor'],
+            inventory: ['admin','responsable'], expenses: ['admin','responsable'],
+            users: ['admin'], logs: ['admin']
+        };
+        function normRole(r) {
+            r = (r || '').toString().toLowerCase().trim();
+            if (r === 'admin' || r === 'administrador') return 'admin';
+            if (r === 'responsable') return 'responsable';
+            return 'vendedor';
+        }
+        const hasAdminRole = () => !!currentUser && currentUser.role === 'admin';
+        const hasManagerRole = () => !!currentUser && (currentUser.role === 'admin' || currentUser.role === 'responsable');
+        const canAccess = (mod) => !!currentUser && (MODULE_ACCESS[mod] || []).includes(currentUser.role);
+
+        // ===== VISTA PREVIA DE PDF (tickets, recibos, estados de cuenta) =====
+        let pdfCurrent = null;
+        window.showPdfPreview = async (doc, filename, title) => {
+            if (pdfCurrent) URL.revokeObjectURL(pdfCurrent.url);
+            const blob = doc.output('blob');
+            pdfCurrent = { blob, filename, url: URL.createObjectURL(blob) };
+            const modal = document.getElementById('pdfPreviewModal'), body = document.getElementById('pdfPreviewBody');
+            document.getElementById('pdfPreviewTitle').innerText = title || filename;
+            body.innerHTML = '<div class="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin mt-20"></div>';
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            try {
+                if (!window.pdfjsLib) throw new Error('pdf.js no disponible');
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                const pdf = await pdfjsLib.getDocument({ data: await blob.arrayBuffer() }).promise;
+                body.innerHTML = '';
+                const avail = Math.max(240, body.clientWidth - 24), ratio = window.devicePixelRatio || 1;
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i), v1 = page.getViewport({ scale: 1 });
+                    const cssW = Math.min(avail, v1.width * 1.6), vp = page.getViewport({ scale: (cssW / v1.width) * ratio });
+                    const cv = document.createElement('canvas'); cv.width = vp.width; cv.height = vp.height;
+                    cv.style.cssText = `width:${Math.floor(cssW)}px;max-width:100%;height:auto;background:#fff;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.35)`;
+                    body.appendChild(cv);
+                    await page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+                }
+            } catch (e) {
+                console.error(e);
+                body.innerHTML = `<iframe src="${pdfCurrent.url}" class="w-full flex-1 min-h-[70vh] bg-white rounded-lg"></iframe>`;
+            }
+        };
+        window.closePdfPreview = () => { const m = document.getElementById('pdfPreviewModal'); m.classList.add('hidden'); m.classList.remove('flex'); document.getElementById('pdfPreviewBody').innerHTML = ''; };
+        window.downloadPreviewPdf = () => { if (!pdfCurrent) return; const a = document.createElement('a'); a.href = pdfCurrent.url; a.download = pdfCurrent.filename; document.body.appendChild(a); a.click(); a.remove(); };
+        window.printPreviewPdf = () => {
+            if (!pdfCurrent) return;
+            if (navigator.pdfViewerEnabled === false) return window.open(pdfCurrent.url, '_blank');   // móviles sin visor PDF integrado
+            const f = document.createElement('iframe');
+            f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0';
+            f.src = pdfCurrent.url;
+            f.onload = () => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { window.open(pdfCurrent.url, '_blank'); } };
+            document.body.appendChild(f); setTimeout(() => f.remove(), 120000);
+        };
+
+        // ===== HELPERS =====
+        const round2 = n => Math.round((Number(n) || 0) * 100) / 100;
+        const fmt = n => 'C$' + round2(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        const pad2 = n => String(n).padStart(2, '0');
+        // Fecha LOCAL (evita que ventas de la tarde/noche caigan en "mañana" por UTC)
+        function localDate(ts) { const d = ts instanceof Date ? ts : new Date(ts); return isNaN(d) ? '' : `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+        const todayStr = () => localDate(new Date());
+        const inRange = (ts, f, t) => { const d = localDate(ts); return d >= f && d <= t; };
+        const sumBy = (arr, fn) => round2(arr.reduce((a, x) => a + (Number(fn(x)) || 0), 0));
+
         // AUTH LOGIC
         window.handleLogin = async () => {
             const u = document.getElementById('loginUsername').value.trim().toUpperCase();
@@ -897,7 +1065,7 @@
                 } else {
                     const data = snap.docs[0].data();
                     if(data.password === p) {
-                        currentUser = { id: snap.docs[0].id, ...data };
+                        currentUser = { id: snap.docs[0].id, ...data, role: normRole(data.role) };
                         initApp();
                     } else {
                         window.showToast("Clave incorrecta", "error");
@@ -922,14 +1090,8 @@
                 app.style.display = 'flex';
                 
                 document.getElementById('userNameLabel').innerText = currentUser.username;
-                document.getElementById('roleBadge').innerText = currentUser.role;
-                
-                if(currentUser.role === 'admin') {
-                    document.getElementById('nav-inventory').classList.remove('hidden');
-                    document.getElementById('nav-expenses').classList.remove('hidden');
-                    document.getElementById('nav-users').classList.remove('hidden');
-                    document.getElementById('nav-logs').classList.remove('hidden');
-                }
+                document.getElementById('roleBadge').innerText = ROLE_LABELS[currentUser.role];
+                ['inventory','expenses','users','logs'].forEach(m => { if (canAccess(m)) document.getElementById('nav-' + m).classList.remove('hidden'); });
                 
                 setTimeout(() => {
                     app.classList.add('visible');
@@ -961,16 +1123,16 @@
                 renderPOS();
                 renderStock();
                 updateLowStockAlert();
-                if(currentUser && currentUser.role === 'admin') renderInventory();
+                if(canAccess('inventory')) renderInventory();
                 document.getElementById('loadingScreen').classList.add('hidden');
             });
 
             onSnapshot(saleColl, (snap) => {
                 sales = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-                updateReports();
+                updateReports(); refreshAccountModal();
             });
 
-            onSnapshot(userColl, (snap) => {
+            if (hasAdminRole()) onSnapshot(userColl, (snap) => {
                 users = snap.docs.map(d => ({id: d.id, ...d.data()}));
                 renderUsers();
             });
@@ -985,17 +1147,17 @@
                 customers = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => a.name.localeCompare(b.name));
                 renderCustomers();
                 updateCustomerSelect();
-                updateReports(); // Asegura que el Dashboard se actualice cuando cambian los saldos
+                updateReports(); refreshAccountModal();
             });
 
-            onSnapshot(query(logColl, orderBy("timestamp", "desc"), limit(100)), (snap) => {
+            if (hasAdminRole()) onSnapshot(query(logColl, orderBy("timestamp", "desc"), limit(100)), (snap) => {
                 logs = snap.docs.map(d => ({id: d.id, ...d.data()}));
                 renderLogs();
             });
 
             onSnapshot(payColl, (snap) => {
                 payments = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                updateReports();
+                updateReports(); refreshAccountModal();
             });
         }
 
@@ -1057,9 +1219,10 @@
         };
 
         window.logout = () => window.location.reload();
-        window.clearCart = () => { cart = []; updateCartUI(); };
+        window.clearCart = () => { cart = []; document.getElementById('cartDiscount').value = 0; updateCartUI(); };
 
         window.switchModule = (id) => {
+            if (!canAccess(id)) return window.showToast("No tienes permiso para este módulo", "error");
             document.querySelectorAll('.module-card').forEach(m => m.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('nav-active'));
             const targetMod = document.getElementById(`mod-${id}`);
@@ -1067,6 +1230,7 @@
             if(targetMod) targetMod.classList.add('active');
             if(targetNav) targetNav.classList.add('nav-active');
             closeAllPanels();
+            if (id === 'history') setTimeout(updateReports, 60);
         };
 
         let hasShownLowStockToast = false;
@@ -1151,7 +1315,7 @@
                 </div>`;
             }).join('');
 
-            const discount = parseFloat(document.getElementById('cartDiscount').value) || 0;
+            const discount = Math.min(Math.max(parseFloat(document.getElementById('cartDiscount').value) || 0, 0), subtotal);
             const total = subtotal - discount;
 
             subtotalEl.innerText = `C$${subtotal.toLocaleString()}`;
@@ -1174,81 +1338,80 @@
         };
 
         let currentPaymentMethod = 'EFECTIVO';
+
+        function getPreviewTotals() {
+            const subtotal = cart.reduce((a, b) => a + (b.qty * b.price), 0);
+            const discount = Math.min(Math.max(parseFloat(document.getElementById('prevDiscount').value) || 0, 0), subtotal);
+            return { subtotal, discount, total: round2(subtotal - discount) };
+        }
+        function nextTicketId() {
+            const max = sales.reduce((m, x) => Math.max(m, parseInt(String(x.ticketId || '').replace(/\D/g, '')) || 0), 0);
+            return `TK-${String(Math.max(max, sales.length) + 1).padStart(4, '0')}`;
+        }
+
+        window.refreshPaymentUI = () => {
+            const custId = document.getElementById('previewCustomer').value;
+            document.getElementById('cashSection').classList.toggle('hidden', currentPaymentMethod !== 'EFECTIVO');
+            document.getElementById('creditWarn').classList.toggle('hidden', !(currentPaymentMethod === 'CREDITO' && !custId));
+            updateCashChange();
+        };
+
         window.setPaymentMethod = (method) => {
             currentPaymentMethod = method;
             document.querySelectorAll('.pay-method-btn').forEach(btn => {
-                if(btn.dataset.method === method) {
-                    btn.classList.add('active', 'bg-indigo-600', 'text-white', 'shadow-lg');
-                    btn.classList.remove('bg-slate-50', 'text-slate-400');
-                } else {
-                    btn.classList.remove('active', 'bg-indigo-600', 'text-white', 'shadow-lg');
-                    btn.classList.add('bg-slate-50', 'text-slate-400');
-                }
+                const on = btn.dataset.method === method;
+                btn.classList.toggle('active', on);
+                btn.classList.toggle('bg-indigo-600', on); btn.classList.toggle('text-white', on); btn.classList.toggle('shadow-lg', on);
+                btn.classList.toggle('bg-slate-50', !on); btn.classList.toggle('text-slate-400', !on);
             });
+            refreshPaymentUI();
         };
 
-        // FLOW DE VENTA
+        window.updateCashChange = () => {
+            const { total } = getPreviewTotals();
+            const rec = parseFloat(document.getElementById('cashReceived').value);
+            const out = document.getElementById('cashChange'), warn = document.getElementById('cashWarn');
+            warn.classList.add('hidden');
+            if (isNaN(rec)) { out.innerText = fmt(0); out.className = 'text-2xl font-black text-slate-400'; return; }
+            if (round2(rec) >= total) { out.innerText = fmt(rec - total); out.className = 'text-2xl font-black text-emerald-600'; }
+            else { out.innerText = fmt(0); out.className = 'text-2xl font-black text-slate-400'; warn.innerText = `Faltan ${fmt(total - rec)}`; warn.classList.remove('hidden'); }
+        };
+        window.setCashAmount = (v) => { document.getElementById('cashReceived').value = v; updateCashChange(); };
+        window.setExactCash = () => setCashAmount(getPreviewTotals().total);
+
         window.processCheckout = () => {
             if (cart.length === 0) return window.showToast("Carrito vacío", "error");
-            
-            // Limpiar selección previa al abrir el modal
-            document.getElementById('previewCustomer').value = "";
-            window.setPaymentMethod('EFECTIVO');
-            document.getElementById('isFiado').checked = false;
-            document.getElementById('fiadoContainer').classList.add('hidden');
-
             const subtotal = cart.reduce((a, b) => a + b.subtotal, 0);
-            const discount = parseFloat(document.getElementById('cartDiscount').value) || 0;
-            const total = subtotal - discount;   
-            
-            document.getElementById('prevSubtotal').innerText = `C$ ${subtotal.toLocaleString()}`;
-            document.getElementById('previewTotal').innerText = `C$ ${total.toLocaleString()}`;
+            const discount = Math.min(Math.max(parseFloat(document.getElementById('cartDiscount').value) || 0, 0), subtotal);
             document.getElementById('prevDiscount').value = discount;
-            
-            // Generar número de ticket
-            const nextNum = sales.length + 1;
-            const ticketId = `TK-${nextNum.toString().padStart(4, '0')}`;
-            document.getElementById('previewTicketNum').innerText = `TICKET #${ticketId}`;
-            
+            document.getElementById('previewCustomer').value = "";
+            document.getElementById('cashReceived').value = "";
+            document.getElementById('prevSubtotal').innerText = fmt(subtotal);
+            document.getElementById('previewTotal').innerText = fmt(subtotal - discount);
+            document.getElementById('previewTicketNum').innerText = `TICKET #${nextTicketId()}`;
             document.getElementById('previewDate').innerText = new Date().toLocaleString();
             document.getElementById('previewSeller').innerText = `Vendedor: ${currentUser.username}`;
-            
             document.getElementById('previewItemsList').innerHTML = cart.map(item => `
                 <div class="flex justify-between items-center py-1">
-                    <span class="truncate pr-4">${item.qty}x ${item.name}</span>
-                    <span class="font-black">C$${item.subtotal.toLocaleString()}</span>
-                </div>
-            `).join('');
-            
+                    <span class="truncate pr-4">${item.qty}x ${esc(item.name)}</span>
+                    <span class="font-black">${fmt(item.subtotal)}</span>
+                </div>`).join('');
+            updateFiadoOption();
+            setPaymentMethod('EFECTIVO');
             document.getElementById('previewModal').classList.remove('hidden');
         };
 
         window.updateFiadoOption = () => {
-            const customerId = document.getElementById('previewCustomer').value;
-            const container = document.getElementById('fiadoContainer');
-            const debtInfo = document.getElementById('customerDebtInfo');
-            
-            if(customerId) {
-                container.classList.remove('hidden');
-                const customer = customers.find(c => c.id === customerId);
-                if (customer && customer.balance > 0) {
-                    debtInfo.innerText = `Saldo pendiente: C$ ${customer.balance.toLocaleString()}`;
-                    debtInfo.classList.remove('hidden');
-                } else {
-                    debtInfo.classList.add('hidden');
-                }
-            } else {
-                container.classList.add('hidden');
-                debtInfo.classList.add('hidden');
-                document.getElementById('isFiado').checked = false;
-            }
+            const customer = customers.find(c => c.id === document.getElementById('previewCustomer').value);
+            const info = document.getElementById('customerDebtInfo');
+            if (customer && customer.balance > 0) { info.innerText = `Saldo pendiente: ${fmt(customer.balance)}`; info.classList.remove('hidden'); }
+            else info.classList.add('hidden');
+            refreshPaymentUI();
         };
 
         window.updatePreviewTotal = () => {
-            const subtotal = cart.reduce((a, b) => a + b.subtotal, 0);
-            const discount = parseFloat(document.getElementById('prevDiscount').value) || 0;
-            const total = Math.max(0, subtotal - discount);
-            document.getElementById('previewTotal').innerText = `C$ ${total.toLocaleString()}`;
+            document.getElementById('previewTotal').innerText = fmt(getPreviewTotals().total);
+            updateCashChange();
         };
 
         window.confirmCheckout = async () => {
@@ -1256,67 +1419,47 @@
             const originalHtml = btn.innerHTML;
             btn.innerHTML = `<i class="fas fa-spinner animate-spin"></i> Procesando...`;
             btn.disabled = true;
-
             try {
-                const subtotal = cart.reduce((a, b) => a + (b.qty * b.price), 0);
-                const discount = parseFloat(document.getElementById('prevDiscount').value) || 0;
-                const total = subtotal - discount;
-                const profit = cart.reduce((acc, item) => acc + (item.qty * (item.price - (item.cost || 0))), 0) - discount;
-                
-                const custId = document.getElementById('previewCustomer').value;
-                const customer = customers.find(c => c.id === custId);
-                
-                if (currentPaymentMethod === 'CREDITO' && (!custId || custId === "")) {
-                    throw new Error("Debe seleccionar un cliente para ventas al crédito");
+                const { subtotal, discount, total } = getPreviewTotals();
+                const method = currentPaymentMethod;
+                const customer = customers.find(c => c.id === document.getElementById('previewCustomer').value);
+                if (method === 'CREDITO' && !customer) throw new Error("Debe seleccionar un cliente para ventas al crédito");
+                for (const item of cart) {
+                    const p = products.find(x => x.id === item.id);
+                    if (!p || p.stock < item.qty) throw new Error(`Stock insuficiente: ${item.name}`);
                 }
-
+                let cashReceived = null, change = null;
+                if (method === 'EFECTIVO') {
+                    const rec = parseFloat(document.getElementById('cashReceived').value);
+                    if (isNaN(rec)) throw new Error("Ingrese cuánto le dan en efectivo (o pulse EXACTO)");
+                    if (round2(rec) < total) throw new Error(`Efectivo insuficiente: faltan ${fmt(total - rec)}`);
+                    cashReceived = round2(rec); change = round2(rec - total);
+                }
+                const profit = round2(cart.reduce((acc, i) => acc + i.qty * (i.price - (i.cost || 0)), 0) - discount);
                 const saleData = {
                     ticketId: document.getElementById('previewTicketNum').innerText.replace('TICKET #', ''),
-                    items: cart,
-                    subtotal: subtotal,
-                    discount: discount,
-                    total: total,
-                    profit: profit,
-                    paymentMethod: currentPaymentMethod,
-                    status: currentPaymentMethod === 'CREDITO' ? 'PENDIENTE' : 'PAGADO',
-                    customerId: custId || 'anonimo',
+                    items: cart, subtotal, discount, total, profit,
+                    paymentMethod: method,
+                    status: method === 'CREDITO' ? 'PENDIENTE' : 'PAGADO',
+                    cashReceived, change,
+                    customerId: customer ? customer.id : 'anonimo',
                     customerName: customer ? customer.name : 'Publico General',
                     customerPrevBalance: customer ? (customer.balance || 0) : 0,
                     seller: currentUser.username,
                     timestamp: new Date().toISOString()
                 };
+                const batch = writeBatch(db);
+                batch.set(doc(saleColl), saleData);
+                cart.forEach(item => batch.update(doc(prodColl, item.id), { stock: increment(-item.qty) }));
+                if (method === 'CREDITO') batch.update(doc(custColl, customer.id), { balance: increment(total) });
+                await batch.commit();
 
-                await addDoc(saleColl, saleData);
-                
-                try {
-                    window.generateTicket(saleData);
-                } catch (ticketErr) {
-                    console.error("Error al generar ticket:", ticketErr);
-                    window.showToast("Venta guardada, pero hubo un error al generar el PDF", "warning");
-                }
-
-                if (currentPaymentMethod === 'CREDITO' && customer) {
-                    const custRef = doc(custColl, customer.id);
-                    const newBalance = (customer.balance || 0) + total;
-                    await updateDoc(custRef, { balance: newBalance });
-                    logAction("VENTA_CREDITO", `Venta al crédito por C$${total.toLocaleString()} a ${customer.name}`);
-                }
-
-                for (const item of cart) {
-                    const prodRef = doc(prodColl, item.id);
-                    const prod = products.find(p => p.id === item.id);
-                    if (prod) {
-                        await updateDoc(prodRef, { stock: prod.stock - item.qty });
-                    }
-                }
-                
-                window.showToast("Venta procesada con éxito");
+                try { window.generateTicket(saleData); } catch (err) { console.error(err); window.showToast("Venta guardada, pero falló el PDF del ticket", "error"); }
+                logAction(method === 'CREDITO' ? "VENTA_CREDITO" : "VENTA_PROCESADA", `${saleData.ticketId} · ${fmt(total)} · ${method} · ${saleData.customerName}`);
+                window.showToast(method === 'EFECTIVO' && change > 0 ? `Venta lista. Vuelto: ${fmt(change)}` : "Venta procesada con éxito");
                 window.clearCart();
                 window.closePreviewModal();
-                window.setPaymentMethod('EFECTIVO'); // Reestablecer a efectivo
-                document.getElementById('previewCustomer').value = ""; // Limpiar cliente
-                logAction("VENTA_PROCESADA", `Venta por C$${total} (${saleData.customerName})`);
-                
+                closeAllPanels();
             } catch (e) {
                 console.error(e);
                 window.showToast(e.message || "Error al procesar la venta", "error");
@@ -1331,7 +1474,7 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('l', 'mm', 'a4');
             
-            const isAdmin = currentUser && currentUser.role === 'admin';
+            const isAdmin = hasManagerRole();
             const f = fromId ? document.getElementById(fromId).value : '---';
             const t = toId ? document.getElementById(toId).value : '---';
 
@@ -1561,6 +1704,7 @@
 
         document.getElementById('productForm').onsubmit = async (e) => {
             e.preventDefault();
+            if (!hasManagerRole()) return;
             const id = document.getElementById('editId').value;
             const newStockInput = parseInt(document.getElementById('pStock').value) || 0;
             const data = { 
@@ -1606,6 +1750,7 @@
         };
 
         window.deleteProduct = async (id) => {
+            if (!hasManagerRole()) return;
             if(confirm("¿Seguro de eliminar este producto?")) {
                 const p = products.find(x => x.id === id);
                 await deleteDoc(doc(prodColl, id));
@@ -1622,7 +1767,7 @@
                         </div>
                         <div>
                             <p class="text-sm font-black uppercase text-slate-900">${u.username}</p>
-                            <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">${u.role}</span>
+                            <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">${ROLE_LABELS[normRole(u.role)]}</span>
                         </div>
                     </div>
                     <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1642,14 +1787,17 @@
             const u = users.find(x => x.id === id);
             document.getElementById('uId').value = u.id;
             document.getElementById('uUsername').value = u.username;
-            document.getElementById('uRole').value = u.role;
+            document.getElementById('uRole').value = normRole(u.role);
             document.getElementById('uPass').value = u.password;
             document.getElementById('userModal').classList.remove('hidden');
         };
 
         window.deleteUser = async (id) => {
+            if (!hasAdminRole()) return;
+            const u = users.find(x => x.id === id);
+            if (u.id === currentUser.id) return window.showToast("No puedes eliminar tu propio usuario", "error");
+            if (normRole(u.role) === 'admin' && users.filter(x => normRole(x.role) === 'admin').length <= 1) return window.showToast("Debe existir al menos un administrador", "error");
             if(confirm("¿Eliminar este usuario?")) {
-                const u = users.find(x => x.id === id);
                 await deleteDoc(doc(userColl, id));
                 logAction("ELIMINAR_USUARIO", `Se eliminó usuario: ${u.username}`);
             }
@@ -1663,6 +1811,10 @@
                 role: document.getElementById('uRole').value,
                 password: document.getElementById('uPass').value
             };
+            if (!hasAdminRole()) return window.showToast("Solo el administrador gestiona usuarios", "error");
+            const prev = users.find(x => x.id === id);
+            if (prev && normRole(prev.role) === 'admin' && data.role !== 'admin' && users.filter(x => normRole(x.role) === 'admin').length <= 1)
+                return window.showToast("Debe existir al menos un administrador", "error");
 
             try {
                 if(id) {
@@ -1678,247 +1830,228 @@
             }
         };
 
+        let historyFilter = 'TODO', historyLimit = 25;
+        let repData = { sales: [], pays: [], exps: [] };
+
         function updateReports() {
-            const f = document.getElementById('repFrom').value;
-            const t = document.getElementById('repTo').value;
-            const filtered = sales.filter(s => { 
-                const date = s.timestamp ? s.timestamp.split('T')[0] : ''; 
-                return date >= f && date <= t; 
-            });
-            const filteredExp = expenses.filter(e => { 
-                const date = e.timestamp ? e.timestamp.split('T')[0] : ''; 
-                return date >= f && date <= t; 
-            });
-            const filteredPays = payments.filter(p => { 
-                const date = p.timestamp ? p.timestamp.split('T')[0] : ''; 
-                return date >= f && date <= t; 
-            });
-            
-            const total = filtered.reduce((a, b) => a + (b.total || 0), 0);
-            const profit = filtered.reduce((a, b) => a + (b.profit || 0), 0);
-            const totalExp = filteredExp.reduce((a, b) => a + (b.amount || 0), 0);
-            const netProfit = profit - totalExp;
-            const totalDebt = customers.reduce((a, b) => a + (b.balance || 0), 0);
+            if (!currentUser) return;
+            const f = document.getElementById('repFrom').value, t = document.getElementById('repTo').value;
+            if (!f || !t) return;
+            const manager = hasManagerRole();
+            const fSales = sales.filter(x => inRange(x.timestamp, f, t));
+            const fPays = payments.filter(x => inRange(x.timestamp, f, t));
+            const fExps = manager ? expenses.filter(x => inRange(x.timestamp, f, t)) : [];
+            repData = { sales: fSales, pays: fPays, exps: fExps, f, t };
 
-            const count = filtered.length;
-            const avg = count > 0 ? total / count : 0;
-            
-            const isLoss = netProfit < 0;
-            const profitCardHtml = (currentUser && currentUser.role === 'admin') ? `
-                <div class="bg-gradient-to-br ${isLoss ? 'from-red-400 to-red-600 shadow-red-200' : 'from-emerald-400 to-emerald-600 shadow-emerald-200'} p-6 rounded-[2rem] shadow-xl hover:-translate-y-1 transition-transform overflow-hidden relative group">
-                    <div class="absolute -right-4 -bottom-4 ${isLoss ? 'text-red-300/30' : 'text-emerald-300/30'} group-hover:scale-125 transition-transform"><i class="fas fa-piggy-bank text-8xl"></i></div>
-                    <div class="relative z-10">
-                        <p class="text-[10px] font-black ${isLoss ? 'text-red-50' : 'text-emerald-50'} uppercase tracking-widest mb-1">Ganancia Neta (Utilidad - Gastos)</p>
-                        <p class="text-2xl font-black text-white tracking-tighter">C$${netProfit.toLocaleString()}</p>
-                    </div>
-                </div>` : '';
-            
-            document.getElementById('salesSummary').innerHTML = `
-                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all group overflow-hidden relative">
-                    <div class="absolute -right-6 -top-6 text-slate-50 opacity-50 group-hover:scale-110 transition-transform"><i class="fas fa-wallet text-9xl"></i></div>
-                    <div class="relative z-10">
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Ingresos Totales</p>
-                        <p class="text-2xl font-black text-slate-900 tracking-tighter">C$${total.toLocaleString()}</p>
-                    </div>
-                </div>
-                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all group overflow-hidden relative">
-                    <div class="absolute -right-6 -top-6 text-red-50 opacity-50 group-hover:scale-110 transition-transform"><i class="fas fa-hand-holding-dollar text-9xl"></i></div>
-                    <div class="relative z-10">
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Por Cobrar (Deuda Total)</p>
-                        <p class="text-2xl font-black text-red-600 tracking-tighter">C$${totalDebt.toLocaleString()}</p>
-                    </div>
-                </div>
-                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all group overflow-hidden relative">
-                    <div class="absolute -right-6 -top-6 text-slate-50 opacity-50 group-hover:scale-110 transition-transform"><i class="fas fa-shopping-bag text-9xl"></i></div>
-                    <div class="relative z-10">
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Ventas</p>
-                        <p class="text-2xl font-black text-slate-900 tracking-tighter">${count}</p>
-                    </div>
-                </div>
-                ${profitCardHtml}
-            `;
-            
-            const allTransactions = [
-                ...filtered.map(s => ({ ...s, type: 'SALE' })),
-                ...filteredPays.map(p => ({ ...p, type: 'PAYMENT' }))
-            ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            const total = sumBy(fSales, x => x.total);
+            const credit = sumBy(fSales.filter(x => x.paymentMethod === 'CREDITO'), x => x.total);
+            const abonos = sumBy(fPays, x => x.amount);
+            const cobrado = round2(total - credit + abonos);
+            const profit = sumBy(fSales, x => x.profit);
+            const totalExp = sumBy(fExps, x => x.amount);
+            const netProfit = round2(profit - totalExp);
+            const totalDebt = sumBy(customers, c => c.balance);
+            const count = fSales.length;
 
-            document.getElementById('salesList').innerHTML = allTransactions.slice(0, 20).map(t => {
-                if (t.type === 'SALE') {
-                    const sellerName = t.seller || 'Usuario';
-                    const sellerInitial = sellerName.charAt(0).toUpperCase();
-                    const itemsCount = t.items ? t.items.length : 0;
-                    const itemsListHtml = t.items ? t.items.map(i => `
-                        <div class="flex justify-between items-center text-[10px] text-slate-500 py-1.5 border-b border-slate-100 last:border-0">
-                            <div class="flex items-center gap-2">
-                                <span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-black">${i.qty}</span>
-                                <span class="truncate pr-2">${i.name || 'Desconocido'}</span>
-                            </div>
-                            <span class="font-bold">C$${(i.subtotal || 0).toLocaleString()}</span>
-                        </div>
-                    `).join('') : '';
+            const card = (label, value, sub, cls = 'text-slate-900') => `
+                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">${label}</p>
+                    <p class="text-2xl font-black ${cls} tracking-tighter">${value}</p>
+                    <p class="text-[10px] font-bold text-slate-400 mt-1">${sub}</p>
+                </div>`;
+            let html = card('Ventas del periodo', fmt(total), `${count} ventas · promedio ${fmt(count ? total / count : 0)}`);
+            if (manager) html += card('Gastos del periodo', fmt(totalExp), `${fExps.length} gastos registrados`, 'text-red-500')
+                + card('Ventas − Gastos', fmt(total - totalExp), 'Lo que entró menos lo que salió', total - totalExp < 0 ? 'text-red-600' : 'text-emerald-600');
+            html += card('Cobrado', fmt(cobrado), `Contado ${fmt(total - credit)} + abonos ${fmt(abonos)}`, 'text-emerald-600');
+            html += card('Por cobrar (deuda total)', fmt(totalDebt), `Crédito del periodo: ${fmt(credit)}`, 'text-red-600');
+            if (manager) html += `<div class="bg-gradient-to-br ${netProfit < 0 ? 'from-red-400 to-red-600' : 'from-emerald-400 to-emerald-600'} p-6 rounded-[2rem] shadow-xl">
+                    <p class="text-[10px] font-black text-white/80 uppercase tracking-widest mb-1">Ganancia neta</p>
+                    <p class="text-2xl font-black text-white tracking-tighter">${fmt(netProfit)}</p>
+                    <p class="text-[10px] font-bold text-white/80 mt-1">Utilidad ${fmt(profit)} − Gastos ${fmt(totalExp)}</p></div>`;
+            document.getElementById('salesSummary').innerHTML = html;
 
-                    return `
-                    <div class="bg-white p-5 rounded-[1.5rem] border border-slate-100 shadow-sm flex flex-col group hover:border-indigo-200 transition-all relative overflow-hidden">
-                        <div class="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500 rounded-l-full scale-y-0 group-hover:scale-y-100 transition-transform origin-top"></div>
-                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center w-full">
-                            <div class="flex items-center gap-4 mb-4 md:mb-0 ml-2">
-                                <div class="w-10 h-10 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center font-black text-xs border border-slate-200 shrink-0">
-                                    ${sellerInitial}
-                                </div>
-                                <div>
-                                    <p class="text-[11px] font-black uppercase tracking-widest text-slate-900">${new Date(t.timestamp).toLocaleTimeString()}</p>
-                                    <p class="text-[9px] text-slate-400 font-bold uppercase">${itemsCount} Artículos • ${sellerName}</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-4 self-end md:self-auto">
-                                <span class="text-[10px] font-black uppercase ${t.status === 'PENDIENTE' ? 'text-amber-500 bg-amber-50' : 'text-emerald-500 bg-emerald-50'} px-3 py-1 rounded-full">${t.status || 'PAGADO'}</span>
-                                <span class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-xl text-xs font-black shadow-sm">C$${t.total.toLocaleString()}</span>
-                            </div>
-                        </div>
-                        <div class="mt-4 w-full bg-slate-50 rounded-xl p-3 border border-slate-100">
-                            <div class="flex justify-between mb-2">
-                                 <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Cliente: ${t.customerName || 'Mostrador'}</p>
-                                 <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Venta: ${t.paymentMethod || 'Efectivo'}</p>
-                            </div>
-                            ${itemsListHtml}
-                        </div>
-                    </div>`;
-                } else {
-                    // Renderizado para ABONOS
-                    const sellerName = t.seller || 'Usuario';
-                    return `
-                    <div class="bg-white p-5 rounded-[1.5rem] border-2 border-emerald-100 shadow-sm flex flex-col group hover:border-emerald-300 transition-all relative overflow-hidden">
-                        <div class="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500 rounded-l-full"></div>
-                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center w-full">
-                            <div class="flex items-center gap-4 mb-4 md:mb-0 ml-2">
-                                <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center font-black text-xs border border-emerald-100 shrink-0">
-                                    <i class="fas fa-handshake-angle"></i>
-                                </div>
-                                <div>
-                                    <p class="text-[11px] font-black uppercase tracking-widest text-emerald-900">${new Date(t.timestamp).toLocaleTimeString()}</p>
-                                    <p class="text-[9px] text-emerald-600/60 font-bold uppercase">ABONO RECIBIDO • ${sellerName}</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-4 self-end md:self-auto">
-                                <span class="text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">PAGO DE DEUDA</span>
-                                <span class="bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-black shadow-lg shadow-emerald-100">+ C$${t.amount.toLocaleString()}</span>
-                            </div>
-                        </div>
-                        <div class="mt-4 w-full bg-emerald-50/50 rounded-xl p-3 border border-emerald-100">
-                            <p class="text-[10px] font-black uppercase tracking-widest text-emerald-800">CLIENTE: ${t.customerName}</p>
-                        </div>
-                    </div>`;
-                }
-            }).join('');
-                
-            const productSales = {};
-            filtered.forEach(s => {
-                if(s.items) {
-                    s.items.forEach(i => {
-                        const name = i.name || 'Desconocido';
-                        if(!productSales[name]) productSales[name] = { qty: 0, revenue: 0 };
-                        productSales[name].qty += (i.qty || 0);
-                        productSales[name].revenue += (i.subtotal || 0);
-                    });
-                }
-            });
-            const topProducts = Object.entries(productSales)
-                .sort((a,b) => b[1].revenue - a[1].revenue)
-                .slice(0, 5);
-            
-            document.getElementById('topProductsList').innerHTML = topProducts.length === 0 
-                ? '<div class="text-center text-slate-400 text-xs font-bold py-10">Sin datos</div>' 
-                : topProducts.map((p, index) => `
-                <div class="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 transition-colors">
+            // Resultado del periodo (solo Admin/Responsable)
+            const pnl = document.getElementById('pnlCard');
+            pnl.classList.toggle('hidden', !manager);
+            if (manager) {
+                const byCat = {};
+                fExps.forEach(e => byCat[e.category || 'OTROS'] = (byCat[e.category || 'OTROS'] || 0) + (e.amount || 0));
+                const line = (l, v, c = 'text-slate-700', b = '') => `<div class="flex justify-between ${b}"><span class="text-slate-500 font-bold">${l}</span><span class="font-black ${c}">${v}</span></div>`;
+                document.getElementById('pnlContent').innerHTML =
+                    line('Ventas (incluye crédito)', fmt(total)) +
+                    line('(−) Costo de la mercadería', '-' + fmt(total - profit), 'text-slate-500') +
+                    line('= Utilidad de ventas', fmt(profit), 'text-indigo-600', 'border-t pt-3') +
+                    (Object.keys(byCat).length ? Object.entries(byCat).map(([k, v]) => line(`(−) Gasto: ${esc(k)}`, '-' + fmt(v), 'text-red-500')).join('') : line('(−) Gastos', fmt(0), 'text-slate-400')) +
+                    line('= Ganancia neta', fmt(netProfit), netProfit < 0 ? 'text-red-600' : 'text-emerald-600', 'border-t pt-3 text-base') +
+                    `<p class="text-[10px] text-slate-400 font-bold pt-2">De lo vendido, ${fmt(credit)} está a crédito y aún no se ha cobrado.</p>`;
+            }
+
+            // Top productos
+            const ps = {};
+            fSales.forEach(x => (x.items || []).forEach(i => { const n = i.name || 'Desconocido'; ps[n] = ps[n] || { qty: 0, rev: 0 }; ps[n].qty += i.qty || 0; ps[n].rev += i.subtotal || 0; }));
+            const top = Object.entries(ps).sort((a, b) => b[1].rev - a[1].rev).slice(0, 5);
+            document.getElementById('topProductsList').innerHTML = top.length === 0 ? '<div class="text-center text-slate-400 text-xs font-bold py-10">Sin datos</div>' : top.map((p, i) => `
+                <div class="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50">
                     <div class="flex items-center gap-3">
-                        <div class="w-6 h-6 rounded-full flex items-center justify-center font-black text-[10px] ${index === 0 ? 'bg-amber-100 text-amber-600' : index === 1 ? 'bg-slate-200 text-slate-600' : index === 2 ? 'bg-orange-100 text-orange-600' : 'bg-slate-50 text-slate-400'}">${index + 1}</div>
-                        <div>
-                            <p class="text-[10px] font-black text-slate-900 uppercase truncate w-32 md:w-48">${p[0]}</p>
-                            <p class="text-[8px] font-bold text-slate-400 uppercase">${p[1].qty} vend.</p>
-                        </div>
+                        <div class="w-6 h-6 rounded-full flex items-center justify-center font-black text-[10px] ${i === 0 ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-500'}">${i + 1}</div>
+                        <div><p class="text-[10px] font-black text-slate-900 uppercase truncate w-32 md:w-40">${esc(p[0])}</p><p class="text-[8px] font-bold text-slate-400 uppercase">${p[1].qty} vend.</p></div>
                     </div>
-                    <div class="text-right">
-                        <p class="text-xs font-black text-emerald-600">C$${p[1].revenue.toLocaleString()}</p>
-                    </div>
-                </div>
-            `).join('');
+                    <p class="text-xs font-black text-emerald-600">${fmt(p[1].rev)}</p>
+                </div>`).join('');
 
-            renderChart(filtered);
+            renderCharts(fSales, fExps, f, t, manager);
+            renderHistory();
         }
 
-        window.showCierreCaja = () => {
-            const hoy = new Date().toISOString().split('T')[0];
-            const filteredSales = sales.filter(s => s.timestamp.split('T')[0] === hoy);
-            const filteredPays = payments.filter(p => p.timestamp.split('T')[0] === hoy);
-            
-            const byMethod = { EFECTIVO: 0, TRANSFERENCIA: 0, TARJETA: 0, CREDITO: 0 };
-            let totalVentas = 0;
-            let totalAbonos = 0;
-            
-            filteredSales.forEach(s => {
-                const m = s.paymentMethod || 'EFECTIVO';
-                if (byMethod.hasOwnProperty(m)) {
-                    byMethod[m] += s.total;
+        function renderCharts(fSales, fExps, f, t, manager) {
+            const box = document.getElementById('salesChart');
+            if (!box) return;
+            if (typeof Chart === 'undefined') { box.parentElement.innerHTML = '<p class="text-xs font-bold text-red-500">No se pudo cargar la librería de gráficos (revisa tu internet).</p>'; return; }
+            // eje X: todos los días del rango (si es muy largo, solo los días con datos)
+            let days = []; const [y, m, d] = f.split('-').map(Number); const cur = new Date(y, m - 1, d);
+            while (localDate(cur) <= t && days.length < 400) { days.push(localDate(cur)); cur.setDate(cur.getDate() + 1); }
+            if (days.length > 92) days = [...new Set([...fSales, ...fExps].map(x => localDate(x.timestamp)))].sort();
+            const dailyS = {}, dailyE = {};
+            fSales.forEach(x => { const k = localDate(x.timestamp); dailyS[k] = (dailyS[k] || 0) + (x.total || 0); });
+            fExps.forEach(x => { const k = localDate(x.timestamp); dailyE[k] = (dailyE[k] || 0) + (x.amount || 0); });
+            const datasets = [{ label: 'Ventas', data: days.map(k => dailyS[k] || 0), backgroundColor: '#6366f1', borderRadius: 6 }];
+            if (manager) datasets.push({ label: 'Gastos', data: days.map(k => dailyE[k] || 0), backgroundColor: '#f87171', borderRadius: 6 });
+            if (window.salesChartInstance) window.salesChartInstance.destroy();
+            window.salesChartInstance = new Chart(box.getContext('2d'), {
+                type: 'bar',
+                data: { labels: days.map(k => k.slice(8) + '/' + k.slice(5, 7)), datasets },
+                options: { responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: manager, position: 'bottom' }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${fmt(c.parsed.y)}` } } },
+                    scales: { y: { beginAtZero: true, ticks: { font: { size: 9 }, callback: v => 'C$' + v.toLocaleString() } }, x: { grid: { display: false }, ticks: { font: { size: 9 } } } } }
+            });
+            // métodos de pago
+            const meth = { EFECTIVO: 0, TRANSFERENCIA: 0, TARJETA: 0, CREDITO: 0 };
+            fSales.forEach(x => { const k = meth.hasOwnProperty(x.paymentMethod) ? x.paymentMethod : 'EFECTIVO'; meth[k] += x.total || 0; });
+            const has = Object.values(meth).some(v => v > 0);
+            const empty = document.getElementById('methodEmpty');
+            empty.classList.toggle('hidden', has); empty.classList.toggle('flex', !has);
+            if (window.methodChartInstance) window.methodChartInstance.destroy();
+            if (has) window.methodChartInstance = new Chart(document.getElementById('methodChart').getContext('2d'), {
+                type: 'doughnut',
+                data: { labels: ['Efectivo', 'Transferencia', 'Tarjeta', 'Crédito'], datasets: [{ data: Object.values(meth), backgroundColor: ['#10b981', '#3b82f6', '#6366f1', '#f59e0b'], borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'bottom', labels: { font: { size: 10 } } }, tooltip: { callbacks: { label: c => `${c.label}: ${fmt(c.parsed)}` } } } }
+            });
+        }
+
+        // ---------- Historial de movimientos ----------
+        window.setHistoryFilter = (f) => { historyFilter = f; historyLimit = 25; renderHistory(); };
+        window.toggleSaleDetail = (id) => document.getElementById('det-' + id)?.classList.toggle('hidden');
+        window.downloadTicket = (id) => { const x = sales.find(v => v.id === id); if (x) generateTicket(x, true); else window.showToast("Venta no encontrada", "error"); };
+        window.downloadReceipt = (id) => { const x = payments.find(v => v.id === id); if (x) generateAbonoReceipt(x); };
+
+        function renderHistory() {
+            const body = document.getElementById('historyBody');
+            if (!body) return;
+            const manager = hasManagerRole();
+            const filters = [['TODO', 'Todo'], ['SALE', 'Ventas'], ['PAYMENT', 'Abonos']].concat(manager ? [['EXPENSE', 'Gastos']] : []);
+            document.getElementById('historyFilters').innerHTML = filters.map(([k, l]) =>
+                `<button onclick="setHistoryFilter('${k}')" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase ${historyFilter === k ? 'bg-slate-900 text-white' : 'text-slate-400 hover:bg-slate-50'}">${l}</button>`).join('');
+            const q = (document.getElementById('historySearch').value || '').toLowerCase().trim();
+            const creditMap = {};
+            [...new Set(repData.sales.filter(x => x.paymentMethod === 'CREDITO').map(x => x.customerId))].forEach(cid => getCustomerAccount(cid).rows.forEach(r => creditMap[r.sale.id] = r));
+
+            let rows = [
+                ...repData.sales.map(x => ({ kind: 'SALE', ts: x.timestamp, d: x })),
+                ...repData.pays.map(x => ({ kind: 'PAYMENT', ts: x.timestamp, d: x })),
+                ...repData.exps.map(x => ({ kind: 'EXPENSE', ts: x.timestamp, d: x }))
+            ].filter(r => historyFilter === 'TODO' || r.kind === historyFilter)
+             .filter(r => !q || [r.d.ticketId, r.d.receiptId, r.d.customerName, r.d.seller, r.d.concept, r.d.paymentMethod, r.d.category].join(' ').toLowerCase().includes(q))
+             .sort((a, b) => new Date(b.ts) - new Date(a.ts));
+
+            document.getElementById('historyEmpty').classList.toggle('hidden', rows.length > 0);
+            document.getElementById('historyMore').classList.toggle('hidden', rows.length <= historyLimit);
+            const badge = (txt, cls) => `<span class="text-[9px] font-black uppercase px-2 py-1 rounded-md ${cls}">${txt}</span>`;
+
+            body.innerHTML = rows.slice(0, historyLimit).map(({ kind, ts, d }) => {
+                const dt = new Date(ts);
+                const when = `<p class="font-black text-slate-800 text-xs">${dt.toLocaleDateString()}</p><p class="text-[10px] text-slate-400 font-bold">${dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>`;
+                if (kind === 'SALE') {
+                    const cr = creditMap[d.id];
+                    let st = badge('Pagado', 'bg-emerald-50 text-emerald-600');
+                    if (cr) st = cr.pending <= 0.004 ? badge('Pagado', 'bg-emerald-50 text-emerald-600') : cr.paid > 0 ? badge('Parcial · debe ' + fmt(cr.pending), 'bg-amber-50 text-amber-600') : badge('Pendiente', 'bg-amber-50 text-amber-600');
+                    const its = (d.items || []);
+                    return `<tr class="cursor-pointer" onclick="toggleSaleDetail('${d.id}')">
+                        <td>${when}</td>
+                        <td>${badge('Venta', 'bg-indigo-50 text-indigo-600')}<p class="text-[10px] font-black text-slate-500 mt-1">${esc(d.ticketId || '---')}</p></td>
+                        <td><p class="font-bold uppercase text-xs">${esc(d.customerName || 'Mostrador')}</p><p class="text-[10px] text-slate-400 font-bold">${its.length} artículo(s)</p></td>
+                        <td class="uppercase text-xs font-bold text-slate-500">${esc(d.seller || '')}</td>
+                        <td class="text-[10px] font-black uppercase text-slate-500">${esc(d.paymentMethod || 'EFECTIVO')}</td>
+                        <td>${st}</td>
+                        <td class="text-right font-black text-slate-900">${fmt(d.total)}</td>
+                        <td class="text-right whitespace-nowrap" onclick="event.stopPropagation()">
+                            <button onclick="downloadTicket('${d.id}')" title="Ver ticket" class="px-3 py-2 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase"><i class="fas fa-receipt mr-1"></i>Ticket</button>
+                        </td></tr>
+                        <tr id="det-${d.id}" class="hidden"><td colspan="8" class="bg-slate-50">
+                            ${its.map(i => `<div class="flex justify-between text-xs py-1 border-b border-slate-100"><span><b>${i.qty}x</b> ${esc(i.name)} <span class="text-slate-400">(${fmt(i.price)} c/u)</span></span><b>${fmt(i.subtotal)}</b></div>`).join('')}
+                            <div class="flex flex-wrap gap-x-6 gap-y-1 justify-end text-[11px] font-bold text-slate-500 pt-2">
+                                ${d.discount > 0 ? `<span>Subtotal ${fmt(d.subtotal)}</span><span class="text-red-500">Descuento -${fmt(d.discount)}</span>` : ''}
+                                ${d.cashReceived != null ? `<span>Recibido ${fmt(d.cashReceived)}</span><span class="text-emerald-600">Vuelto ${fmt(d.change)}</span>` : ''}
+                                ${cr ? `<span>Pagado ${fmt(cr.paid)}</span><span class="text-red-500">Pendiente ${fmt(cr.pending)}</span>` : ''}
+                            </div></td></tr>`;
                 }
-                totalVentas += s.total;
-            });
+                if (kind === 'PAYMENT') return `<tr>
+                        <td>${when}</td><td>${badge('Abono', 'bg-emerald-50 text-emerald-600')}<p class="text-[10px] font-black text-slate-500 mt-1">${esc(d.receiptId || '')}</p></td>
+                        <td class="font-bold uppercase text-xs">${esc(d.customerName)}</td><td class="uppercase text-xs font-bold text-slate-500">${esc(d.seller || '')}</td>
+                        <td class="text-[10px] font-black uppercase text-slate-500">EFECTIVO</td><td>${badge('Cobrado', 'bg-emerald-50 text-emerald-600')}</td>
+                        <td class="text-right font-black text-emerald-600">+${fmt(d.amount)}</td>
+                        <td class="text-right"><button onclick="downloadReceipt('${d.id}')" class="px-3 py-2 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase"><i class="fas fa-file-invoice mr-1"></i>Recibo</button></td></tr>`;
+                return `<tr>
+                        <td>${when}</td><td>${badge('Gasto', 'bg-red-50 text-red-500')}</td>
+                        <td class="font-bold uppercase text-xs">${esc(d.concept)}<p class="text-[10px] text-slate-400">${esc(d.category || '')}</p></td>
+                        <td class="uppercase text-xs font-bold text-slate-500">${esc(d.user || '—')}</td><td class="text-[10px] font-black uppercase text-slate-500">EFECTIVO</td><td>—</td>
+                        <td class="text-right font-black text-red-500">-${fmt(d.amount)}</td><td></td></tr>`;
+            }).join('');
+        }
 
-            filteredPays.forEach(p => {
-                totalAbonos += p.amount;
-                byMethod.EFECTIVO += p.amount; // Los abonos entran como efectivo
-            });
+        // ---------- Cierre de caja (una sola fuente de datos para pantalla y PDF) ----------
+        let currentCierreDate = null;
+        function computeCierre(date) {
+            const ds = sales.filter(x => localDate(x.timestamp) === date);
+            const ps = payments.filter(x => localDate(x.timestamp) === date);
+            const es = expenses.filter(x => localDate(x.timestamp) === date);
+            const m = { EFECTIVO: 0, TRANSFERENCIA: 0, TARJETA: 0, CREDITO: 0 };
+            ds.forEach(x => { const k = m.hasOwnProperty(x.paymentMethod) ? x.paymentMethod : 'EFECTIVO'; m[k] = round2(m[k] + (x.total || 0)); });
+            const totalVentas = sumBy(ds, x => x.total), abonos = sumBy(ps, x => x.amount), gastos = sumBy(es, x => x.amount);
+            const ingresos = round2(m.EFECTIVO + m.TRANSFERENCIA + m.TARJETA + abonos);   // dinero realmente recibido (sin crédito)
+            const efectivoCaja = round2(m.EFECTIVO + abonos - gastos);                      // abonos y gastos se manejan en efectivo
+            const utilidad = sumBy(ds, x => x.profit);
+            return { date, ds, ps, es, m, totalVentas, abonos, gastos, ingresos, efectivoCaja, utilidad, neta: round2(utilidad - gastos) };
+        }
 
-            const content = document.getElementById('cierreContent');
-            content.innerHTML = `
-                <div class="space-y-4">
-                    <div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                        <span class="text-[10px] font-black text-slate-400 uppercase">Fecha del Corte</span>
-                        <span class="font-black text-slate-900">${new Date().toLocaleDateString()}</span>
-                    </div>
-                    <div class="grid grid-cols-1 gap-3">
-                        <div class="p-5 rounded-[2rem] border-2 border-emerald-100 bg-emerald-50 flex justify-between items-center">
-                            <div class="flex items-center gap-3">
-                                <i class="fas fa-money-bill-wave text-emerald-600"></i>
-                                <span class="text-xs font-black uppercase">Efectivo en Caja</span>
-                            </div>
-                            <span class="text-xl font-black text-emerald-700">C$${byMethod.EFECTIVO.toLocaleString()}</span>
-                        </div>
-                        <div class="p-5 rounded-[2rem] border border-blue-100 bg-blue-50 flex justify-between items-center">
-                            <div class="flex items-center gap-3">
-                                <i class="fas fa-mobile-screen text-blue-600"></i>
-                                <span class="text-xs font-black uppercase">Transferencias</span>
-                            </div>
-                            <span class="text-xl font-black text-blue-700">C$${byMethod.TRANSFERENCIA.toLocaleString()}</span>
-                        </div>
-                        <div class="p-5 rounded-[2rem] border border-indigo-100 bg-indigo-50 flex justify-between items-center">
-                            <div class="flex items-center gap-3">
-                                <i class="fas fa-credit-card text-indigo-600"></i>
-                                <span class="text-xs font-black uppercase">Ventas con Tarjeta</span>
-                            </div>
-                            <span class="text-xl font-black text-indigo-700">C$${byMethod.TARJETA.toLocaleString()}</span>
-                        </div>
-                        <div class="p-5 rounded-[2rem] border border-amber-100 bg-amber-50 flex justify-between items-center">
-                            <div class="flex items-center gap-3">
-                                <i class="fas fa-hand-holding-dollar text-amber-600"></i>
-                                <span class="text-xs font-black uppercase">Ventas al Crédito</span>
-                            </div>
-                            <span class="text-xl font-black text-amber-700">C$${byMethod.CREDITO.toLocaleString()}</span>
-                        </div>
-                        <div class="p-5 rounded-[2rem] border border-emerald-100 bg-emerald-50 flex justify-between items-center">
-                            <div class="flex items-center gap-3">
-                                <i class="fas fa-handshake-angle text-emerald-600"></i>
-                                <span class="text-xs font-black uppercase">Cobros / Abonos</span>
-                            </div>
-                            <span class="text-xl font-black text-emerald-700">C$${totalAbonos.toLocaleString()}</span>
-                        </div>
-                    </div>
-                    <div class="pt-4 border-t border-dashed border-slate-200 flex justify-between items-end">
-                        <span class="text-sm font-black text-slate-400 uppercase">Dinero Total Recibido</span>
-                        <span class="text-3xl font-black text-slate-900">C$${(byMethod.EFECTIVO + byMethod.TRANSFERENCIA + byMethod.TARJETA).toLocaleString()}</span>
-                    </div>
+        window.showCierreCaja = (date) => {
+            currentCierreDate = (typeof date === 'string' && date) ? date : todayStr();
+            const c = computeCierre(currentCierreDate);
+            const manager = hasManagerRole();
+            const row = (icon, label, val, cls = 'bg-slate-50 border-slate-100 text-slate-900') => `
+                <div class="p-4 rounded-2xl border ${cls} flex justify-between items-center"><span class="text-[11px] font-black uppercase flex items-center gap-2"><i class="fas ${icon} opacity-60"></i>${label}</span><span class="text-lg font-black">${val}</span></div>`;
+            const head = t => `<p class="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-2">${t}</p>`;
+            document.getElementById('cierreContent').innerHTML = `
+                <div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <span class="text-[10px] font-black text-slate-400 uppercase">Fecha del corte</span>
+                    <input type="date" value="${c.date}" max="${todayStr()}" onchange="showCierreCaja(this.value)" class="bg-transparent font-black text-slate-900 text-sm border-none p-0">
                 </div>
-            `;
+                ${head(`Ventas del día (${c.ds.length})`)}
+                ${row('fa-money-bill-wave', 'Efectivo', fmt(c.m.EFECTIVO), 'bg-emerald-50 border-emerald-100 text-emerald-700')}
+                ${row('fa-mobile-screen', 'Transferencias', fmt(c.m.TRANSFERENCIA), 'bg-blue-50 border-blue-100 text-blue-700')}
+                ${row('fa-credit-card', 'Tarjeta', fmt(c.m.TARJETA), 'bg-indigo-50 border-indigo-100 text-indigo-700')}
+                ${row('fa-hand-holding-dollar', 'Crédito (no entra a caja)', fmt(c.m.CREDITO), 'bg-amber-50 border-amber-100 text-amber-700')}
+                ${row('fa-cart-shopping', 'Total vendido', fmt(c.totalVentas))}
+                ${head('Cobros y egresos')}
+                ${row('fa-handshake-angle', `Abonos de clientes (${c.ps.length})`, '+' + fmt(c.abonos), 'bg-emerald-50 border-emerald-100 text-emerald-700')}
+                ${row('fa-file-invoice-dollar', `Gastos del día (${c.es.length})`, '-' + fmt(c.gastos), 'bg-red-50 border-red-100 text-red-600')}
+                <div class="p-5 rounded-[2rem] bg-slate-900 text-white flex justify-between items-end">
+                    <div><p class="text-[10px] font-black uppercase text-slate-400">Efectivo esperado en caja</p>
+                    <p class="text-[10px] text-slate-400 font-bold mt-1">Ventas efectivo + abonos − gastos</p></div>
+                    <span class="text-3xl font-black">${fmt(c.efectivoCaja)}</span>
+                </div>
+                <div class="flex justify-between text-xs font-black text-slate-500 uppercase px-2"><span>Total recibido (sin crédito)</span><span>${fmt(c.ingresos)}</span></div>
+                <div class="flex justify-between text-xs font-black text-slate-500 uppercase px-2"><span>Ventas − Gastos</span><span class="${c.totalVentas - c.gastos < 0 ? 'text-red-600' : 'text-emerald-600'}">${fmt(c.totalVentas - c.gastos)}</span></div>
+                ${manager ? `<div class="flex justify-between text-xs font-black text-slate-500 uppercase px-2"><span>Ganancia neta (utilidad − gastos)</span><span class="${c.neta < 0 ? 'text-red-600' : 'text-emerald-600'}">${fmt(c.neta)}</span></div>` : ''}`;
             document.getElementById('cierreModal').classList.remove('hidden');
         };
 
@@ -1933,7 +2066,8 @@
             });
             
             const total = monthly.reduce((a, b) => a + b.amount, 0);
-            document.getElementById('totalMonthlyExpenses').innerText = `C$${total.toLocaleString()}`;
+            document.getElementById('totalMonthlyExpenses').innerText = fmt(total);
+            document.getElementById('totalTodayExpenses').innerText = fmt(sumBy(expenses.filter(e => localDate(e.timestamp) === todayStr()), e => e.amount));
             
             document.getElementById('expensesTable').innerHTML = expenses.map(e => `
                 <tr class="hover:bg-red-50/20 transition-colors">
@@ -1954,7 +2088,9 @@
 
         document.getElementById('expenseForm').onsubmit = async (e) => {
             e.preventDefault();
+            if (!hasManagerRole()) return;
             const data = {
+                user: currentUser.username,
                 concept: document.getElementById('eConcept').value.trim(),
                 amount: parseFloat(document.getElementById('eAmount').value),
                 category: document.getElementById('eCategory').value,
@@ -1967,6 +2103,7 @@
         };
 
         window.deleteExpense = async (id) => { 
+            if (!hasManagerRole()) return;
             if(confirm("¿Eliminar este gasto?")) {
                 const e = expenses.find(x => x.id === id);
                 await deleteDoc(doc(expColl, id));
@@ -1975,105 +2112,165 @@
         };
 
         // GESTIÓN DE CLIENTES
-        function renderCustomers() {
-            document.getElementById('customersContainer').innerHTML = customers.map(c => `
-                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col group hover:border-indigo-100 transition-all">
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="w-12 h-12 ${c.balance > 0 ? 'bg-red-50 text-red-600' : 'bg-indigo-50 text-indigo-600'} rounded-2xl flex items-center justify-center font-black text-lg">
-                            ${c.name.charAt(0)}
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-sm font-black uppercase text-slate-900">${c.name}</p>
-                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">${c.phone || 'Sin teléfono'}</p>
-                        </div>
-                        ${c.balance > 0 ? `
-                        <div class="text-right">
-                            <p class="text-[8px] font-black text-red-400 uppercase mb-0.5">Debe</p>
-                            <p class="text-xs font-black text-red-600">C$${(c.balance || 0).toLocaleString()}</p>
-                        </div>` : `
-                        <div class="text-right">
-                            <p class="text-[8px] font-black text-emerald-400 uppercase mb-0.5">Saldo</p>
-                            <p class="text-xs font-black text-emerald-600">C$0</p>
-                        </div>`}
-                    </div>
-                    <div class="bg-slate-50 p-3 rounded-xl mb-4">
-                         <p class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mb-1">Dirección</p>
-                         <p class="text-[10px] text-slate-600 font-bold uppercase truncate">${c.address || 'No registrada'}</p>
-                    </div>
-                    <div class="flex justify-end gap-2">
-                        ${c.balance > 0 ? `
-                        <button onclick="showAbonoModal('${c.id}')" class="flex-1 bg-emerald-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-emerald-700 transition-all">
-                            Cobrar / Abonar
-                        </button>` : ''}
-                        <button onclick="editCustomer('${c.id}')" class="w-9 h-9 flex items-center justify-center bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all"><i class="fas fa-edit text-xs"></i></button>
-                        <button onclick="deleteCustomer('${c.id}')" class="w-9 h-9 flex items-center justify-center bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all"><i class="fas fa-trash text-xs"></i></button>
-                    </div>
-                </div>
-            `).join('');
+        // Cuenta del cliente: compras a crédito, abonos (se aplican a la compra más antigua primero) y saldo
+        function getCustomerAccount(id) {
+            const customer = customers.find(c => c.id === id);
+            const cs = sales.filter(x => x.customerId === id && x.paymentMethod === 'CREDITO').sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            const pays = payments.filter(p => p.customerId === id).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            const totalCredit = sumBy(cs, x => x.total), totalPaid = sumBy(pays, p => p.amount);
+            let pool = totalPaid;
+            const rows = cs.map(x => { const paid = round2(Math.min(pool, x.total)); pool = round2(pool - paid); return { sale: x, paid, pending: round2(x.total - paid) }; });
+            const balance = customer ? round2(customer.balance || 0) : round2(totalCredit - totalPaid);
+            return { customer, rows, pays, totalCredit, totalPaid, balance, adjust: round2(balance - (totalCredit - totalPaid)) };
         }
+        function paymentBalances(p) {
+            if (p.balanceBefore != null && p.balanceAfter != null) return { before: p.balanceBefore, after: p.balanceAfter };
+            const a = getCustomerAccount(p.customerId);
+            const ev = [...a.rows.map(r => ({ ts: r.sale.timestamp, d: r.sale.total, id: null })), ...a.pays.map(x => ({ ts: x.timestamp, d: -x.amount, id: x.id }))].sort((x, y) => new Date(x.ts) - new Date(y.ts));
+            let bal = a.adjust;
+            for (const e of ev) { const before = bal; bal = round2(bal + e.d); if (e.id && e.id === p.id) return { before, after: bal }; }
+            return { before: null, after: null };
+        }
+        const itemsText = (x, n = 60) => (x.items || []).map(i => `${i.qty}x ${i.name}`).join(', ').substring(0, n);
+
+        function renderCustomers() {
+            document.getElementById('customersContainer').innerHTML = customers.map(c => {
+                const a = getCustomerAccount(c.id);
+                return `
+                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col hover:border-indigo-100 transition-all">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12 ${c.balance > 0 ? 'bg-red-50 text-red-600' : 'bg-indigo-50 text-indigo-600'} rounded-2xl flex items-center justify-center font-black text-lg">${esc(c.name.charAt(0))}</div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-black uppercase text-slate-900 truncate">${esc(c.name)}</p>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">${esc(c.phone || 'Sin teléfono')}</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 mb-4 text-center">
+                        <div class="bg-slate-50 rounded-xl p-2"><p class="text-[8px] font-black text-slate-400 uppercase">Crédito</p><p class="text-[11px] font-black text-slate-700">${fmt(a.totalCredit)}</p></div>
+                        <div class="bg-emerald-50 rounded-xl p-2"><p class="text-[8px] font-black text-emerald-500 uppercase">Pagado</p><p class="text-[11px] font-black text-emerald-600">${fmt(a.totalPaid)}</p></div>
+                        <div class="${c.balance > 0 ? 'bg-red-50' : 'bg-slate-50'} rounded-xl p-2"><p class="text-[8px] font-black ${c.balance > 0 ? 'text-red-400' : 'text-slate-400'} uppercase">Debe</p><p class="text-[11px] font-black ${c.balance > 0 ? 'text-red-600' : 'text-slate-500'}">${fmt(c.balance || 0)}</p></div>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl mb-4"><p class="text-[9px] font-black text-slate-400 uppercase mb-1">Dirección</p><p class="text-[10px] text-slate-600 font-bold uppercase truncate">${esc(c.address || 'No registrada')}</p></div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="openAccountModal('${c.id}')" class="flex-1 bg-slate-900 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-indigo-600 transition-all"><i class="fas fa-file-invoice mr-1"></i>Estado de cuenta</button>
+                        ${c.balance > 0 ? `<button onclick="showAbonoModal('${c.id}')" class="flex-1 bg-emerald-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-emerald-700">Abonar</button>` : ''}
+                        <button onclick="editCustomer('${c.id}')" class="w-9 h-9 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white"><i class="fas fa-edit text-xs"></i></button>
+                        <button onclick="deleteCustomer('${c.id}')" class="w-9 h-9 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white"><i class="fas fa-trash text-xs"></i></button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        let currentAccountId = null;
+        window.openAccountModal = (id) => { currentAccountId = id; renderAccountModal(); document.getElementById('accountModal').classList.remove('hidden'); };
+        window.closeAccountModal = () => { currentAccountId = null; document.getElementById('accountModal').classList.add('hidden'); };
+        function refreshAccountModal() { if (currentAccountId) renderAccountModal(); }
+        function renderAccountModal() {
+            const a = getCustomerAccount(currentAccountId);
+            if (!a.customer) return closeAccountModal();
+            document.getElementById('accName').innerText = a.customer.name;
+            document.getElementById('accPhone').innerText = a.customer.phone || 'Sin teléfono';
+            const box = (l, v, c, bg) => `<div class="${bg} rounded-2xl p-4 text-center"><p class="text-[9px] font-black uppercase ${c} opacity-70">${l}</p><p class="text-sm sm:text-lg font-black break-words ${c}">${fmt(v)}</p></div>`;
+            document.getElementById('accSummary').innerHTML = box('Crédito total', a.totalCredit, 'text-slate-700', 'bg-slate-50') + box('Ha pagado', a.totalPaid, 'text-emerald-600', 'bg-emerald-50') + box('Debe', a.balance, a.balance > 0 ? 'text-red-600' : 'text-slate-500', a.balance > 0 ? 'bg-red-50' : 'bg-slate-50');
+            document.getElementById('accAbonoBtn').classList.toggle('hidden', !(a.balance > 0));
+            const empty = t => `<p class="text-xs text-slate-400 font-bold py-3">${t}</p>`;
+            document.getElementById('accSales').innerHTML = a.rows.length ? a.rows.slice().reverse().map(r => `
+                <div class="p-4 rounded-2xl border border-slate-100 bg-slate-50 flex flex-col md:flex-row md:items-center gap-3 justify-between">
+                    <div class="min-w-0"><p class="text-xs font-black text-slate-900">${esc(r.sale.ticketId || '---')} <span class="text-slate-400 font-bold">· ${new Date(r.sale.timestamp).toLocaleDateString()}</span></p>
+                    <p class="text-[10px] text-slate-500 font-bold truncate">${esc(itemsText(r.sale))}</p></div>
+                    <div class="flex items-center gap-4 text-right text-[11px] font-black">
+                        <span>${fmt(r.sale.total)}</span><span class="text-emerald-600">${fmt(r.paid)}</span><span class="${r.pending > 0 ? 'text-red-500' : 'text-slate-400'}">${fmt(r.pending)}</span>
+                        <button onclick="downloadTicket('${r.sale.id}')" class="px-3 py-2 bg-slate-900 text-white rounded-lg text-[10px] uppercase"><i class="fas fa-receipt mr-1"></i>Ticket</button>
+                    </div></div>`).join('') + `<p class="text-[9px] text-slate-400 font-bold uppercase text-right">Columnas: total · pagado · pendiente</p>` : empty('Este cliente no tiene compras a crédito.');
+            document.getElementById('accPays').innerHTML = a.pays.length ? a.pays.slice().reverse().map(p => `
+                <div class="p-4 rounded-2xl border border-emerald-100 bg-emerald-50/50 flex items-center justify-between gap-3">
+                    <div><p class="text-xs font-black text-emerald-800">${esc(p.receiptId || 'ABONO')} <span class="text-emerald-600/60 font-bold">· ${new Date(p.timestamp).toLocaleString()}</span></p>
+                    <p class="text-[10px] text-emerald-700/70 font-bold">Saldo: ${(b => b.after != null ? fmt(b.before) + ' → ' + fmt(b.after) : '—')(paymentBalances(p))}</p></div>
+                    <div class="flex items-center gap-3"><span class="font-black text-emerald-700">+${fmt(p.amount)}</span>
+                    <button onclick="downloadReceipt('${p.id}')" class="px-3 py-2 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase"><i class="fas fa-file-invoice mr-1"></i>Recibo</button></div></div>`).join('') : empty('Aún no hay abonos.');
+        }
+
+        // Libro de cuenta: cargos (compras a crédito) y abonos con saldo corrido
+        function ledgerRows(a) {
+            const ev = [...a.rows.map(r => ({ ts: r.sale.timestamp, ref: r.sale.ticketId || '---', desc: itemsText(r.sale, 70), ch: r.sale.total, pay: 0 })),
+                        ...a.pays.map(p => ({ ts: p.timestamp, ref: p.receiptId || 'ABONO', desc: 'ABONO A CUENTA', ch: 0, pay: p.amount }))].sort((x, y) => new Date(x.ts) - new Date(y.ts));
+            let bal = a.adjust; const out = [];
+            if (Math.abs(a.adjust) > 0.004) out.push(['', '---', 'SALDO INICIAL / AJUSTE', a.adjust > 0 ? fmt(a.adjust) : '', a.adjust < 0 ? fmt(-a.adjust) : '', fmt(bal)]);
+            ev.forEach(e => { bal = round2(bal + e.ch - e.pay); out.push([new Date(e.ts).toLocaleDateString(), e.ref, e.desc, e.ch ? fmt(e.ch) : '', e.pay ? fmt(e.pay) : '', fmt(bal)]); });
+            return out;
+        }
+
+        window.downloadCustomerStatement = (id) => {
+            const a = getCustomerAccount(id || currentAccountId);
+            if (!a.customer) return;
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            doc.setFontSize(18).setFont('helvetica', 'bold').text('VARIEDADES BENDICIÓN DE DIOS', 105, 18, { align: 'center' });
+            doc.setFontSize(13).text('RECIBO / ESTADO DE CUENTA', 105, 26, { align: 'center' });
+            doc.setFontSize(10).setFont('helvetica', 'normal');
+            doc.text(`Cliente: ${a.customer.name}`, 14, 38); doc.text(`Teléfono: ${a.customer.phone || '---'}`, 14, 44);
+            doc.text(`Fecha: ${new Date().toLocaleString()}`, 196, 38, { align: 'right' }); doc.text(`Emitido por: ${currentUser.username.toUpperCase()}`, 196, 44, { align: 'right' });
+            doc.autoTable({ startY: 50, head: [['CRÉDITO TOTAL', 'TOTAL PAGADO', 'SALDO PENDIENTE']], body: [[fmt(a.totalCredit), fmt(a.totalPaid), fmt(a.balance)]], theme: 'grid', headStyles: { fillColor: [30, 41, 59], halign: 'center' }, bodyStyles: { halign: 'center', fontStyle: 'bold', fontSize: 12 } });
+            doc.autoTable({ startY: doc.lastAutoTable.finalY + 8, head: [['FECHA', 'REF', 'DETALLE', 'CARGO', 'ABONO', 'SALDO']], body: ledgerRows(a), theme: 'striped', headStyles: { fillColor: [79, 70, 229] }, styles: { fontSize: 8 }, columnStyles: { 2: { cellWidth: 70 }, 3: { halign: 'right' }, 4: { halign: 'right' }, 5: { halign: 'right', fontStyle: 'bold' } } });
+            const y = doc.lastAutoTable.finalY + 25;
+            doc.line(20, y, 90, y); doc.line(120, y, 190, y);
+            doc.setFontSize(8).text('Firma del cliente', 55, y + 5, { align: 'center' }); doc.text('Firma de la tienda', 155, y + 5, { align: 'center' });
+            showPdfPreview(doc, `Estado_Cuenta_${a.customer.name.replace(/\s+/g, '_')}_${todayStr()}.pdf`, `Estado de cuenta · ${a.customer.name}`);
+            logAction("ESTADO_CUENTA", `Estado de cuenta de ${a.customer.name}`);
+        };
+
+        window.generateAbonoReceipt = (p) => {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF({ format: [80, 120], unit: 'mm' });
+            doc.setFontSize(11).setFont('helvetica', 'bold').text('VARIEDADES BENDICIÓN DE DIOS', 40, 10, { align: 'center' });
+            doc.setFontSize(10).setTextColor(16, 185, 129).text(`RECIBO ${p.receiptId || ''}`, 40, 17, { align: 'center' });
+            doc.setTextColor(0, 0, 0).setFontSize(8).setFont('helvetica', 'normal');
+            doc.text(`Fecha: ${new Date(p.timestamp).toLocaleString()}`, 40, 23, { align: 'center' });
+            doc.text(`Recibido por: ${p.seller || '---'}`, 40, 27, { align: 'center' }); doc.line(5, 31, 75, 31);
+            doc.text(`Cliente: ${p.customerName}`, 5, 37);
+            const line = (l, v, y, b) => { doc.setFont('helvetica', b ? 'bold' : 'normal'); doc.text(l, 5, y); doc.text(v, 75, y, { align: 'right' }); };
+            const bal = paymentBalances(p);
+            line('SALDO ANTERIOR:', bal.before != null ? fmt(bal.before) : '---', 46);
+            line('ABONO RECIBIDO:', '-' + fmt(p.amount), 53, true);
+            doc.line(5, 56, 75, 56);
+            line('SALDO ACTUAL:', bal.after != null ? fmt(bal.after) : '---', 62, true);
+            doc.line(5, 66, 75, 66);
+            doc.setFont('helvetica', 'italic').setFontSize(7).text('¡Gracias por su pago! ¡Dios te bendiga!', 40, 73, { align: 'center' });
+            showPdfPreview(doc, `Recibo_${p.receiptId || 'abono'}.pdf`, `Recibo ${p.receiptId || ''} · ${p.customerName}`);
+        };
 
         window.showAbonoModal = (id) => {
             const c = customers.find(x => x.id === id);
             document.getElementById('abonoCustomerId').value = c.id;
             document.getElementById('abonoCustomerName').innerText = c.name;
-            document.getElementById('abonoCurrentDebt').innerText = `C$${(c.balance || 0).toLocaleString()}`;
+            document.getElementById('abonoCurrentDebt').innerText = fmt(c.balance || 0);
             document.getElementById('abonoAmount').value = "";
             document.getElementById('abonoModal').classList.remove('hidden');
         };
-
         window.closeAbonoModal = () => document.getElementById('abonoModal').classList.add('hidden');
 
         document.getElementById('abonoForm').onsubmit = async (e) => {
             e.preventDefault();
             const id = document.getElementById('abonoCustomerId').value;
-            const amount = parseFloat(document.getElementById('abonoAmount').value);
+            const amount = round2(parseFloat(document.getElementById('abonoAmount').value));
             const customer = customers.find(x => x.id === id);
-
-            if (amount <= 0) return window.showToast("Monto inválido", "error");
-            if (amount > customer.balance) return window.showToast("El abono no puede ser mayor a la deuda", "warning");
-
+            if (!customer || !(amount > 0)) return window.showToast("Monto inválido", "error");
+            if (amount > round2(customer.balance || 0)) return window.showToast("El abono no puede ser mayor a la deuda", "error");
             try {
-                const newBalance = customer.balance - amount;
-                await updateDoc(doc(custColl, id), { balance: newBalance });
-                
-                // Registrar el pago en la nueva colección
-                await addDoc(payColl, {
-                    customerId: id,
-                    customerName: customer.name,
-                    amount: amount,
-                    timestamp: new Date().toISOString(),
-                    seller: currentUser.username
-                });
-
-                // Lógica para marcar ventas pendientes como PAGADAS
-                let remainingAbono = amount;
-                // Filtrar ventas pendientes (soportando nombre de propiedad viejo y nuevo)
-                const pendingSales = sales
-                    .filter(s => s.customerId === id && (s.status === 'PENDIENTE' || s.paymentStatus === 'PENDING'))
-                    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-
-                for (const sale of pendingSales) {
-                    if (remainingAbono >= sale.total) {
-                        await updateDoc(doc(saleColl, sale.id), { 
-                            status: 'PAGADO',
-                            paymentStatus: 'PAID' // Actualizar ambos para evitar confusiones
-                        });
-                        remainingAbono -= sale.total;
-                    } else {
-                        // Opcional: Podríamos marcar como "PARCIAL", pero por ahora 
-                        // solo marcamos como PAGADO si se cubre el total de la venta.
-                        break; 
-                    }
-                }
-
-                // Registrar log de abono
-                logAction("ABONO_CLIENTE", `Abono de C$${amount.toLocaleString()} de ${customer.name}. Nuevo saldo: C$${newBalance.toLocaleString()}`);
-                
+                const a = getCustomerAccount(id);
+                const maxN = payments.reduce((m, p) => Math.max(m, parseInt(String(p.receiptId || '').replace(/\D/g, '')) || 0), 0);
+                const payRef = doc(payColl);
+                const payment = { receiptId: `RC-${String(Math.max(maxN, payments.length) + 1).padStart(4, '0')}`, customerId: id, customerName: customer.name, amount,
+                    balanceBefore: round2(customer.balance || 0), balanceAfter: round2((customer.balance || 0) - amount), timestamp: new Date().toISOString(), seller: currentUser.username };
+                const batch = writeBatch(db);
+                batch.update(doc(custColl, id), { balance: increment(-amount) });
+                batch.set(payRef, payment);
+                let pool = round2(a.totalPaid + amount);   // marcar como PAGADAS las compras ya cubiertas (más antiguas primero)
+                for (const r of a.rows) { if (pool + 0.005 >= r.sale.total) { pool = round2(pool - r.sale.total); if (r.sale.status !== 'PAGADO') batch.update(doc(saleColl, r.sale.id), { status: 'PAGADO', paymentStatus: 'PAID' }); } else break; }
+                await batch.commit();
+                logAction("ABONO_CLIENTE", `${payment.receiptId} · ${fmt(amount)} de ${customer.name}. Nuevo saldo: ${fmt(payment.balanceAfter)}`);
                 window.showToast("Abono registrado con éxito");
                 closeAbonoModal();
-            } catch (err) {
-                window.showToast("Error al registrar abono", "error");
-            }
+                try { generateAbonoReceipt({ ...payment, id: payRef.id }); } catch (err) { console.error(err); }
+            } catch (err) { console.error(err); window.showToast("Error al registrar abono", "error"); }
         };
 
         function updateCustomerSelect() {
@@ -2124,6 +2321,8 @@
         };
 
         window.deleteCustomer = async (id) => {
+            const cu = customers.find(x => x.id === id);
+            if (cu && cu.balance > 0) return window.showToast("No se puede eliminar: el cliente tiene deuda pendiente", "error");
             if(confirm("¿Eliminar este cliente?")) {
                 const c = customers.find(x => x.id === id);
                 await deleteDoc(doc(custColl, id));
@@ -2133,8 +2332,7 @@
 
         // REINICIO DE SISTEMA (MANTENIMIENTO)
         window.resetDatabase = async () => {
-            const userRole = (currentUser.role || '').toUpperCase().trim();
-            if (userRole !== 'ADMIN' && userRole !== 'ADMINISTRADOR') {
+            if (!hasAdminRole()) {
                 return window.showToast("No tienes permisos para esta acción (Solo Administradores)", "error");
             }
             
@@ -2174,81 +2372,49 @@
             }
         };
 
-        window.generateTicket = (saleData) => {
+        window.generateTicket = (saleData, isCopy = false) => {
             const { jsPDF } = window.jspdf;
-            const height = 90 + (saleData.items.length * 8); 
+            const items = saleData.items || [];
+            const hasCash = saleData.paymentMethod === 'EFECTIVO' && saleData.cashReceived != null;
+            const isCredit = saleData.paymentMethod === 'CREDITO';
+            const showDebt = isCredit || saleData.customerPrevBalance > 0;
+            const height = 105 + items.length * 6 + (saleData.discount > 0 ? 12 : 0) + (hasCash ? 10 : 0) + (showDebt ? 12 : 0);
             const doc = new jsPDF({ format: [80, height], unit: 'mm' });
-            
             doc.setFontSize(11).setFont('helvetica', 'bold').text("VARIEDADES BENDICIÓN DE DIOS", 40, 10, { align: 'center' });
-            doc.setFontSize(10).setFont('helvetica', 'bold').setTextColor(79, 70, 229).text(`TICKET #${saleData.ticketId || '---'}`, 40, 16, { align: 'center' });
-            
-            doc.setFontSize(8).setFont('helvetica', 'normal').setTextColor(0, 0, 0).text("Ticket de Venta", 40, 22, { align: 'center' });
+            doc.setFontSize(10).setTextColor(79, 70, 229).text(`TICKET #${saleData.ticketId || '---'}`, 40, 16, { align: 'center' });
+            doc.setFontSize(8).setFont('helvetica', 'normal').setTextColor(0, 0, 0).text(isCopy ? "Copia de ticket" : "Ticket de Venta", 40, 22, { align: 'center' });
             doc.text(`Fecha: ${new Date(saleData.timestamp).toLocaleString()}`, 40, 27, { align: 'center' });
             doc.text(`Cajero: ${saleData.seller}`, 40, 31, { align: 'center' });
-            
-            doc.setLineWidth(0.5);
-            doc.line(5, 35, 75, 35);
-            
+            doc.setLineWidth(0.5); doc.line(5, 35, 75, 35);
             doc.setFontSize(7).setFont('helvetica', 'bold');
-            doc.text("CANT", 5, 40);
-            doc.text("PRODUCTO", 15, 40);
-            doc.text("SUBT", 75, 40, { align: 'right' });
-            
+            doc.text("CANT", 5, 40); doc.text("PRODUCTO", 15, 40); doc.text("SUBT", 75, 40, { align: 'right' });
             doc.line(5, 42, 75, 42);
-            
             doc.setFont('helvetica', 'normal');
             let y = 47;
-            saleData.items.forEach(item => {
-                doc.text(item.qty.toString(), 7, y, { align: 'center' });
-                const name = (item.name || 'Articulo').substring(0, 18);
-                doc.text(name, 15, y);
-                doc.text(`C$${(item.subtotal || 0).toFixed(2)}`, 75, y, { align: 'right' });
+            items.forEach(item => {
+                doc.text(String(item.qty), 7, y, { align: 'center' });
+                doc.text((item.name || 'Articulo').substring(0, 24), 15, y);
+                doc.text(fmt(item.subtotal || 0), 75, y, { align: 'right' });
                 y += 6;
             });
-            
-            doc.line(5, y, 75, y);
-            y += 6;
-
-            if(saleData.discount > 0) {
-                doc.setFontSize(8).setFont('helvetica', 'normal');
-                doc.text("SUBTOTAL:", 15, y);
-                doc.text(`C$ ${saleData.subtotal.toLocaleString()}`, 75, y, { align: 'right' });
-                y += 5;
-                doc.text("DESCUENTO:", 15, y);
-                doc.text(`-C$ ${saleData.discount.toLocaleString()}`, 75, y, { align: 'right' });
-                y += 6;
-                doc.line(20, y-4, 75, y-4);
-            }
-            
-            doc.setFontSize(10).setFont('helvetica', 'bold');
-            doc.text("TOTAL:", 15, y);
-            doc.text(`C$ ${saleData.total.toLocaleString()}`, 75, y, { align: 'right' });
-            y += 8;
-            
+            doc.line(5, y, 75, y); y += 6;
+            const row = (l, v, bold, size = 8) => { doc.setFontSize(size).setFont('helvetica', bold ? 'bold' : 'normal'); doc.text(l, 15, y); doc.text(v, 75, y, { align: 'right' }); y += 5; };
+            if (saleData.discount > 0) { row("SUBTOTAL:", fmt(saleData.subtotal)); row("DESCUENTO:", '-' + fmt(saleData.discount)); }
+            row("TOTAL:", fmt(saleData.total), true, 10); y += 1;
+            if (hasCash) { row("EFECTIVO RECIBIDO:", fmt(saleData.cashReceived)); row("VUELTO:", fmt(saleData.change || 0), true); }
             doc.setFontSize(7).setFont('helvetica', 'normal');
-            doc.text(`PAGO: ${saleData.paymentMethod || 'EFECTIVO'}`, 40, y, { align: 'center' });
-            y += 4;
-            doc.text(`CLIENTE: ${saleData.customerName || 'PÚBLICO GENERAL'}`, 40, y, { align: 'center' });
-            y += 4;
-
-            if (saleData.customerPrevBalance > 0) {
+            doc.text(`PAGO: ${saleData.paymentMethod || 'EFECTIVO'}`, 40, y, { align: 'center' }); y += 4;
+            doc.text(`CLIENTE: ${saleData.customerName || 'PÚBLICO GENERAL'}`, 40, y, { align: 'center' }); y += 5;
+            if (showDebt) {
                 doc.setFontSize(8).setFont('helvetica', 'bold').setTextColor(200, 0, 0);
-                doc.text(`SALDO ANTERIOR: C$ ${saleData.customerPrevBalance.toLocaleString()}`, 40, y, { align: 'center' });
-                y += 4;
-                const totalDebt = saleData.customerPrevBalance + (saleData.paymentMethod === 'CREDITO' ? saleData.total : 0);
-                doc.text(`DEUDA TOTAL: C$ ${totalDebt.toLocaleString()}`, 40, y, { align: 'center' });
-                y += 4;
+                doc.text(`SALDO ANTERIOR: ${fmt(saleData.customerPrevBalance || 0)}`, 40, y, { align: 'center' }); y += 4;
+                doc.text(`DEUDA TOTAL: ${fmt((saleData.customerPrevBalance || 0) + (isCredit ? saleData.total : 0))}`, 40, y, { align: 'center' }); y += 4;
                 doc.setTextColor(0, 0, 0);
             }
             y += 4;
-            
-            doc.setFontSize(8).setFont('helvetica', 'bold').text("¡GRACIAS POR SU COMPRA!", 40, y, { align: 'center' });
-            y += 5;
+            doc.setFontSize(8).setFont('helvetica', 'bold').text("¡GRACIAS POR SU COMPRA!", 40, y, { align: 'center' }); y += 5;
             doc.setFontSize(7).setFont('helvetica', 'italic').text("¡Dios te bendiga!", 40, y, { align: 'center' });
-            y += 4;
-            doc.text("¡Vuelve pronto!", 40, y, { align: 'center' });
-            
-            doc.save(`Ticket_${saleData.ticketId}.pdf`);
+            showPdfPreview(doc, `Ticket_${saleData.ticketId || saleData.id || 'venta'}.pdf`, `Ticket ${saleData.ticketId || ''}`);
         };
 
         // GESTIÓN DE LOGS
@@ -2275,6 +2441,7 @@
                 items.forEach(item => {
                     detailedSales.push({
                         FECHA: new Date(s.timestamp).toLocaleString(),
+                        TICKET: s.ticketId || '',
                         CLIENTE: s.customerName,
                         PRODUCTO: item.name,
                         CANTIDAD: item.qty,
@@ -2333,247 +2500,64 @@
             logAction("EXPORTAR_EXCEL_DETALLADO", "Se generó reporte Excel con desglose de items y Kardex");
         };
 
-        function renderChart(data) {
-            const canvas = document.getElementById('salesChart');
-            if(!canvas) return;
-            const ctx = canvas.getContext('2d');
-            const daily = {};
-            data.forEach(s => {
-                const d = s.timestamp.split('T')[0];
-                daily[d] = (daily[d] || 0) + s.total;
-            });
-            
-            if (window.salesChartInstance) window.salesChartInstance.destroy();
-            
-            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-            gradient.addColorStop(0, 'rgba(99, 102, 241, 0.4)');
-            gradient.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
-
-            window.salesChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: Object.keys(daily).sort(),
-                    datasets: [{
-                        label: 'Ventas Diarias',
-                        data: Object.values(daily),
-                        borderColor: '#6366f1',
-                        backgroundColor: gradient,
-                        fill: true,
-                        tension: 0.4,
-                        borderWidth: 3,
-                        pointRadius: 0,
-                        pointHoverRadius: 6,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: '#6366f1',
-                        pointBorderWidth: 3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: '#f8fafc' }, ticks: { font: { size: 9 } } },
-                        x: { grid: { display: false }, ticks: { font: { size: 9 } } }
-                    }
-                }
-            });
-        }
-        
         window.generateSalesReport = () => {
-            const f = document.getElementById('repFrom').value;
-            const t = document.getElementById('repTo').value;
-            const filtered = sales.filter(s => { 
-                const d = s.timestamp ? s.timestamp.split('T')[0] : ''; 
-                return d >= f && d <= t; 
-            });
-            
-            if(filtered.length === 0) return window.showToast("No hay ventas en este rango", "error");
-
+            const f = document.getElementById('repFrom').value, t = document.getElementById('repTo').value;
+            const { sales: fs, pays: fp, exps: fe } = repData;
+            const manager = hasManagerRole();
+            if (fs.length === 0 && fp.length === 0 && fe.length === 0) return window.showToast("No hay movimientos en este rango", "error");
             try {
-                const { jsPDF } = window.jspdf;
-                if (!jsPDF) throw new Error("jsPDF no cargado");
-                
-                const doc = new jsPDF('l', 'mm', 'a4');
-                const isAdmin = currentUser && currentUser.role === 'admin';
-                
-                let totalSales = 0;
-                let totalProfit = 0;
-
-                const tableData = [];
-                filtered.forEach(s => {
-                    totalSales += (s.total || 0);
-                    totalProfit += (s.profit || 0);
-                    
-                    const items = s.items || [];
-                    items.forEach((i, idx) => {
-                        tableData.push([
-                            idx === 0 ? (s.timestamp ? new Date(s.timestamp).toLocaleString() : '---') : '',
-                            idx === 0 ? (s.ticketId || '---') : '',
-                            idx === 0 ? (s.seller || '---').toUpperCase() : '',
-                            idx === 0 ? (s.customerName || 'MOSTRADOR').toUpperCase() : '',
-                            idx === 0 ? (s.paymentMethod || 'EFECTIVO') : '',
-                            idx === 0 ? (s.status === 'PENDIENTE' || s.paymentStatus === 'PENDING' ? 'PENDIENTE' : 'PAGADO') : '',
-                            i.qty,
-                            (i.name || 'Prod').toUpperCase(),
-                            `C$${(i.subtotal || 0).toLocaleString()}`,
-                            idx === 0 ? `C$${(s.total || 0).toLocaleString()}` : ''
-                        ]);
-                    });
-                });
-
-                doc.setFontSize(20).setTextColor(15, 23, 42).text("REPORTE DETALLADO DE VENTAS", 148, 20, { align: 'center' });
-                doc.setFontSize(10).setTextColor(100).text(`Periodo: ${f} al ${t}`, 148, 27, { align: 'center' });
-                doc.setFontSize(9).text(`Generado por: ${currentUser ? currentUser.username.toUpperCase() : 'SISTEMA'} - Fecha: ${new Date().toLocaleString()}`, 148, 33, { align: 'center' });
-                
-                doc.autoTable({ 
-                    startY: 35, 
-                    head: [['FECHA', 'TICKET', 'VENDEDOR', 'CLIENTE', 'PAGO', 'ESTADO', 'CANT', 'PRODUCTO', 'SUBT', 'TOTAL']], 
-                    body: tableData,
-                    theme: 'grid',
-                    headStyles: { fillColor: [15, 23, 42], fontSize: 7 },
-                    bodyStyles: { fontSize: 6 },
-                    columnStyles: {
-                        7: { cellWidth: 50 },
-                        8: { halign: 'right' },
-                        9: { halign: 'right', fontStyle: 'bold' }
-                    }
-                });
-
-                const finalY = doc.lastAutoTable.finalY + 10;
-                doc.setFontSize(12).setFont('helvetica', 'bold');
-                doc.text(`TOTAL VENDIDO: C$${totalSales.toLocaleString()}`, 280, finalY, { align: 'right' });
-                
-                if (isAdmin) {
-                    doc.text(`GANANCIA ESTIMADA: C$${totalProfit.toLocaleString()}`, 280, finalY + 7, { align: 'right' });
-                }
-
-                doc.save(`Reporte_Ventas_Detallado_${f}_a_${t}.pdf`);
-                logAction("GENERAR_REPORTE_VENTAS_PDF", `Reporte de ventas del ${f} al ${t}`);
-            } catch (err) {
-                console.error("Error al generar PDF:", err);
-                window.showToast("Error al generar el reporte PDF", "error");
-            }
+                const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a4');
+                const body = [];
+                fs.forEach(x => (x.items || []).forEach((i, idx) => body.push([
+                    idx === 0 ? new Date(x.timestamp).toLocaleString() : '', idx === 0 ? (x.ticketId || '---') : '', idx === 0 ? (x.seller || '---').toUpperCase() : '',
+                    idx === 0 ? (x.customerName || 'MOSTRADOR').toUpperCase() : '', idx === 0 ? (x.paymentMethod || 'EFECTIVO') : '', idx === 0 ? (x.status || 'PAGADO') : '',
+                    i.qty, (i.name || 'Prod').toUpperCase(), fmt(i.subtotal || 0), idx === 0 ? fmt(x.total || 0) : ''])));
+                doc.setFontSize(20).setFont('helvetica', 'bold').setTextColor(15, 23, 42).text("REPORTE DE VENTAS Y GASTOS", 148, 18, { align: 'center' });
+                doc.setFontSize(10).setFont('helvetica', 'normal').setTextColor(100).text(`Periodo: ${f} al ${t} · Generado por ${currentUser.username.toUpperCase()} · ${new Date().toLocaleString()}`, 148, 25, { align: 'center' });
+                doc.autoTable({ startY: 30, head: [['FECHA', 'TICKET', 'VENDEDOR', 'CLIENTE', 'PAGO', 'ESTADO', 'CANT', 'PRODUCTO', 'SUBT', 'TOTAL']], body, theme: 'grid', headStyles: { fillColor: [15, 23, 42], fontSize: 7 }, bodyStyles: { fontSize: 6 }, columnStyles: { 7: { cellWidth: 50 }, 8: { halign: 'right' }, 9: { halign: 'right', fontStyle: 'bold' } } });
+                const total = sumBy(fs, x => x.total), credit = sumBy(fs.filter(x => x.paymentMethod === 'CREDITO'), x => x.total), abonos = sumBy(fp, x => x.amount), gastos = sumBy(fe, x => x.amount), profit = sumBy(fs, x => x.profit);
+                const sum = [['Ventas totales', fmt(total)], ['  de las cuales a crédito (por cobrar)', fmt(credit)], ['Abonos recibidos', fmt(abonos)], ['Cobrado (contado + abonos)', fmt(total - credit + abonos)]];
+                if (manager) sum.push(['Gastos del periodo', '-' + fmt(gastos)], ['Ventas − Gastos', fmt(total - gastos)], ['Utilidad de ventas', fmt(profit)], ['GANANCIA NETA (utilidad − gastos)', fmt(profit - gastos)]);
+                doc.autoTable({ startY: doc.lastAutoTable.finalY + 8, head: [['RESUMEN DEL PERIODO', 'MONTO']], body: sum, theme: 'striped', headStyles: { fillColor: [79, 70, 229] }, columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } }, tableWidth: 140 });
+                if (manager && fe.length) doc.autoTable({ startY: doc.lastAutoTable.finalY + 8, head: [['FECHA', 'CONCEPTO', 'CATEGORÍA', 'MONTO']], body: fe.map(e => [new Date(e.timestamp).toLocaleString(), e.concept, e.category, fmt(e.amount)]), theme: 'striped', headStyles: { fillColor: [220, 38, 38] }, columnStyles: { 3: { halign: 'right' } } });
+                doc.save(`Reporte_${f}_a_${t}.pdf`);
+                logAction("GENERAR_REPORTE_VENTAS_PDF", `Reporte del ${f} al ${t}`);
+            } catch (err) { console.error(err); window.showToast("Error al generar el reporte PDF", "error"); }
         };
 
         window.generateCierrePDF = () => {
-            const hoy = new Date().toISOString().split('T')[0];
-            const filteredSales = sales.filter(s => s.timestamp.split('T')[0] === hoy);
-            const filteredPays = payments.filter(p => p.timestamp.split('T')[0] === hoy);
-            
-            const byMethod = { EFECTIVO: 0, TRANSFERENCIA: 0, TARJETA: 0, CREDITO: 0 };
-            let totalVentas = 0;
-            let totalAbonos = 0;
-            
-            filteredSales.forEach(s => {
-                const m = s.paymentMethod || 'EFECTIVO';
-                if (byMethod.hasOwnProperty(m)) byMethod[m] += s.total;
-                totalVentas += s.total;
-            });
-
-            filteredPays.forEach(p => {
-                totalAbonos += p.amount;
-                byMethod.EFECTIVO += p.amount;
-            });
-
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-
-            doc.setFontSize(22).setFont('helvetica', 'bold').text("CIERRE DE CAJA DIARIO", 105, 20, { align: 'center' });
-            doc.setFontSize(10).setFont('helvetica', 'normal').text(`Fecha: ${new Date().toLocaleDateString()} - Generado por: ${currentUser ? currentUser.username.toUpperCase() : 'SISTEMA'}`, 105, 28, { align: 'center' });
-            doc.setFontSize(9).text(`Hora de Impresión: ${new Date().toLocaleTimeString()}`, 105, 34, { align: 'center' });
-
-            doc.autoTable({
-                startY: 42,
-                head: [['CONCEPTO', 'MONTO']],
-                body: [
-                    ['VENTAS EN EFECTIVO', `C$ ${byMethod.EFECTIVO.toLocaleString()}`],
-                    ['VENTAS POR TRANSFERENCIA', `C$ ${byMethod.TRANSFERENCIA.toLocaleString()}`],
-                    ['VENTAS CON TARJETA', `C$ ${byMethod.TARJETA.toLocaleString()}`],
-                    ['VENTAS AL CRÉDITO (FIADO)', `C$ ${byMethod.CREDITO.toLocaleString()}`],
-                    ['COBROS / ABONOS RECIBIDOS', `C$ ${totalAbonos.toLocaleString()}`]
-                ],
-                theme: 'striped',
-                headStyles: { fillColor: [16, 185, 129] }
-            });
-
-            const finalY = doc.lastAutoTable.finalY + 10;
-            doc.setFontSize(14).setFont('helvetica', 'bold');
-            doc.text(`DINERO TOTAL RECIBIDO: C$ ${(byMethod.EFECTIVO + byMethod.TRANSFERENCIA + byMethod.TARJETA).toLocaleString()}`, 200, finalY, { align: 'right' });
-            
-            doc.save(`Cierre_Caja_${hoy}.pdf`);
+            const c = computeCierre(currentCierreDate || todayStr());
+            const manager = hasManagerRole();
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            doc.setFontSize(22).setFont('helvetica', 'bold').text("CIERRE DE CAJA", 105, 20, { align: 'center' });
+            doc.setFontSize(10).setFont('helvetica', 'normal').text(`Fecha del corte: ${c.date} · Generado por ${currentUser.username.toUpperCase()} · ${new Date().toLocaleString()}`, 105, 28, { align: 'center' });
+            const sec = t => [{ content: t, colSpan: 2, styles: { fillColor: [226, 232, 240], fontStyle: 'bold' } }];
+            const body = [sec(`VENTAS DEL DÍA (${c.ds.length})`), ['Efectivo', fmt(c.m.EFECTIVO)], ['Transferencias', fmt(c.m.TRANSFERENCIA)], ['Tarjeta', fmt(c.m.TARJETA)], ['Crédito (no entra a caja)', fmt(c.m.CREDITO)], ['TOTAL VENDIDO', fmt(c.totalVentas)],
+                sec('COBROS Y EGRESOS'), [`Abonos de clientes (${c.ps.length})`, '+' + fmt(c.abonos)], [`Gastos del día (${c.es.length})`, '-' + fmt(c.gastos)],
+                sec('RESULTADO'), ['Total recibido (sin crédito)', fmt(c.ingresos)], ['EFECTIVO ESPERADO EN CAJA (ventas efectivo + abonos − gastos)', fmt(c.efectivoCaja)], ['Ventas − Gastos', fmt(c.totalVentas - c.gastos)]];
+            if (manager) body.push(['Ganancia neta (utilidad − gastos)', fmt(c.neta)]);
+            doc.autoTable({ startY: 36, head: [['CONCEPTO', 'MONTO']], body, theme: 'striped', headStyles: { fillColor: [16, 185, 129] }, columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } } });
+            if (c.es.length) doc.autoTable({ startY: doc.lastAutoTable.finalY + 8, head: [['GASTO', 'CATEGORÍA', 'MONTO']], body: c.es.map(e => [e.concept, e.category, fmt(e.amount)]), theme: 'grid', headStyles: { fillColor: [220, 38, 38] }, columnStyles: { 2: { halign: 'right' } } });
+            if (c.ds.length) doc.autoTable({ startY: doc.lastAutoTable.finalY + 8, head: [['TICKET', 'CLIENTE', 'PAGO', 'TOTAL']], body: c.ds.map(x => [x.ticketId || '---', x.customerName, x.paymentMethod, fmt(x.total)]), theme: 'grid', headStyles: { fillColor: [30, 41, 59] }, styles: { fontSize: 8 }, columnStyles: { 3: { halign: 'right' } } });
+            doc.save(`Cierre_Caja_${c.date}.pdf`);
         };
 
         window.generateDebtReport = () => {
             const debtors = customers.filter(c => c.balance > 0);
             if (debtors.length === 0) return window.showToast("No hay clientes con deuda activa", "info");
-
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l', 'mm', 'a4');
-
-            doc.setFontSize(20).setFont('helvetica', 'bold').text("REPORTE DETALLADO DE CUENTAS POR COBRAR", 148, 20, { align: 'center' });
-            doc.setFontSize(10).text(`Generado por: ${currentUser ? currentUser.username.toUpperCase() : 'SISTEMA'} - Fecha: ${new Date().toLocaleString()}`, 148, 28, { align: 'center' });
-
-            const tableData = [];
-            let totalGeneralDebt = 0;
-
+            const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a4');
+            doc.setFontSize(20).setFont('helvetica', 'bold').text("CUENTAS POR COBRAR", 148, 20, { align: 'center' });
+            doc.setFontSize(10).text(`Generado por: ${currentUser.username.toUpperCase()} - ${new Date().toLocaleString()}`, 148, 28, { align: 'center' });
+            const body = []; let totalDebt = 0;
             debtors.forEach(c => {
-                totalGeneralDebt += c.balance;
-                
-                // Obtener ventas pendientes
-                const customerSales = sales.filter(s => s.customerId === c.id && (s.status === 'PENDIENTE' || s.paymentStatus === 'PENDING'));
-                // Obtener abonos realizados
-                const customerPays = payments.filter(p => p.customerId === c.id);
-                
-                // Unir y ordenar por fecha
-                const movements = [
-                    ...customerSales.map(s => ({ ...s, moveType: 'VENTA' })),
-                    ...customerPays.map(p => ({ ...p, moveType: 'ABONO', total: p.amount, ticketId: 'RECIBO' }))
-                ].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-
-                if (movements.length === 0) {
-                    tableData.push([c.name, c.phone || '---', '---', 'SALDO INICIAL / AJUSTE', `C$ ${c.balance.toLocaleString()}`]);
-                } else {
-                    movements.forEach((m, idx) => {
-                        let desc = '';
-                        if (m.moveType === 'VENTA') {
-                            desc = (m.items || []).map(i => `${i.qty}x ${i.name}`).join(', ').substring(0, 50);
-                        } else {
-                            desc = 'ABONO A CUENTA / PAGO RECIBIDO';
-                        }
-
-                        tableData.push([
-                            idx === 0 ? c.name : '', 
-                            idx === 0 ? (c.phone || '---') : '',
-                            m.ticketId || '---',
-                            { content: desc, styles: { textColor: m.moveType === 'ABONO' ? [16, 185, 129] : [0, 0, 0] } },
-                            { 
-                                content: m.moveType === 'ABONO' ? `- C$ ${m.total.toLocaleString()}` : `C$ ${m.total.toLocaleString()}`,
-                                styles: { textColor: m.moveType === 'ABONO' ? [16, 185, 129] : [0, 0, 0] }
-                            }
-                        ]);
-                    });
-                    tableData.push(['', '', '', { content: 'SALDO PENDIENTE ACTUAL:', styles: { halign: 'right', fontStyle: 'bold' } }, { content: `C$ ${c.balance.toLocaleString()}`, styles: { fontStyle: 'bold', fillColor: [254, 243, 199] } }]);
-                }
+                const a = getCustomerAccount(c.id); totalDebt += a.balance;
+                body.push([{ content: `${c.name}  ·  Tel: ${c.phone || '---'}  ·  Crédito ${fmt(a.totalCredit)}  ·  Pagado ${fmt(a.totalPaid)}`, colSpan: 6, styles: { fillColor: [241, 245, 249], fontStyle: 'bold' } }]);
+                ledgerRows(a).forEach(r => body.push(r));
+                body.push([{ content: 'SALDO PENDIENTE', colSpan: 5, styles: { halign: 'right', fontStyle: 'bold' } }, { content: fmt(a.balance), styles: { fontStyle: 'bold', fillColor: [254, 243, 199], halign: 'right' } }]);
             });
-
-            doc.autoTable({
-                startY: 35,
-                head: [['CLIENTE', 'TELÉFONO', 'REF / TICKET', 'DETALLE DE MOVIMIENTO', 'MONTO']],
-                body: tableData,
-                theme: 'grid',
-                headStyles: { fillColor: [30, 41, 59] },
-                columnStyles: {
-                    3: { cellWidth: 100 },
-                    4: { halign: 'right' }
-                }
-            });
-
-            const finalY = doc.lastAutoTable.finalY + 10;
-            doc.setFontSize(14).setFont('helvetica', 'bold');
-            doc.text(`TOTAL GENERAL POR COBRAR: C$ ${totalGeneralDebt.toLocaleString()}`, 280, finalY, { align: 'right' });
-
-            doc.save(`Reporte_Deudas_Detallado_${new Date().toISOString().split('T')[0]}.pdf`);
+            doc.autoTable({ startY: 35, head: [['FECHA', 'REF', 'DETALLE', 'CARGO', 'ABONO', 'SALDO']], body, theme: 'grid', headStyles: { fillColor: [30, 41, 59] }, styles: { fontSize: 8 }, columnStyles: { 3: { halign: 'right' }, 4: { halign: 'right' }, 5: { halign: 'right' } } });
+            doc.setFontSize(14).setFont('helvetica', 'bold').text(`TOTAL POR COBRAR: ${fmt(totalDebt)}`, 280, doc.lastAutoTable.finalY + 10, { align: 'right' });
+            doc.save(`Reporte_Deudas_${todayStr()}.pdf`);
         };
 
         window.generateLogsPDF = () => {
@@ -2609,61 +2593,16 @@
             doc.save(`Logs_Sistema_${new Date().toISOString().split('T')[0]}.pdf`);
         };
 
-        window.generateInventoryReport = (fromId, toId) => {
-            const f = document.getElementById(fromId).value;
-            const t = document.getElementById(toId).value;
-            
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l', 'mm', 'a4');
-
-            doc.setFontSize(20).setFont('helvetica', 'bold').text("REPORTE DE INVENTARIO Y STOCK", 148, 20, { align: 'center' });
-            doc.setFontSize(10).text(`Generado por: ${currentUser ? currentUser.username.toUpperCase() : 'SISTEMA'} - Fecha: ${new Date().toLocaleString()}`, 148, 28, { align: 'center' });
-
-            const tableData = products.map(p => {
-                const totalVendido = sales.reduce((sum, s) => {
-                    const item = (s.items || []).find(i => i.name === p.name);
-                    return sum + (item ? item.qty : 0);
-                }, 0);
-
-                return [
-                    p.code || '---',
-                    p.name.toUpperCase(),
-                    p.category || 'GENERAL',
-                    p.stock,
-                    totalVendido,
-                    `C$ ${p.cost.toLocaleString()}`,
-                    `C$ ${p.price.toLocaleString()}`,
-                    `C$ ${(p.stock * p.price).toLocaleString()}`
-                ];
-            });
-
-            doc.autoTable({
-                startY: 35,
-                head: [['CÓDIGO', 'PRODUCTO', 'CATEGORÍA', 'STOCK', 'VENDIDOS', 'COSTO', 'PRECIO', 'VALOR TOTAL']],
-                body: tableData,
-                theme: 'grid',
-                headStyles: { fillColor: [79, 70, 229] },
-                columnStyles: {
-                    3: { halign: 'center' },
-                    4: { halign: 'center' },
-                    5: { halign: 'right' },
-                    6: { halign: 'right' },
-                    7: { halign: 'right' }
-                }
-            });
-
-            doc.save(`Reporte_Inventario_${new Date().toISOString().split('T')[0]}.pdf`);
-        };
-
         document.getElementById('loginBtn').addEventListener('click', handleLogin);
         document.getElementById('posSearch').addEventListener('input', renderPOS);
         document.getElementById('stockFilter').addEventListener('input', renderStock);
         
-        const hoy = new Date().toISOString().split('T')[0];
+        const hoy = todayStr();
         document.getElementById('repFrom').value = hoy;
         document.getElementById('repTo').value = hoy;
         document.getElementById('repFrom').onchange = updateReports;
         document.getElementById('repTo').onchange = updateReports;
+        document.getElementById('historySearch').addEventListener('input', () => { historyLimit = 25; renderHistory(); });
         
         if(document.getElementById('invFrom')) {
             document.getElementById('invFrom').value = hoy;
