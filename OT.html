@@ -2792,22 +2792,41 @@
         doc.setLineWidth(0.6);
         doc.line(15, 49, 200, 49);
 
-        // BOX DATOS CLIENTE - TIGHTER & ELEGANTER (HEIGHT 30 FOR MULTI-LINE ADDRESS WRAPPING)
+        // BOX DATOS CLIENTE - ALTURA DINAMICA (el nombre del cliente y la direccion pueden ocupar varias lineas)
+        const leftLabels = ["Cliente:", "Sucursal:", "Dirección:", "Atención de:", "Sector:"];
+        const leftValues = [clienteNombre, sucursalVal, direccionVal, atencionVal, sectorVal];
+        const LEFT_VALUE_X = 48;      // valores un poco mas a la derecha
+        const LEFT_VALUE_W = 62;      // ancho disponible antes de la linea divisoria
+        const DIVIDER_X = 112.5;
+        const RIGHT_LABEL_X = 117.5;
+        const RIGHT_VALUE_X = 138;
+
+        // Pre-calcular lineas para conocer la altura de la caja
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        const leftWrapped = leftValues.map((value, idx) => {
+          doc.setFont('helvetica', idx === 0 ? 'bold' : 'normal');
+          const lines = doc.splitTextToSize(String(value || ''), LEFT_VALUE_W);
+          // Cliente (0) y Direccion (2) pueden usar varias lineas; el resto 1
+          const maxLines = (idx === 0 || idx === 2) ? 4 : 1;
+          return lines.slice(0, maxLines);
+        });
+        let totalLeftHeight = 0;
+        leftWrapped.forEach(l => { totalLeftHeight += 4.6 + (l.length - 1) * 3.5; });
+        const boxHeight = Math.max(36, 62.2 - 52 + totalLeftHeight);
+        const boxBottom = 52 + boxHeight;
+
         doc.setDrawColor(...line);
         doc.setFillColor(248, 250, 252);
         doc.setLineWidth(0.3);
-        doc.roundedRect(15, 52, 185, 36, 2, 2, 'FD');
-        doc.line(107.5, 52, 107.5, 88);
+        doc.roundedRect(15, 52, 185, boxHeight, 2, 2, 'FD');
+        doc.line(DIVIDER_X, 52, DIVIDER_X, boxBottom);
 
         doc.setTextColor(...primary);
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(11);
         doc.text("DATOS DEL CLIENTE", 20, 57.5);
-        doc.text("INFORMACIÓN DEL TRABAJO", 112.5, 57.5);
-
-        // RENDER DATOS DEL CLIENTE WITH DYNAMIC WRAPPING SUPPORT FOR ADDRESS
-        const leftLabels = ["Cliente:", "Sucursal:", "Dirección:", "Atención de:", "Sector:"];
-        const leftValues = [clienteNombre, sucursalVal, direccionVal, atencionVal, sectorVal];
+        doc.text("INFORMACIÓN DEL TRABAJO", RIGHT_LABEL_X, 57.5);
 
         let currentLeftY = 62.2;
         leftLabels.forEach((label, idx) => {
@@ -2820,16 +2839,11 @@
           doc.setTextColor(...dark);
           doc.setFontSize(9);
 
-          const value = leftValues[idx];
-          // Allow address (idx === 2, ahora que Sucursal ocupa el idx 1) to wrap up to 2 lines
-          const maxLines = idx === 2 ? 2 : 1;
-          const wrappedLines = doc.splitTextToSize(value, 58).slice(0, maxLines);
-
+          const wrappedLines = leftWrapped[idx];
           wrappedLines.forEach((lineText, lineIdx) => {
-            doc.text(lineText, 44, currentLeftY + lineIdx * 3.5);
+            doc.text(lineText, LEFT_VALUE_X, currentLeftY + lineIdx * 3.5);
           });
 
-          // Move vertical cursor downwards dynamically
           currentLeftY += 4.6 + (wrappedLines.length - 1) * 3.5;
         });
 
@@ -2846,15 +2860,15 @@
           doc.setFont('helvetica', 'normal');
           doc.setTextColor(...slate);
           doc.setFontSize(8.5);
-          doc.text(label, 112.5, y);
+          doc.text(label, RIGHT_LABEL_X, y);
           doc.setTextColor(...dark);
           doc.setFontSize(9);
-          doc.text(doc.splitTextToSize(value, 53).slice(0, 1)[0] || '', 133, y);
+          doc.text(doc.splitTextToSize(value, 58).slice(0, 1)[0] || '', RIGHT_VALUE_X, y);
         });
 
         // SERVICE TABLE - NO MIN-CELL-HEIGHT FOR SNUGNESS (STARTING AT Y = 92, tras ampliar la caja de datos)
         doc.autoTable({
-          startY: 92,
+          startY: boxBottom + 4,
           margin: { left: 15, right: 15 },
           theme: 'grid',
           head: [["Servicio", "Descripción del Trabajo"]],
