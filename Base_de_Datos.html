@@ -2836,13 +2836,12 @@
         }
 
         const quimicosOrdenados = [...state.quimicos].sort((a, b) => {
-          if (a.codigo < b.codigo) return -1;
-          if (a.codigo > b.codigo) return 1;
-          return 0;
+          return String(a.codigo || "").localeCompare(String(b.codigo || ""));
         });
 
         tbody.innerHTML = "";
         quimicosOrdenados.forEach(q => {
+          try {
           const tr = document.createElement("tr");
           tr.innerHTML = `
           <td data-label="Código" class="nowrap-column">
@@ -2872,7 +2871,7 @@
           </td>
           <td data-label="Categoría">
             <div class="cell-content">
-              <span class="badge badge-accent" style="font-size: 0.75rem;">${escapeHtml(q.categoria.split(" - ")[0])}</span>
+              <span class="badge badge-accent" style="font-size: 0.75rem;">${escapeHtml(String(q.categoria || "").split(" - ")[0])}</span>
             </div>
           </td>
           <td data-label="Acciones" class="nowrap-column">
@@ -2887,7 +2886,14 @@
           </td>
         `;
           tbody.appendChild(tr);
+          } catch (rowErr) {
+            console.error("Error al dibujar químico:", q, rowErr);
+          }
         });
+
+        // Reaplicar el filtro de búsqueda si hay texto escrito
+        const searchBox = document.getElementById("search-quimicos");
+        if (searchBox && searchBox.value) filterTable("quimicos");
       }
 
       // ==========================================================================
@@ -3141,8 +3147,8 @@
 
             const promises = sheetsQuimicos.map(async (q) => {
               const existe = state.quimicos.some(fq =>
-                fq.codigo.trim().toLowerCase() === q.codigo.trim().toLowerCase() ||
-                fq.quimico.trim().toLowerCase() === q.quimico.trim().toLowerCase()
+                String(fq.codigo || "").trim().toLowerCase() === String(q.codigo || "").trim().toLowerCase() ||
+                String(fq.quimico || "").trim().toLowerCase() === String(q.quimico || "").trim().toLowerCase()
               );
 
               if (!existe) {
